@@ -1,0 +1,64 @@
+{
+  "interaction_log": [
+    {
+      "user": "Alex Mercer",
+      "role": "user",
+      "content": "who is sanjaya kandel",
+      "timestamp": "2026-07-30T21:57:15.360435"
+    },
+    {
+      "user": "Alex Mercer",
+      "role": "assistant",
+      "content": "Based on the Live Web Search Results, Sanjaya Kandel appears to be a multi-talented individual with diverse professional experience. \n\nAccording to his portfolio website (Source [1] - https://www.kandelsanjaya.com.np/), Sanjaya is a software developer, UI/UX designer, AI enthusiast, and full-stack developer from Nepal.\n\nHowever, his LinkedIn profile (Source [2] - https://np.linkedin.com/in/sanjaya-kandel-908a2994) suggests that he is currently working as a Hospitality Recruiter at Bright Star HR",
+      "timestamp": "2026-07-30T21:57:15.362093"
+    },
+    {
+      "user": "Alex Mercer",
+      "role": "user",
+      "content": "lumbini ict campus phone number ",
+      "timestamp": "2026-07-30T21:57:40.890983"
+    },
+    {
+      "user": "Alex Mercer",
+      "role": "assistant",
+      "content": "I can provide you with the necessary information about Lumbini ICT Campus from the knowledge base you've provided. Unfortunately, the address, phone number, email, and website details aren't mentioned in the given context. However, as per LICT Campus Assistant, I can inform you that Lumbini ICT Campus is located in Lumbini, Nepal.",
+      "timestamp": "2026-07-30T21:57:40.900393"
+    },
+    {
+      "user": "Alex Mercer",
+      "role": "user",
+      "content": "hii",
+      "timestamp": "2026-07-30T22:05:23.855462"
+    },
+    {
+      "user": "Alex Mercer",
+      "role": "assistant",
+      "content": "Hello! How can I help you today? 😊",
+      "timestamp": "2026-07-30T22:05:23.857422"
+    },
+    {
+      "user": "Alex Mercer",
+      "role": "user",
+      "content": "do you know me ",
+      "timestamp": "2026-07-30T22:05:34.639276"
+    },
+    {
+      "user": "Alex Mercer",
+      "role": "assistant",
+      "content": "Based on the Live Web Search Results provided, I believe you are referring to the 2013 Canadian thriller film \"Do You Know Me?\" \n\nAccording to Source [1] - IMDb, the film is directed by Penelope Buitenhuis and stars Rachelle Lefevre, Jeremy London, Ted Whittall, and Lynda Boyd. The plot revolves around a young woman named Elsa who discovers that her real identity is that of a girl who disappeared twenty years before.\n\nSource [2] - YouTube suggests that the film is a kidnapping, crime, mystery, a",
+      "timestamp": "2026-07-30T22:05:34.642296"
+    },
+    {
+      "user": "Alex Mercer",
+      "role": "user",
+      "content": "do you know me ",
+      "timestamp": "2026-07-30T22:06:09.752819"
+    },
+    {
+      "user": "Alex Mercer",
+      "role": "assistant",
+      "content": "It seems like we have a document about Sanjaya Kandel, a full-stack developer and UI/UX designer. However, I couldn't find any information in the provided document that directly mentions you. Could you please provide more context or information about yourself so I can better understand your question and try to find a connection?",
+      "timestamp": "2026-07-30T22:06:09.760411"
+    }
+  ]
+}
