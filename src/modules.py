@@ -32,6 +32,7 @@ from .utils import (
     stream_to_ui,
     duckduckgo_search,
     detect_greeting,
+    get_greeting_response,
     search_lict_knowledge,
     log_interaction_to_json,
     logo_spinner,
@@ -41,8 +42,6 @@ log = logging.getLogger("edusphere.modules")
 
 # Shared RAG manager (model is already cached by Streamlit)
 _rag_manager = VectorStoreManager(load_embedding_model())
-
-
 # ==============================================================================
 # Shared helpers
 # ==============================================================================

@@ -40,7 +40,7 @@ def get_connection():
 
 
 def init_db():
-    """Create tables if they do not already exist."""
+    """Create tables if they do not already exist, and migrate existing schemas."""
     with get_connection() as conn:
         c = conn.cursor()
         c.execute(
@@ -50,6 +50,7 @@ def init_db():
                 username TEXT UNIQUE NOT NULL,
                 email TEXT UNIQUE NOT NULL,
                 full_name TEXT,
+                role TEXT DEFAULT 'Student',
                 salt TEXT NOT NULL,
                 password_hash TEXT NOT NULL,
                 theme TEXT DEFAULT 'dark',
@@ -57,6 +58,12 @@ def init_db():
             )
             """
         )
+        # Migrate: add role column if it doesn't exist yet (for existing DBs)
+        try:
+            c.execute("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'Student'")
+        except Exception:
+            pass  # column already exists
+
         c.execute(
             """
             CREATE TABLE IF NOT EXISTS chats (
@@ -88,7 +95,7 @@ def init_db():
 # ---------------------- USER MANAGEMENT ---------------------- #
 
 def register_user(
-    username: str, email: str, password: str, full_name: str = ""
+    username: str, email: str, password: str, full_name: str = "", role: str = "Student"
 ) -> tuple[bool, str]:
     """Register a new user with salted PBKDF2 hashed password."""
     username = username.strip().lower()
@@ -103,18 +110,19 @@ def register_user(
         with get_connection() as conn:
             c = conn.cursor()
             c.execute(
-                """INSERT INTO users (username, email, full_name, salt, password_hash, created_at)
-                   VALUES (?, ?, ?, ?, ?, ?)""",
+                """INSERT INTO users (username, email, full_name, role, salt, password_hash, created_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
                 (
                     username,
                     email,
                     full_name,
+                    role,
                     salt,
                     pw_hash,
                     datetime.datetime.now().isoformat(),
                 ),
             )
-        log.info("New user registered: %s", username)
+        log.info("New user registered: %s (%s)", username, role)
         return True, "Account created successfully! Please log in."
     except sqlite3.IntegrityError:
         return False, "Username or email already exists."

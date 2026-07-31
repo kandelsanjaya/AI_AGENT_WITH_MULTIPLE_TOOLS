@@ -39,6 +39,7 @@ def seed_default_accounts():
             email="admin@edusphere.ai",
             password="admin123",
             full_name="System Administrator",
+            role="Admin"
         )
     except Exception:
         pass
@@ -49,6 +50,7 @@ def seed_default_accounts():
             email="student@edusphere.ai",
             password="student123",
             full_name="Alex Mercer",
+            role="Student"
         )
     except Exception:
         pass
@@ -76,11 +78,9 @@ def get_user_info(email: str) -> Optional[dict]:
         c.execute("SELECT * FROM users WHERE email = ? OR username = ?", (email, email))
         row = c.fetchone()
         if row:
-            # Determine role dynamically based on username/email
-            role = "Executive Lead" if "admin" in row["username"] or "admin" in row["email"] else "Graduate Scholar"
             return {
                 "name": row["full_name"] or row["username"],
-                "role": role,
+                "role": row["role"] or "Student",
                 "email": row["email"],
                 "username": row["username"],
                 "id": row["id"]
@@ -95,7 +95,7 @@ def register_user(
     role: str = "Student",
 ) -> UserRecord:
     """
-    Register a new user in the SQLite database (matches original API signature).
+    Register a new user in the SQLite database.
     """
     email = email.strip().lower()
     username = email.split("@")[0]
@@ -104,7 +104,8 @@ def register_user(
         username=username,
         email=email,
         password=password,
-        full_name=name
+        full_name=name,
+        role=role
     )
     if not success:
         raise ValueError(f"Email '{email}' is already registered: {msg}")
