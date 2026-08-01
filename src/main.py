@@ -196,7 +196,7 @@ def render_login_screen(theme: dict) -> None:
         unsafe_allow_html=True,
     )
 
-    # Row 2: Tabs and Form/Credentials
+    # Row 2: Login form (left) + Demo credentials (right) — one row
     col1, col2 = st.columns([1.2, 1], gap="medium")
 
     with col1:
@@ -236,36 +236,6 @@ def render_login_screen(theme: dict) -> None:
                     else:
                         st.error("❌ Invalid credentials.")
 
-            # Social logins section with Glassmorphic Round Buttons & SVG logos (Text-free)
-            st.markdown('<div class="social-divider">OR AUTHENTICATE WITH</div>', unsafe_allow_html=True)
-            
-            # Use raw HTML with custom styling for social login row containing round buttons
-            st.markdown(
-                """
-                <div class="social-login-container">
-                    <button class="glass-social-btn google" onclick="alert('Google Auth integration coming soon!')">
-                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
-                            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
-                        </svg>
-                    </button>
-                    <button class="glass-social-btn apple" onclick="alert('Apple Auth integration coming soon!')">
-                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.17c.66-.81 1.11-1.93.99-3.06-.96.04-2.13.64-2.82 1.45-.6.7-1.13 1.84-1.01 2.95.89.04 2.18-.53 2.84-1.34" fill="currentColor"/>
-                        </svg>
-                    </button>
-                    <button class="glass-social-btn github" onclick="alert('GitHub Auth integration coming soon!')">
-                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
-                            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.579.688.481C19.137 20.162 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
-                        </svg>
-                    </button>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-
         with t2:
             # Registration Form
             with st.form("register_form", clear_on_submit=False):
@@ -275,7 +245,7 @@ def render_login_screen(theme: dict) -> None:
                 reg_pass = st.text_input("🔒 Password", type="password")
                 reg_pass_conf = st.text_input("🔄 Confirm Password", type="password")
                 reg_role = st.selectbox("🎓 Choose your Role", ["Student", "Professor", "Administrator"])
-                
+
                 reg_submit = st.form_submit_button("🚀 Register Account", use_container_width=True)
 
                 if reg_submit:
@@ -318,6 +288,37 @@ def render_login_screen(theme: dict) -> None:
             unsafe_allow_html=True
         )
 
+    # Row 3: Social login icons — centered below both columns
+    st.markdown(
+        '<div style="text-align:center; width:100%; margin:22px auto 6px auto; font-size:0.72rem; font-family:\'JetBrains Mono\',monospace; letter-spacing:1px; color:var(--sub); opacity:0.8;">OR AUTHENTICATE WITH</div>',
+        unsafe_allow_html=True
+    )
+    st.markdown(
+        """
+        <div style="display:flex; justify-content:center; align-items:center; gap:18px; width:100%; margin-bottom:20px;">
+            <button class="glass-social-btn google" onclick="alert('Google Auth integration coming soon!')">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+                </svg>
+            </button>
+            <button class="glass-social-btn apple" onclick="alert('Apple Auth integration coming soon!')">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.17c.66-.81 1.11-1.93.99-3.06-.96.04-2.13.64-2.82 1.45-.6.7-1.13 1.84-1.01 2.95.89.04 2.18-.53 2.84-1.34" fill="currentColor"/>
+                </svg>
+            </button>
+            <button class="glass-social-btn github" onclick="alert('GitHub Auth integration coming soon!')">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.579.688.481C19.137 20.162 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
+                </svg>
+            </button>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
 
 # ---------------------------------------------------------------------------
 
@@ -327,7 +328,6 @@ def render_login_screen(theme: dict) -> None:
 NAV_OPTIONS = [
     "🧠 EduChat & RAG Studio",
     "📚 Study Planner & Syllabus",
-    "🔬 Socratic Concept Clarifier",
     "🧪 Quiz & Assessment Generator",
     "💻 Code Lab & Explainer",
     "🌍 Academic Translator",
@@ -339,14 +339,12 @@ NAV_OPTIONS = [
     "🌍 Interactive 3D Globe",
     "🛡️ Cyber Security Panel",
     "📊 System Analytics",
-    "🏛️ Architecture Blueprint",
     "⚙️ Settings & Profile",
 ]
 
 MODULE_MAP = {
     "🧠 EduChat & RAG Studio": render_educhat,
     "📚 Study Planner & Syllabus": render_study_planner,
-    "🔬 Socratic Concept Clarifier": render_socratic_clarifier,
     "🧪 Quiz & Assessment Generator": render_quiz_generator,
     "💻 Code Lab & Explainer": render_code_lab,
     "🌍 Academic Translator": render_translator,
@@ -358,7 +356,6 @@ MODULE_MAP = {
     "🌍 Interactive 3D Globe": render_globe_map,
     "🛡️ Cyber Security Panel": render_cyber_panel,
     "📊 System Analytics": render_analytics,
-    "🏛️ Architecture Blueprint": render_architecture,
     "⚙️ Settings & Profile": lambda: render_settings(),
 }
 
@@ -448,22 +445,28 @@ def render_sidebar() -> str:
         # Profile Picture & Name Display
         if st.session_state.get("profile_pic"):
             st.markdown(
-                f'<div style="text-align:center; margin-bottom:15px;">'
-                f'<img src="{st.session_state.profile_pic}" style="border-radius:50%; width:80px; height:80px; border:2px solid var(--border-neon); object-fit:cover; box-shadow:0 0 10px var(--glow);"/>'
+                f'<div style="text-align:center; margin-bottom:5px;">'
+                f'<img src="{st.session_state.profile_pic}" style="border-radius:50%; width:32px; height:32px; border:1px solid var(--border-neon); object-fit:cover; box-shadow:0 0 4px var(--glow);"/>'
                 f'</div>',
                 unsafe_allow_html=True
             )
         else:
             st.markdown(
-                f'<div style="text-align:center; margin-bottom:15px; font-size:3.5rem;">'
+                f'<div style="text-align:center; margin-bottom:5px; font-size:1.4rem; filter: drop-shadow(0 0 3px var(--glow));">'
                 f'👤'
                 f'</div>',
                 unsafe_allow_html=True
             )
 
-        st.markdown(f"<h3 style='text-align:center; margin-bottom:5px; margin-top:0;'>{user.get('name', 'User')}</h3>", unsafe_allow_html=True)
-        st.markdown(f"<p style='text-align:center; color:var(--sub); margin-top:0;'>`{user.get('role', 'Student')}`</p>", unsafe_allow_html=True)
-        st.markdown("---")
+        st.markdown(f"<h4 style='text-align:center; font-family:\"Space Grotesk\",sans-serif; font-size:0.82rem; font-weight:600; margin-bottom:4px; margin-top:3px; letter-spacing:0.4px;'>{user.get('name', 'User')}</h4>", unsafe_allow_html=True)
+        role_name = user.get('role', 'Student').upper()
+        st.markdown(
+            f'<div style="text-align:center; color:var(--accent); font-family:\'JetBrains Mono\',monospace; font-size:0.55rem; margin-top:1px; margin-bottom:7px; letter-spacing:0.5px;">'
+            f'{role_name}'
+            f'</div>',
+            unsafe_allow_html=True
+        )
+        st.markdown("<hr style='margin: 4px 0; border: none; border-top: 1px solid rgba(255, 255, 255, 0.06);'>", unsafe_allow_html=True)
 
         # Theme selector
         theme_keys = list(THEMES.keys())
@@ -473,12 +476,12 @@ def render_sidebar() -> str:
             st.session_state.theme = selected_theme
             st.rerun()
 
-        st.markdown("---")
+        st.markdown("<hr style='margin: 4px 0; border: none; border-top: 1px solid rgba(255, 255, 255, 0.06);'>", unsafe_allow_html=True)
 
         # Navigation
         selected = st.radio("📌 Navigation", NAV_OPTIONS, label_visibility="collapsed")
 
-        st.markdown("---")
+        st.markdown("<hr style='margin: 4px 0; border: none; border-top: 1px solid rgba(255, 255, 255, 0.06);'>", unsafe_allow_html=True)
 
         # API key status
         if GROQ_API_KEY:
@@ -538,6 +541,255 @@ def render_navbar() -> None:
     )
 
 
+def inject_galaxy_background(theme_name: str) -> None:
+    """Inject a dynamic canvas-based animation customized for each theme."""
+    import json
+    js_template = """
+        <canvas id="galaxyCanvas" style="position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:-10; pointer-events:none;"></canvas>
+        <script>
+            (function() {
+                const canvas = document.getElementById('galaxyCanvas');
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                
+                let width = canvas.width = window.innerWidth;
+                let height = canvas.height = window.innerHeight;
+                
+                window.addEventListener('resize', () => {
+                    width = canvas.width = window.innerWidth;
+                    height = canvas.height = window.innerHeight;
+                });
+                
+                let mouseX = 0, mouseY = 0;
+                let targetMouseX = 0, targetMouseY = 0;
+                window.addEventListener('mousemove', (e) => {
+                    targetMouseX = (e.clientX - width / 2) * 0.03;
+                    targetMouseY = (e.clientY - height / 2) * 0.03;
+                });
+                
+                const themeName = __THEME_NAME__;
+                
+                const particles = [];
+                
+                if (themeName.includes("JARVIS")) {
+                    particles.rings = [
+                        { r: 120, speed: 0.002, dash: [10, 20] },
+                        { r: 180, speed: -0.001, dash: [40, 10] },
+                        { r: 240, speed: 0.0005, dash: [5, 5] }
+                    ];
+                } else if (themeName.includes("NEURAL")) {
+                    for (let i = 0; i < 60; i++) {
+                        particles.push({
+                            x: Math.random() * width,
+                            y: Math.random() * height,
+                            r: Math.random() * 2 + 1,
+                            pulse: Math.random() * Math.PI,
+                            speed: Math.random() * 0.02
+                        });
+                    }
+                } else if (themeName.includes("QUANTUM")) {
+                    for (let i = 0; i < 4; i++) {
+                        particles.push({
+                            rx: 80 + i * 40,
+                            ry: 30 + i * 15,
+                            angle: Math.random() * Math.PI * 2,
+                            speed: 0.02 + i * 0.005,
+                            rot: (i * Math.PI) / 4
+                        });
+                    }
+                } else if (themeName.includes("CYBERPUNK")) {
+                    for (let i = 0; i < 40; i++) {
+                        particles.push({
+                            x: Math.random() * width,
+                            y: Math.random() * height,
+                            size: Math.random() * 3 + 1,
+                            speed: Math.random() * 0.8 + 0.2
+                        });
+                    }
+                } else if (themeName.includes("AURORA")) {
+                    particles.waves = [
+                        { phase: 0, speed: 0.002, color: 'rgba(52, 211, 153, 0.06)' },
+                        { phase: Math.PI / 3, speed: 0.0015, color: 'rgba(0, 240, 255, 0.04)' }
+                    ];
+                } else {
+                    for (let i = 0; i < 80; i++) {
+                        particles.push({
+                            x: Math.random() * width,
+                            y: Math.random() * height,
+                            size: Math.random() * 1.5 + 0.4,
+                            speed: Math.random() * 0.12 + 0.03
+                        });
+                    }
+                }
+                
+                function draw() {
+                    mouseX += (targetMouseX - mouseX) * 0.05;
+                    mouseY += (targetMouseY - mouseY) * 0.05;
+                    
+                    ctx.fillStyle = 'rgba(10, 11, 22, 0.18)';
+                    ctx.fillRect(0, 0, width, height);
+                    
+                    if (themeName.includes("JARVIS")) {
+                        ctx.strokeStyle = 'rgba(0, 162, 255, 0.15)';
+                        ctx.lineWidth = 1.5;
+                        const centerX = width / 2 + mouseX * 0.5;
+                        const centerY = height / 2 + mouseY * 0.5;
+                        
+                        const sweepAngle = (Date.now() * 0.0015) % (Math.PI * 2);
+                        ctx.beginPath();
+                        ctx.moveTo(centerX, centerY);
+                        ctx.arc(centerX, centerY, 240, sweepAngle, sweepAngle + 0.2);
+                        ctx.closePath();
+                        ctx.fillStyle = 'rgba(0, 162, 255, 0.02)';
+                        ctx.fill();
+                        
+                        particles.rings.forEach(ring => {
+                            ctx.beginPath();
+                            ctx.arc(centerX, centerY, ring.r, 0, Math.PI * 2);
+                            ctx.setLineDash(ring.dash);
+                            ctx.stroke();
+                        });
+                        ctx.setLineDash([]);
+                        
+                    } else if (themeName.includes("NEURAL")) {
+                        ctx.fillStyle = 'rgba(0, 255, 102, 0.5)';
+                        particles.forEach((p, idx) => {
+                            p.pulse += p.speed;
+                            const size = p.r * (1 + Math.sin(p.pulse) * 0.3);
+                            
+                            const px = p.x + mouseX * 0.5;
+                            const py = p.y + mouseY * 0.5;
+                            
+                            ctx.beginPath();
+                            ctx.arc(px, py, size, 0, Math.PI * 2);
+                            ctx.fill();
+                            
+                            for (let j = idx + 1; j < particles.length; j++) {
+                                const p2 = particles[j];
+                                const p2x = p2.x + mouseX * 0.5;
+                                const p2y = p2.y + mouseY * 0.5;
+                                const dist = Math.hypot(px - p2x, py - p2y);
+                                if (dist < 120) {
+                                    ctx.strokeStyle = `rgba(0, 255, 102, ${0.15 * (1 - dist / 120)})`;
+                                    ctx.lineWidth = 0.5;
+                                    ctx.beginPath();
+                                    ctx.moveTo(px, py);
+                                    ctx.lineTo(p2x, p2y);
+                                    ctx.stroke();
+                                }
+                            }
+                        });
+                        
+                    } else if (themeName.includes("QUANTUM")) {
+                        const centerX = width / 2 + mouseX * 0.5;
+                        const centerY = height / 2 + mouseY * 0.5;
+                        
+                        particles.forEach(orbit => {
+                            orbit.angle += orbit.speed;
+                            
+                            ctx.save();
+                            ctx.translate(centerX, centerY);
+                            ctx.rotate(orbit.rot);
+                            
+                            ctx.strokeStyle = 'rgba(6, 182, 212, 0.08)';
+                            ctx.lineWidth = 1;
+                            ctx.beginPath();
+                            ctx.ellipse(0, 0, orbit.rx, orbit.ry, 0, 0, Math.PI * 2);
+                            ctx.stroke();
+                            
+                            const ex = orbit.rx * Math.cos(orbit.angle);
+                            const ey = orbit.ry * Math.sin(orbit.angle);
+                            ctx.fillStyle = '#06b6d4';
+                            ctx.beginPath();
+                            ctx.arc(ex, ey, 3, 0, Math.PI * 2);
+                            ctx.fill();
+                            
+                            ctx.restore();
+                        });
+                        
+                    } else if (themeName.includes("CYBERPUNK")) {
+                        ctx.fillStyle = 'rgba(255, 0, 127, 0.4)';
+                        particles.forEach(p => {
+                            p.y -= p.speed;
+                            if (p.y < 0) p.y = height;
+                            
+                            const px = p.x + mouseX * 0.8;
+                            const py = p.y + mouseY * 0.8;
+                            
+                            ctx.fillRect(px, py, p.size, p.size);
+                        });
+                        
+                        if (Math.random() > 0.96) {
+                            ctx.fillStyle = 'rgba(0, 240, 255, 0.15)';
+                            ctx.fillRect(0, Math.random() * height, width, Math.random() * 4 + 1);
+                        }
+                        
+                    } else if (themeName.includes("AURORA")) {
+                        particles.waves.forEach(w => {
+                            w.phase += w.speed;
+                            ctx.fillStyle = w.color;
+                            ctx.beginPath();
+                            ctx.moveTo(0, height);
+                            for (let x = 0; x <= width; x += 10) {
+                                const y = height * 0.6 + Math.sin(x * 0.002 + w.phase) * 60 + mouseY * 0.5;
+                                ctx.lineTo(x, y);
+                            }
+                            ctx.lineTo(width, height);
+                            ctx.closePath();
+                            ctx.fill();
+                        });
+                        
+                    } else {
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+                        particles.forEach((s, idx) => {
+                            s.y -= s.speed;
+                            if (s.y < 0) s.y = height;
+                            
+                            const sx = s.x + mouseX * s.size * 0.25;
+                            const sy = s.y + mouseY * s.size * 0.25;
+                            
+                            ctx.beginPath();
+                            ctx.arc(sx, sy, s.size, 0, Math.PI * 2);
+                            ctx.fill();
+                            
+                            for (let j = idx + 1; j < particles.length; j++) {
+                                const s2 = particles[j];
+                                const s2x = s2.x + mouseX * s2.size * 0.25;
+                                const s2y = s2.y + mouseY * s2.size * 0.25;
+                                const dist = Math.hypot(sx - s2x, sy - s2y);
+                                if (dist < 110) {
+                                    ctx.strokeStyle = `rgba(0, 240, 255, ${0.12 * (1 - dist / 110)})`;
+                                    ctx.lineWidth = 0.4;
+                                    ctx.beginPath();
+                                    ctx.moveTo(sx, sy);
+                                    ctx.lineTo(s2x, s2y);
+                                    ctx.stroke();
+                                }
+                            }
+                        });
+                        
+                        const nebulaGrad = ctx.createRadialGradient(
+                            width / 2 + mouseX * 0.5, height / 2 + mouseY * 0.5, 80,
+                            width / 2 + mouseX, height / 2 + mouseY, width * 0.6
+                        );
+                        nebulaGrad.addColorStop(0, 'rgba(127, 0, 255, 0.07)');
+                        nebulaGrad.addColorStop(0.5, 'rgba(0, 240, 255, 0.03)');
+                        nebulaGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                        ctx.fillStyle = nebulaGrad;
+                        ctx.fillRect(0, 0, width, height);
+                    }
+                    
+                    requestAnimationFrame(draw);
+                }
+                
+                draw();
+            })();
+        </script>
+        """.replace("__THEME_NAME__", json.dumps(theme_name))
+    
+    st.markdown(js_template, unsafe_allow_html=True)
+
+
 # ---------------------------------------------------------------------------
 # Application Entry Point
 # ---------------------------------------------------------------------------
@@ -552,6 +804,7 @@ def main() -> None:
     # Always resolve the active theme first (needed for CSS)
     theme = THEMES[st.session_state.theme]
     inject_css(theme)
+    inject_galaxy_background(st.session_state.theme)
 
     if not st.session_state.authenticated:
         render_login_screen(theme)

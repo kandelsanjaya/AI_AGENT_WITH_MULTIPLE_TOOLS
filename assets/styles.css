@@ -52,21 +52,55 @@ section[data-testid="stSidebar"] * {
     color: var(--text) !important;
 }
 
+/* Reduce sidebar gaps */
+section[data-testid="stSidebar"] [data-testid="stVerticalBlock"] {
+    gap: 0.4rem !important;
+}
+section[data-testid="stSidebar"] .element-container {
+    margin-bottom: 0px !important;
+}
+
+/* Fix selectbox styling and dropdown text visibility inside sidebar */
+section[data-testid="stSidebar"] .stSelectbox [data-baseweb="select"] {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 6px !important;
+}
+section[data-testid="stSidebar"] div[data-baseweb="select"] *,
+section[data-testid="stSidebar"] .stSelectbox div,
+section[data-testid="stSidebar"] .stSelectbox span,
+section[data-testid="stSidebar"] .stSelectbox p {
+    color: var(--text) !important;
+    -webkit-text-fill-color: var(--text) !important;
+    opacity: 1 !important;
+}
+div[data-baseweb="popover"] * {
+    color: #ececf1 !important;
+    background-color: #1e1e24 !important;
+}
+
 section[data-testid="stSidebar"] [role="radiogroup"] label {
-    border-radius: 10px !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
     padding: 6px 12px !important;
     margin-bottom: 2px !important;
-    transition: all 0.2s ease !important;
+    box-shadow: none !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+    font-size: 0.82rem !important;
+    transition: all 0.15s ease !important;
 }
 
 section[data-testid="stSidebar"] [role="radiogroup"] label:hover {
-    background: color-mix(in srgb, var(--accent) 12%, transparent) !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    transform: none !important;
 }
 
 section[data-testid="stSidebar"] [role="radiogroup"] label[data-checked="true"],
 section[data-testid="stSidebar"] [role="radiogroup"] label[aria-checked="true"] {
-    background: color-mix(in srgb, var(--accent) 18%, transparent) !important;
+    background: rgba(255, 255, 255, 0.06) !important;
     border-left: 3px solid var(--accent) !important;
+    box-shadow: none !important;
 }
 
 /* ── Navigation Bar ───────────────────────────────────────── */
@@ -86,7 +120,7 @@ section[data-testid="stSidebar"] [role="radiogroup"] label[aria-checked="true"] 
 
 .navbar {
     background: linear-gradient(var(--bg), var(--bg)) padding-box,
-                linear-gradient(90deg, #00f0ff, #ff007f, #7f00ff, #00ff87, #00f0ff) border-box !important;
+        linear-gradient(90deg, #00f0ff, #ff007f, #7f00ff, #00ff87, #00f0ff) border-box !important;
     background-size: 200% auto !important;
     animation: border-flow 4s linear infinite, neon-pulse 6s ease-in-out infinite alternate !important;
     border: 2px solid transparent !important;
@@ -102,9 +136,11 @@ section[data-testid="stSidebar"] [role="radiogroup"] label[aria-checked="true"] 
     0% {
         box-shadow: 0 0 20px rgba(0, 240, 255, 0.4), inset 0 0 8px rgba(0, 240, 255, 0.1);
     }
+
     50% {
         box-shadow: 0 0 35px rgba(255, 0, 127, 0.5), inset 0 0 12px rgba(255, 0, 127, 0.15);
     }
+
     100% {
         box-shadow: 0 0 20px rgba(127, 0, 255, 0.4), inset 0 0 8px rgba(127, 0, 255, 0.1);
     }
@@ -203,6 +239,7 @@ section[data-testid="stSidebar"] [role="radiogroup"] label[aria-checked="true"] 
     margin-bottom: 24px;
     height: 48px;
 }
+
 .scanner-eye {
     width: 90px;
     height: 45px;
@@ -214,7 +251,11 @@ section[data-testid="stSidebar"] [role="radiogroup"] label[aria-checked="true"] 
     /* Eye blink animation speed (Faster & smoother: 3.5s) */
     animation: eyeBlink 3.5s infinite alternate ease-in-out;
 }
-.scanner-eye.right-eye { border-radius: 100px 0 100px 0; }
+
+.scanner-eye.right-eye {
+    border-radius: 100px 0 100px 0;
+}
+
 .scanner-pupil {
     width: 32px;
     height: 32px;
@@ -228,13 +269,27 @@ section[data-testid="stSidebar"] [role="radiogroup"] label[aria-checked="true"] 
     /* Pupil scanning speed (Faster & smoother: 2.2s) */
     animation: pupilScan 2.2s ease-in-out infinite alternate;
 }
+
 @keyframes eyeBlink {
-    0%, 100% { height: 45px; }
-    50%       { height: 2px; }
+
+    0%,
+    100% {
+        height: 45px;
+    }
+
+    50% {
+        height: 2px;
+    }
 }
+
 @keyframes pupilScan {
-    0%   { transform: translate(-70%, -50%); }
-    100% { transform: translate(-30%, -50%); }
+    0% {
+        transform: translate(-70%, -50%);
+    }
+
+    100% {
+        transform: translate(-30%, -50%);
+    }
 }
 
 /* ── Login / Register Box ────────────────────────────────── */
@@ -243,7 +298,7 @@ section[data-testid="stSidebar"] [role="radiogroup"] label[aria-checked="true"] 
     margin: 40px auto;
     padding: 36px 36px;
     background: linear-gradient(rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.95)) padding-box,
-                linear-gradient(90deg, #00f0ff, #ff007f, #7f00ff, #00ff87, #00f0ff) border-box !important;
+        linear-gradient(90deg, #00f0ff, #ff007f, #7f00ff, #00ff87, #00f0ff) border-box !important;
     background-size: 200% auto !important;
     animation: border-flow 4s linear infinite !important;
     border: 2px solid transparent !important;
@@ -255,7 +310,7 @@ section[data-testid="stSidebar"] [role="radiogroup"] label[aria-checked="true"] 
 /* ── Streamlit Form Flowing Borders ───────────────────────── */
 div[data-testid="stForm"] {
     background: linear-gradient(rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.95)) padding-box,
-                linear-gradient(90deg, #00f0ff, #ff007f, #7f00ff, #00ff87, #00f0ff) border-box !important;
+        linear-gradient(90deg, #00f0ff, #ff007f, #7f00ff, #00ff87, #00f0ff) border-box !important;
     background-size: 200% auto !important;
     animation: border-flow 4s linear infinite !important;
     border: 2px solid transparent !important;
@@ -268,6 +323,7 @@ div[data-testid="stForm"] {
     0% {
         background-position: 0% 0%;
     }
+
     100% {
         background-position: -200% 0%;
     }
@@ -1125,3 +1181,78 @@ h3 {
     color: var(--sub);
     letter-spacing: 1.2px;
 }
+
+/* Center social media login container and divider */
+.social-login-container {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 16px !important;
+    margin-top: 15px !important;
+    width: 100% !important;
+}
+.social-divider {
+    text-align: center !important;
+    margin: 20px auto 10px auto !important;
+    font-size: 0.75rem !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    letter-spacing: 1px !important;
+    color: var(--sub) !important;
+    opacity: 0.8 !important;
+    width: 100% !important;
+    display: block !important;
+}
+
+/* Keep login cards in one single row on all viewport widths */
+.login-box ~ div[data-testid="stHorizontalBlock"] {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
+}
+.login-box ~ div[data-testid="stHorizontalBlock"] > div {
+    min-width: 0 !important;
+    flex: 1 1 0% !important;
+}
+
+/* ── Social Login Glass Buttons ────────────────────────────── */
+.glass-social-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+    padding: 0;
+}
+
+.glass-social-btn svg {
+    width: 22px;
+    height: 22px;
+}
+
+.glass-social-btn:hover {
+    transform: translateY(-3px) scale(1.08);
+    border-color: var(--accent);
+    box-shadow: 0 6px 24px var(--glow);
+    background: rgba(255, 255, 255, 0.14);
+}
+
+.glass-social-btn:active {
+    transform: scale(0.95);
+}
+
+.glass-social-btn.apple {
+    color: #ffffff;
+}
+
+.glass-social-btn.github {
+    color: #ffffff;
+}

@@ -226,10 +226,33 @@ def render_educhat() -> None:
                         background: transparent;
                         overflow: hidden;
                     }
+                    .voice-wave {
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 3px;
+                        height: 12px;
+                        margin-left: 6px;
+                    }
+                    .voice-bar {
+                        width: 2px;
+                        height: 100%;
+                        background: #ef4444;
+                        border-radius: 1px;
+                        animation: bounce 0.8s ease-in-out infinite alternate;
+                    }
+                    .voice-bar:nth-child(2) { animation-delay: 0.15s; }
+                    .voice-bar:nth-child(3) { animation-delay: 0.3s; }
+                    .voice-bar:nth-child(4) { animation-delay: 0.45s; }
+                    .voice-bar:nth-child(5) { animation-delay: 0.6s; }
+
+                    @keyframes bounce {
+                        0% { transform: scaleY(0.3); }
+                        100% { transform: scaleY(1.1); }
+                    }
                 </style>
                 <div style="font-family:'Inter',sans-serif; display:flex; flex-direction:column;
                             background-color: rgb(38, 39, 48); border: 1px solid transparent; position: relative;
-                            padding: 0.75rem 1rem; border-radius: 0.5rem; box-sizing: border-box; width: 100%; margin: 6px auto 0 auto;">
+                            padding: 0.4rem 0.6rem; border-radius: 0.5rem; box-sizing: border-box; width: 100%; margin: 0 auto;">
                     <div style="display:flex; flex-direction:row; align-items:center; gap:0.5rem;">
                         <button type="button" id="mic-btn"
                             style="background:transparent;border:none;font-size:1.15rem;color:#ececf1;
@@ -243,14 +266,23 @@ def render_educhat() -> None:
                             <option value="es-ES" style="background:#262730;color:#ececf1;">ES</option>
                             <option value="fr-FR" style="background:#262730;color:#ececf1;">FR</option>
                         </select>
-                        <span id="listening-indicator" style="color: #ef4444; font-size: 0.75rem; font-style: italic; display: none; align-items:center; gap:4px;">🔴 Listening...</span>
+                        <span id="listening-indicator" style="color: #ef4444; font-size: 0.75rem; font-style: italic; display: none; align-items:center; gap:4px;">
+                            🔴 Listening
+                            <span class="voice-wave">
+                                <span class="voice-bar"></span>
+                                <span class="voice-bar"></span>
+                                <span class="voice-bar"></span>
+                                <span class="voice-bar"></span>
+                                <span class="voice-bar"></span>
+                            </span>
+                        </span>
                     </div>
                     
-                    <textarea id="live-transcription-box" placeholder="Transcribed text will appear here..." style="width: 100%; height: 50px; background: rgba(0,0,0,0.25); color: #ececf1; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 6px; font-size: 0.85rem; outline: none; resize: none; margin-top: 8px; box-sizing: border-box; font-family: inherit;"></textarea>
+                    <textarea id="live-transcription-box" placeholder="Transcribed text will appear here..." style="width: 100%; height: 32px; background: rgba(0,0,0,0.25); color: #ececf1; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 4px 6px; font-size: 0.85rem; outline: none; resize: none; margin-top: 4px; box-sizing: border-box; font-family: inherit;"></textarea>
                     
-                    <div style="display: flex; gap: 8px; margin-top: 6px; justify-content: flex-end;">
-                        <button type="button" id="copy-btn" style="background: rgba(255,255,255,0.06); color: #ececf1; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 4px 8px; font-size: 0.75rem; cursor: pointer; outline: none;">📋 Copy</button>
-                        <button type="button" id="ask-btn" style="background: #00f0ff; color: #0f172a; border: none; border-radius: 4px; padding: 4px 10px; font-size: 0.75rem; font-weight: bold; cursor: pointer; outline: none;">💬 Ask Bot</button>
+                    <div style="display: flex; gap: 8px; margin-top: 4px; justify-content: flex-end;">
+                        <button type="button" id="copy-btn" style="background: rgba(255,255,255,0.06); color: #ececf1; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 2px 6px; font-size: 0.72rem; cursor: pointer; outline: none;">📋 Copy</button>
+                        <button type="button" id="ask-btn" style="background: #00f0ff; color: #0f172a; border: none; border-radius: 4px; padding: 2px 8px; font-size: 0.72rem; font-weight: bold; cursor: pointer; outline: none;">💬 Ask Bot</button>
                     </div>
                 </div>
                 <script>
@@ -359,7 +391,7 @@ def render_educhat() -> None:
                     }
                 </script>
                 """,
-                height=150,
+                height=100,
             )
 
         # Trigger chat processing if voice prompt was received
@@ -708,10 +740,33 @@ def render_translator() -> None:
                 background: transparent;
                 overflow: hidden;
             }
+            .voice-wave {
+                display: inline-flex;
+                align-items: center;
+                gap: 3px;
+                height: 12px;
+                margin-left: 6px;
+            }
+            .voice-bar {
+                width: 2px;
+                height: 100%;
+                background: #ef4444;
+                border-radius: 1px;
+                animation: bounce 0.8s ease-in-out infinite alternate;
+            }
+            .voice-bar:nth-child(2) { animation-delay: 0.15s; }
+            .voice-bar:nth-child(3) { animation-delay: 0.3s; }
+            .voice-bar:nth-child(4) { animation-delay: 0.45s; }
+            .voice-bar:nth-child(5) { animation-delay: 0.6s; }
+
+            @keyframes bounce {
+                0% { transform: scaleY(0.3); }
+                100% { transform: scaleY(1.1); }
+            }
         </style>
         <div style="font-family:'Inter',sans-serif; display:flex; flex-direction:column;
                     background-color: rgb(38, 39, 48); border: 1px solid transparent; position: relative;
-                    padding: 0.75rem 1rem; border-radius: 0.5rem; box-sizing: border-box; width: 100%; margin-bottom: 12px;">
+                    padding: 0.4rem 0.6rem; border-radius: 0.5rem; box-sizing: border-box; width: 100%; margin-bottom: 6px;">
             <div style="display:flex; flex-direction:row; align-items:center; gap:0.5rem;">
                 <button type="button" id="trans-mic-btn"
                     style="background:transparent;border:none;font-size:1.15rem;color:#ececf1;
@@ -725,14 +780,23 @@ def render_translator() -> None:
                     <option value="es-ES" style="background:#262730;color:#ececf1;">ES</option>
                     <option value="fr-FR" style="background:#262730;color:#ececf1;">FR</option>
                 </select>
-                <span id="trans-indicator" style="color: #ef4444; font-size: 0.75rem; font-style: italic; display: none; align-items:center; gap:4px;">🔴 Listening...</span>
+                <span id="trans-indicator" style="color: #ef4444; font-size: 0.75rem; font-style: italic; display: none; align-items:center; gap:4px;">
+                    🔴 Listening
+                    <span class="voice-wave">
+                        <span class="voice-bar"></span>
+                        <span class="voice-bar"></span>
+                        <span class="voice-bar"></span>
+                        <span class="voice-bar"></span>
+                        <span class="voice-bar"></span>
+                    </span>
+                </span>
             </div>
             
-            <textarea id="trans-transcription-box" placeholder="Transcribed text will appear here..." style="width: 100%; height: 50px; background: rgba(0,0,0,0.25); color: #ececf1; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 6px; font-size: 0.85rem; outline: none; resize: none; margin-top: 8px; box-sizing: border-box; font-family: inherit;"></textarea>
+            <textarea id="trans-transcription-box" placeholder="Transcribed text will appear here..." style="width: 100%; height: 32px; background: rgba(0,0,0,0.25); color: #ececf1; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 4px 6px; font-size: 0.85rem; outline: none; resize: none; margin-top: 4px; box-sizing: border-box; font-family: inherit;"></textarea>
             
-            <div style="display: flex; gap: 8px; margin-top: 6px; justify-content: flex-end;">
-                <button type="button" id="trans-copy-btn" style="background: rgba(255,255,255,0.06); color: #ececf1; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 4px 8px; font-size: 0.75rem; cursor: pointer; outline: none;">📋 Copy</button>
-                <button type="button" id="trans-submit-btn" style="background: #00f0ff; color: #0f172a; border: none; border-radius: 4px; padding: 4px 10px; font-size: 0.75rem; font-weight: bold; cursor: pointer; outline: none;">🌐 Translate</button>
+            <div style="display: flex; gap: 8px; margin-top: 4px; justify-content: flex-end;">
+                <button type="button" id="trans-copy-btn" style="background: rgba(255,255,255,0.06); color: #ececf1; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 2px 6px; font-size: 0.72rem; cursor: pointer; outline: none;">📋 Copy</button>
+                <button type="button" id="trans-submit-btn" style="background: #00f0ff; color: #0f172a; border: none; border-radius: 4px; padding: 2px 8px; font-size: 0.72rem; font-weight: bold; cursor: pointer; outline: none;">🌐 Translate</button>
             </div>
         </div>
         <script>
@@ -834,7 +898,7 @@ def render_translator() -> None:
             }
         </script>
         """,
-        height=150,
+        height=100,
     )
 
     input_text = st.text_area(
@@ -1383,6 +1447,17 @@ def render_image_generator() -> None:
         
         enhance_prompt = st.checkbox("✨ Enhance prompt with Groq AI (Recommended)", value=True)
         
+        style_preset = st.selectbox(
+            "🎨 Render Style Preset",
+            [
+                "📸 Realistic Photorealistic / Cinematic",
+                "🎨 Digital Concept Art",
+                "✏️ Anime & Illustration",
+                "🖌️ Classical Oil Painting"
+            ],
+            index=0
+        )
+        
         aspect_ratio = st.selectbox(
             "📐 Aspect Ratio",
             ["1:1 (Square)", "16:9 (Widescreen)", "9:16 (Portrait)", "4:3 (Classic)"],
@@ -1403,13 +1478,32 @@ def render_image_generator() -> None:
                 enhanced = user_prompt
                 if enhance_prompt:
                     with logo_spinner("Expanding and refining prompt via Groq..."):
+                        style_instructions = {
+                            "📸 Realistic Photorealistic / Cinematic": (
+                                "Make the output a highly detailed photorealistic masterpiece. "
+                                "Specify camera parameters like 'shot on 35mm lens, f/1.8, cinematic volumetric lighting, 8k resolution, sharp focus, realistic textures'."
+                            ),
+                            "🎨 Digital Concept Art": "Make the output a gorgeous digital concept art piece, with vibrant colors, dramatic lighting, and creative detailing.",
+                            "✏️ Anime & Illustration": "Make the output a beautiful anime style illustration, clean line art, and soft cel shading.",
+                            "🖌️ Classical Oil Painting": "Make the output look like a classical oil painting masterpiece, with detailed brush strokes and canvas texture."
+                        }[style_preset]
+                        
                         enhance_instructions = (
                             "You are a professional prompt engineer for Stable Diffusion/Midjourney. "
-                            "Expand the user's short concept into a highly detailed, descriptive, visually stunning prompt. "
-                            "Include lighting, camera angle, style, mood, and detail specifications. "
+                            "Expand the user's short concept into a detailed visual prompt. "
+                            f"Focus style directions: {style_instructions} "
                             "Keep your response strictly to the enhanced prompt text under 100 words. Do NOT include any intro or chat."
                         )
                         enhanced = groq_chat(user_prompt, system=enhance_instructions)
+                else:
+                    # Append default style suffix
+                    style_suffix = {
+                        "📸 Realistic Photorealistic / Cinematic": ", photorealistic, cinematic lighting, 8k resolution, shot on 35mm lens, highly detailed, sharp focus, masterpiece",
+                        "🎨 Digital Concept Art": ", digital concept art, trending on artstation, detailed, vibrant colors",
+                        "✏️ Anime & Illustration": ", anime illustration, clean lines, detailed graphic style",
+                        "🖌️ Classical Oil Painting": ", classical oil painting, fine art, visible brush strokes, canvas texture"
+                    }[style_preset]
+                    enhanced = user_prompt + style_suffix
                 
                 # Aspect Ratio to Dimensions
                 dim_map = {
@@ -1501,44 +1595,262 @@ def render_globe_map() -> None:
         ]
         
         html_code = f"""
-        <script src="//unpkg.com/three"></script>
-        <script src="//unpkg.com/globe.gl"></script>
-        <div style="position: relative; width: 100%; height: 500px; overflow: hidden; border-radius: 8px;">
-            <div id="globeViz" style="width: 100%; height: 100%; background: #000;"></div>
-            <button id="capture-btn" style="position: absolute; top: 10px; right: 10px; z-index: 1000; 
-                background: #00f0ff; color: #0f172a; border: none; padding: 8px 16px; border-radius: 6px; 
-                font-weight: bold; cursor: pointer; font-family: sans-serif; font-size: 0.8rem; box-shadow: 0 0 10px rgba(0, 240, 255, 0.5);">
-                📷 Capture Globe Screenshot
-            </button>
+        <link href="https://cesium.com/downloads/cesiumjs/releases/1.105/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+        <style>
+            html, body {{
+                margin: 0;
+                padding: 0;
+                height: 100%;
+                overflow: hidden;
+                background: #000;
+                font-family: 'Space Grotesk', sans-serif;
+            }}
+            #mapWrapper {{
+                position: relative;
+                width: 100%;
+                height: 500px;
+                border-radius: 8px;
+                overflow: hidden;
+            }}
+            #mapWrapper:fullscreen {{
+                width: 100% !important;
+                height: 100% !important;
+                border-radius: 0 !important;
+            }}
+            #cesiumContainer {{
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+            }}
+            #searchPanel {{
+                position: absolute;
+                top: 12px;
+                left: 50px;
+                z-index: 1000;
+                display: flex;
+                gap: 6px;
+                background: rgba(15, 23, 42, 0.85);
+                backdrop-filter: blur(8px);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 6px;
+                padding: 6px 10px;
+                width: 280px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            }}
+            #mapSearchInput {{
+                flex: 1;
+                background: transparent;
+                border: none;
+                outline: none;
+                color: #ececf1;
+                font-size: 0.8rem;
+                font-family: inherit;
+            }}
+            #mapSearchBtn {{
+                background: #00f0ff;
+                color: #0f172a;
+                border: none;
+                border-radius: 4px;
+                padding: 4px 10px;
+                font-size: 0.75rem;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.2s;
+            }}
+            #mapSearchBtn:hover {{
+                box-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
+            }}
+            #detailsPanel {{
+                position: absolute;
+                bottom: 12px;
+                left: 12px;
+                right: 12px;
+                z-index: 1000;
+                background: rgba(15, 23, 42, 0.85);
+                backdrop-filter: blur(8px);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 8px;
+                padding: 10px 14px;
+                font-size: 0.82rem;
+                color: #ececf1;
+                line-height: 1.4;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+            }}
+            .cesium-viewer-bottom {{ display: none !important; }}
+        </style>
+        <div id="mapWrapper">
+            <div id="cesiumContainer"></div>
+            <div id="searchPanel">
+                 <input type="text" id="mapSearchInput" placeholder="Search any place or question...">
+                 <button id="mapSearchBtn">Search</button>
+            </div>
+            <div id="detailsPanel">
+                🌍 <b>Interactive 3D Globe</b><br/>
+                Click any marker or any place on the sphere to fly to it and view historical/geographical details here.
+            </div>
         </div>
+        <script src="https://cesium.com/downloads/cesiumjs/releases/1.105/Build/Cesium/Cesium.js"></script>
         <script>
-            const pointsData = {json.dumps(points_data)};
-            const globe = Globe({{ rendererConfig: {{ preserveDrawingBuffer: true }} }})
-                (document.getElementById('globeViz'))
-                .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
-                .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
-                .labelsData(pointsData)
-                .labelLat(d => d.lat)
-                .labelLng(d => d.lng)
-                .labelText(d => d.name)
-                .labelColor(() => 'rgba(0, 240, 255, 0.9)')
-                .labelSize(0.8)
-                .onLabelClick((label) => {{
-                    window.parent.postMessage({{ type: 'globe_click', name: label.name, lat: label.lat, lng: label.lng }}, '*');
+            Cesium.Ion.defaultAccessToken = '';
+            
+            try {{
+                const viewer = new Cesium.Viewer('cesiumContainer', {{
+                    imageryProvider: new Cesium.UrlTemplateImageryProvider({{
+                        url: 'https://mt1.google.com/vt/lyrs=y&x={{x}}&y={{y}}&z={{z}}',
+                        maximumLevel: 20
+                    }}),
+                    fullscreenElement: document.getElementById('mapWrapper'),
+                    fullscreenButton: true,
+                    baseLayerPicker: false,
+                    geocoder: false,
+                    navigationHelpButton: false,
+                    homeButton: false,
+                    sceneModePicker: false,
+                    timeline: false,
+                    animation: false
                 }});
                 
-            globe.controls().autoRotate = true;
-            globe.controls().autoRotateSpeed = 0.5;
+                viewer.resize();
+                setTimeout(() => {{ viewer.resize(); }}, 200);
 
-            document.getElementById('capture-btn').addEventListener('click', () => {{
-                // Render before capture to ensure active buffer content
-                globe.renderer().render(globe.scene(), globe.camera());
-                const dataUrl = globe.renderer().domElement.toDataURL("image/png");
-                const link = document.createElement('a');
-                link.download = 'globe_capture.png';
-                link.href = dataUrl;
-                link.click();
-            }});
+                viewer.camera.setView({{
+                    destination: Cesium.Cartesian3.fromDegrees(86.9250, 27.9881, 10000000.0)
+                }});
+
+                const pointsData = {json.dumps(points_data)};
+                pointsData.forEach(p => {{
+                    viewer.entities.add({{
+                        position: Cesium.Cartesian3.fromDegrees(p.lng, p.lat),
+                        billboard: {{
+                            image: 'https://img.icons8.com/color/48/marker.png',
+                            width: 32,
+                            height: 32
+                        }},
+                        label: {{
+                            text: p.name,
+                            font: '14px Space Grotesk, sans-serif',
+                            fillColor: Cesium.Color.AQUA,
+                            outlineColor: Cesium.Color.BLACK,
+                            outlineWidth: 2,
+                            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                            pixelOffset: new Cesium.Cartesian2(0, -16)
+                        }}
+                    }});
+                }});
+
+                // selectedEntity handler for markers
+                viewer.selectedEntityChanged.addEventListener(function(entity) {{
+                    if (Cesium.defined(entity) && Cesium.defined(entity.label)) {{
+                        const name = entity.label.text.getValue();
+                        const descMap = {{
+                            "Mount Everest": "Highest peak on Earth, located in the Himalayas. Famous for mountaineering and unique sub-zero alpine ecosystems.",
+                            "Great Pyramids of Giza": "Ancient Egyptian pyramids near Cairo. Built during the Old Kingdom, they are marvels of ancient engineering.",
+                            "Mariana Trench": "The deepest oceanic trench on Earth, situated in the western Pacific Ocean. Famous for extreme pressure and unique deep-sea life.",
+                            "Amazon Rainforest": "World's largest tropical rainforest, stretching across South America. Home to unparalleled biodiversity and crucial global carbon sinks.",
+                            "CERN (Hadron Collider)": "World's largest particle physics laboratory near Geneva. Famous for the Large Hadron Collider (LHC) and discovering the Higgs Boson."
+                        }};
+                        const desc = descMap[name] || "Famous academic and geographic site.";
+                        document.getElementById('detailsPanel').innerHTML = "📍 <b>" + name + "</b><br/>" + desc;
+                        
+                        const cartographic = Cesium.Ellipsoid.WGS84.cartesianToCartographic(entity.position.getValue(viewer.clock.currentTime));
+                        const lat = Cesium.Math.toDegrees(cartographic.latitude);
+                        const lng = Cesium.Math.toDegrees(cartographic.longitude);
+                        window.parent.postMessage({{
+                            type: 'globe_click',
+                            name: name,
+                            lat: lat,
+                            lng: lng
+                        }}, '*');
+                    }}
+                }});
+
+                const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+                handler.setInputAction(function (click) {{
+                    viewer.selectedEntity = undefined;
+                    const pickedPosition = viewer.camera.pickEllipsoid(click.position, viewer.scene.globe.ellipsoid);
+                    if (pickedPosition) {{
+                        const cartographic = Cesium.Cartographic.fromCartesian(pickedPosition);
+                        const lat = Cesium.Math.toDegrees(cartographic.latitude);
+                        const lng = Cesium.Math.toDegrees(cartographic.longitude);
+                        const coordStr = lat.toFixed(4) + ', ' + lng.toFixed(4);
+                        
+                        document.getElementById('detailsPanel').innerHTML = "📍 <b>Coordinates: " + coordStr + "</b><br/>Click 'Analyze Location' in the sidebar to search detailed historical and geographical knowledge via Groq & Tavily AI.";
+                        
+                        window.parent.postMessage({{
+                            type: 'globe_click',
+                            name: coordStr,
+                            lat: lat,
+                            lng: lng
+                        }}, '*');
+                    }}
+                }}, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+                // Custom search input listeners
+                const searchInput = document.getElementById('mapSearchInput');
+                const searchBtn = document.getElementById('mapSearchBtn');
+
+                function triggerSearch() {{
+                    const query = searchInput.value.trim();
+                    if (!query) return;
+                    
+                    document.getElementById('detailsPanel').innerHTML = "🔍 <b>Searching: " + query + "...</b><br/>Fetching summary details and flying to target location...";
+                    
+                    const wikiUrl = 'https://en.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(query);
+                    fetch(wikiUrl)
+                        .then(res => res.json())
+                        .then(wikiData => {{
+                            let desc = "No direct summary found. Click 'Analyze Location' in the sidebar to search via Groq AI.";
+                            if (wikiData.extract) {{
+                                desc = wikiData.extract;
+                            }}
+                            
+                            const geoUrl = 'https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(query) + '&limit=1';
+                            fetch(geoUrl)
+                                .then(r => r.json())
+                                .then(geoData => {{
+                                    if (geoData && geoData.length > 0) {{
+                                        const lat = parseFloat(geoData[0].lat);
+                                        const lon = parseFloat(geoData[0].lon);
+                                        
+                                        document.getElementById('detailsPanel').innerHTML = "📍 <b>" + (wikiData.title || query) + "</b><br/>" + desc;
+                                        
+                                        viewer.camera.flyTo({{
+                                            destination: Cesium.Cartesian3.fromDegrees(lon, lat, 25000.0),
+                                            duration: 2.0
+                                        }});
+                                        
+                                        window.parent.postMessage({{
+                                            type: 'globe_click',
+                                            name: query,
+                                            lat: lat,
+                                            lng: lon
+                                        }}, '*');
+                                    }} else {{
+                                        document.getElementById('detailsPanel').innerHTML = "📍 <b>" + (wikiData.title || query) + "</b><br/>" + desc + "<br/><span style='color:#ef4444;'>Failed to geocode location coordinates on map.</span>";
+                                    }}
+                                }})
+                                .catch(err => {{
+                                    document.getElementById('detailsPanel').innerHTML = "📍 <b>" + (wikiData.title || query) + "</b><br/>" + desc;
+                                }});
+                        }})
+                        .catch(err => {{
+                            document.getElementById('detailsPanel').innerHTML = "❌ <b>Error</b><br/>Failed to fetch search results.";
+                        }});
+                }}
+
+                searchBtn.addEventListener('click', triggerSearch);
+                searchInput.addEventListener('keypress', function(e) {{
+                    if (e.key === 'Enter') {{
+                        triggerSearch();
+                    }}
+                }});
+            }} catch (e) {{
+                console.error("Cesium failed to load", e);
+                document.getElementById('cesiumContainer').innerHTML = "<div style='color:#ef4444; padding:20px; font-family:sans-serif;'>Failed to load 3D Globe: " + e.message + "</div>";
+            }}
         </script>
         """
         st.components.v1.html(html_code, height=520)
