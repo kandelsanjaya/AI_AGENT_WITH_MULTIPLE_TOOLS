@@ -42,6 +42,7 @@ from src.modules import (  # noqa: E402
     render_architecture,
     render_bg_remover,
     render_code_lab,
+    render_dashboard,
     render_educhat,
     render_quiz_generator,
     render_resume_builder,
@@ -52,6 +53,7 @@ from src.modules import (  # noqa: E402
     render_url_intelligence,
     render_image_generator,
     render_globe_map,
+    render_weather_forecast,
     render_cyber_panel,
 )
 
@@ -326,6 +328,7 @@ def render_login_screen(theme: dict) -> None:
 # ---------------------------------------------------------------------------
 
 NAV_OPTIONS = [
+    "🏠 Dashboard",
     "🧠 EduChat & RAG Studio",
     "📚 Study Planner & Syllabus",
     "🧪 Quiz & Assessment Generator",
@@ -337,12 +340,14 @@ NAV_OPTIONS = [
     "📋 Resume Builder",
     "🎨 AI Image Generator",
     "🌍 Interactive 3D Globe",
+    "⛅ Weather Forecast",
     "🛡️ Cyber Security Panel",
     "📊 System Analytics",
     "⚙️ Settings & Profile",
 ]
 
 MODULE_MAP = {
+    "🏠 Dashboard": render_dashboard,
     "🧠 EduChat & RAG Studio": render_educhat,
     "📚 Study Planner & Syllabus": render_study_planner,
     "🧪 Quiz & Assessment Generator": render_quiz_generator,
@@ -354,6 +359,7 @@ MODULE_MAP = {
     "📋 Resume Builder": render_resume_builder,
     "🎨 AI Image Generator": render_image_generator,
     "🌍 Interactive 3D Globe": render_globe_map,
+    "⛅ Weather Forecast": render_weather_forecast,
     "🛡️ Cyber Security Panel": render_cyber_panel,
     "📊 System Analytics": render_analytics,
     "⚙️ Settings & Profile": lambda: render_settings(),

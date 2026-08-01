@@ -123,6 +123,252 @@ def _render_export_buttons(content: str, base_name: str = "output") -> None:
 
 
 
+
+# ==============================================================================
+# MODULE 0 — Dashboard (Lucy-AI style workspace with EduSphere cards)
+# ==============================================================================
+
+def render_dashboard() -> None:
+    """🏠 EduSphere AI Dashboard — Lucy-AI style workspace home."""
+    user = st.session_state.user_info or {}
+    name = user.get("name", "User")
+    role = user.get("role", "Student")
+    now = datetime.datetime.now()
+    hour = now.hour
+    greeting = "Good morning" if hour < 12 else ("Good afternoon" if hour < 17 else "Good evening")
+
+    total_q = st.session_state.get("total_queries", 0)
+    chat_len = len(st.session_state.get("chat_history", []))
+    session_mins = int((now - st.session_state.get("session_start", now)).total_seconds() / 60)
+
+    # ── Stat Row ──
+    st.markdown(
+        f"""
+        <div style="margin-bottom:20px;">
+            <div style="font-family:'Space Grotesk',sans-serif; font-size:1.35rem; font-weight:700;
+                        color:var(--text); margin-bottom:18px;">
+                Your AI Agent Workspace
+                <span style="font-size:0.95rem; color:var(--accent); margin-left:8px;">+</span>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px;">
+                <div style="background:var(--card); border:1px solid rgba(255,255,255,0.07);
+                            border-radius:14px; padding:18px 20px;">
+                    <div style="font-size:0.68rem; color:var(--sub); letter-spacing:1px; text-transform:uppercase;
+                                margin-bottom:8px;">Total Queries</div>
+                    <div style="font-size:2rem; font-weight:800; color:var(--text); font-family:'Orbitron',monospace;">{total_q}</div>
+                    <div style="font-size:0.72rem; color:#4ade80; margin-top:6px;">▲ Active session</div>
+                </div>
+                <div style="background:var(--card); border:1px solid rgba(255,255,255,0.07);
+                            border-radius:14px; padding:18px 20px;">
+                    <div style="font-size:0.68rem; color:var(--sub); letter-spacing:1px; text-transform:uppercase;
+                                margin-bottom:8px;">Chat Messages</div>
+                    <div style="font-size:2rem; font-weight:800; color:var(--text); font-family:'Orbitron',monospace;">{chat_len}</div>
+                    <div style="font-size:0.72rem; color:var(--accent); margin-top:6px;">▲ This session</div>
+                </div>
+                <div style="background:var(--card); border:1px solid rgba(255,255,255,0.07);
+                            border-radius:14px; padding:18px 20px;">
+                    <div style="font-size:0.68rem; color:var(--sub); letter-spacing:1px; text-transform:uppercase;
+                                margin-bottom:8px;">Session Duration</div>
+                    <div style="font-size:2rem; font-weight:800; color:var(--text); font-family:'Orbitron',monospace;">{session_mins}m</div>
+                    <div style="font-size:0.72rem; color:var(--accent2); margin-top:6px;">Since login</div>
+                </div>
+                <div style="background:var(--card); border:1px solid rgba(255,255,255,0.07);
+                            border-radius:14px; padding:18px 20px;">
+                    <div style="font-size:0.68rem; color:var(--sub); letter-spacing:1px; text-transform:uppercase;
+                                margin-bottom:8px;">Role Access</div>
+                    <div style="font-size:1.4rem; font-weight:800; color:var(--text); font-family:'Orbitron',monospace;">{role[:5].upper()}</div>
+                    <div style="font-size:0.72rem; color:#fb923c; margin-top:6px;">● Authenticated</div>
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    # ── Main area + right panel ──
+    left_col, right_col = st.columns([2.2, 1], gap="medium")
+
+    with left_col:
+        # Greeting card
+        _card_open()
+        st.markdown(
+            f"""
+            <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+                <div>
+                    <div style="font-size:1.5rem; font-weight:700; color:var(--text); margin-bottom:4px;">
+                        {greeting}, <span style="color:var(--accent);">{name}</span>! 👋
+                    </div>
+                    <div style="color:var(--sub); font-size:0.85rem;">
+                        How can EduSphere AI help you today?
+                    </div>
+                </div>
+                <div style="width:90px; height:90px; border-radius:50%;
+                            background:radial-gradient(circle at 35% 35%, #8b5cf6 0%, #1e1b4b 60%, #0a0b16 100%);
+                            box-shadow:0 0 30px rgba(139,92,246,0.5); display:flex; align-items:center;
+                            justify-content:center; font-size:2.2rem; flex-shrink:0;">
+                    🎓
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        _card_close()
+
+        # Quick ask
+        st.markdown("<div style='margin-top:14px;'></div>", unsafe_allow_html=True)
+        _card_open()
+        st.markdown("#### 💬 Quick Ask EduSphere AI")
+        quick_q = st.text_area(
+            "Ask me anything...",
+            placeholder="Ask me anything — e.g. 'Explain Newton's 3rd law', 'Write a Python function...'",
+            height=80,
+            key="dashboard_quick_ask",
+            label_visibility="collapsed"
+        )
+        qcol1, qcol2 = st.columns([1, 4])
+        with qcol1:
+            ask_btn = st.button("▶ Ask", key="dashboard_ask_btn", use_container_width=True)
+        with qcol2:
+            st.caption("Powered by Groq LLaMA 3.1 · RAG Studio")
+
+        if ask_btn and quick_q.strip():
+            with logo_spinner("Thinking..."):
+                answer = groq_chat(
+                    quick_q.strip(),
+                    system="You are EduSphere AI, a helpful educational assistant. Give a concise but thorough answer."
+                )
+                st.session_state.total_queries = total_q + 1
+            st.markdown(f"**🤖 EduSphere AI:**\n\n{answer}")
+        _card_close()
+
+        # Quick-access module cards
+        st.markdown("<div style='margin-top:14px;'></div>", unsafe_allow_html=True)
+        st.markdown("#### 🚀 Quick Module Access")
+        modules_grid = [
+            ("📝", "Summarise PDF", "📝 Executive Summariser", "#00f0ff"),
+            ("🎨", "Generate Image", "🎨 AI Image Generator", "#8b5cf6"),
+            ("💻", "Write Code", "💻 Code Lab & Explainer", "#4ade80"),
+            ("🌍", "Translate Text", "🌍 Academic Translator", "#fb923c"),
+            ("📊", "Analyse Data", "📊 System Analytics", "#f472b6"),
+            ("🧪", "Take Quiz", "🧪 Quiz & Assessment Generator", "#38bdf8"),
+        ]
+        mcols = st.columns(3)
+        for idx, (icon, label, nav_key, color) in enumerate(modules_grid):
+            with mcols[idx % 3]:
+                st.markdown(
+                    f"""
+                    <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+                                border-radius:12px; padding:14px 12px; text-align:center; margin-bottom:10px;
+                                transition:all 0.2s; cursor:pointer;">
+                        <div style="font-size:1.6rem; margin-bottom:6px;">{icon}</div>
+                        <div style="font-size:0.78rem; font-weight:600; color:var(--text);">{label}</div>
+                        <div style="margin-top:8px;">
+                            <span style="font-size:0.65rem; background:rgba(255,255,255,0.06);
+                                         padding:2px 8px; border-radius:6px; color:{color};">Open</span>
+                        </div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+    with right_col:
+        # Memory / Vector Index Status
+        _card_open()
+        st.markdown("#### 🗃️ Memory Status")
+        vi = st.session_state.get("vector_index")
+        doc_count = len(vi.texts) if vi else 0
+        mem_pct = min(int(doc_count / 2), 100)
+        st.markdown(
+            f"""
+            <div style="margin-bottom:10px;">
+                <div style="display:flex; justify-content:space-between; font-size:0.78rem;
+                            color:var(--sub); margin-bottom:6px;">
+                    <span>Memory Usage</span>
+                    <span style="color:{'#4ade80' if mem_pct < 60 else '#fb923c'};">
+                        {'Good' if mem_pct < 60 else 'Moderate'}
+                    </span>
+                </div>
+                <div style="background:rgba(255,255,255,0.06); border-radius:99px; height:6px;">
+                    <div style="background:linear-gradient(90deg,var(--accent),var(--accent2));
+                                width:{max(mem_pct,3)}%; height:6px; border-radius:99px;"></div>
+                </div>
+                <div style="font-size:0.7rem; color:var(--sub); margin-top:5px;">{doc_count} / 200 items</div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        _card_close()
+
+        # Recent chat activity
+        st.markdown("<div style='margin-top:12px;'></div>", unsafe_allow_html=True)
+        _card_open()
+        st.markdown("#### 💬 Recent Chats")
+        history = st.session_state.get("chat_history", [])
+        if history:
+            recents = [m for m in history if m["role"] == "user"][-4:][::-1]
+            for msg in recents:
+                preview = msg["msg"][:42] + "..." if len(msg["msg"]) > 42 else msg["msg"]
+                st.markdown(
+                    f"""
+                    <div style="padding:7px 0; border-bottom:1px solid rgba(255,255,255,0.05);
+                                font-size:0.78rem; color:var(--sub); display:flex; justify-content:space-between;">
+                        <span style="color:var(--text);">💬 {preview}</span>
+                        <span style="font-size:0.68rem; flex-shrink:0; margin-left:8px;">now</span>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+        else:
+            st.caption("No chat history yet — start a conversation in EduChat!")
+        _card_close()
+
+        # Model selector (display only)
+        st.markdown("<div style='margin-top:12px;'></div>", unsafe_allow_html=True)
+        _card_open()
+        st.markdown("#### 🤖 Active Model")
+        from .config import AVAILABLE_MODELS
+        model_options = list(AVAILABLE_MODELS.keys()) if isinstance(AVAILABLE_MODELS, dict) else AVAILABLE_MODELS
+        if "dashboard_model" not in st.session_state:
+            st.session_state.dashboard_model = model_options[0] if model_options else "llama-3.1-8b-instant"
+        chosen = st.selectbox(
+            "Model",
+            model_options,
+            index=model_options.index(st.session_state.dashboard_model) if st.session_state.dashboard_model in model_options else 0,
+            key="dashboard_model_sel",
+            label_visibility="collapsed"
+        )
+        st.session_state.dashboard_model = chosen
+        st.markdown(
+            f'<div style="font-size:0.72rem; color:#4ade80; margin-top:4px;">● Online · Groq Accelerated</div>',
+            unsafe_allow_html=True
+        )
+        _card_close()
+
+        # EduSphere info card (kept!)
+        st.markdown("<div style='margin-top:12px;'></div>", unsafe_allow_html=True)
+        _card_open()
+        st.markdown("#### 🎓 EduSphere AI")
+        st.markdown(
+            """
+            <div style="font-size:0.78rem; color:var(--sub); line-height:1.7;">
+                <div style="color:var(--accent); font-weight:600; margin-bottom:6px;">
+                    Enterprise Educational Ecosystem
+                </div>
+                <div>● 14 AI-powered modules</div>
+                <div>● FAISS RAG document search</div>
+                <div>● 7 premium UI themes</div>
+                <div>● Groq LLaMA 3.1 inference</div>
+                <div>● 3D CesiumJS globe</div>
+                <div style="margin-top:8px; color:var(--accent2); font-size:0.7rem;">
+                    Powered by Groq · FAISS · Streamlit
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        _card_close()
+
+
 # ==============================================================================
 # MODULE 1 — RAG Chatbot (with LICT Knowledge Integration)
 # ==============================================================================
@@ -1571,10 +1817,10 @@ def render_image_generator() -> None:
 
 def render_globe_map() -> None:
     """🌍 Interactive 3D Globe Map for Academic Learning."""
-    st.markdown("### 🌍 Interactive 3D Globe Map")
-    
+    st.markdown("### 🌍 Interactive 3D Globe & Weather Intelligence")
+
     col1, col2 = st.columns([2, 1])
-    
+
     # Predefined places of academic/scientific interest
     PREDEFINED_PLACES = {
         "Mount Everest": {"lat": 27.9881, "lng": 86.9250, "desc": "Highest point on Earth, located in the Himalayas on the border of Nepal and China."},
@@ -1583,8 +1829,715 @@ def render_globe_map() -> None:
         "Amazon Rainforest": {"lat": -3.4653, "lng": -62.2159, "desc": "World's largest tropical rainforest, famous for its biodiverse ecosystem."},
         "CERN (Hadron Collider)": {"lat": 46.2333, "lng": 6.0491, "desc": "World's largest particle physics laboratory, located on the France-Switzerland border."}
     }
-    
+
     with col1:
+        _card_open()
+        st.markdown("#### 🗺️ 3D Globe Viewer (Drag to rotate, scroll to zoom)")
+
+        import json
+        points_data = [
+            {"lat": val["lat"], "lng": val["lng"], "name": name, "color": "red", "size": 0.5}
+            for name, val in PREDEFINED_PLACES.items()
+        ]
+
+        html_code = f"""
+        <link href="https://cesium.com/downloads/cesiumjs/releases/1.105/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+        <style>
+            html, body {{
+                margin: 0;
+                padding: 0;
+                height: 100%;
+                overflow: hidden;
+                background: #000;
+                font-family: 'Space Grotesk', sans-serif;
+            }}
+            #mapWrapper {{
+                position: relative;
+                width: 100%;
+                height: 500px;
+                border-radius: 8px;
+                overflow: hidden;
+            }}
+            #mapWrapper:fullscreen {{
+                width: 100% !important;
+                height: 100% !important;
+                border-radius: 0 !important;
+            }}
+            #cesiumContainer {{
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+            }}
+            #searchPanel {{
+                position: absolute;
+                top: 12px;
+                left: 50px;
+                z-index: 1000;
+                display: flex;
+                gap: 6px;
+                background: rgba(15, 23, 42, 0.85);
+                backdrop-filter: blur(8px);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 6px;
+                padding: 6px 10px;
+                width: 280px;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            }}
+            #mapSearchInput {{
+                flex: 1;
+                background: transparent;
+                border: none;
+                outline: none;
+                color: #ececf1;
+                font-size: 0.8rem;
+                font-family: inherit;
+            }}
+            #mapSearchBtn {{
+                background: #00f0ff;
+                color: #0f172a;
+                border: none;
+                border-radius: 4px;
+                padding: 4px 10px;
+                font-size: 0.75rem;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.2s;
+            }}
+            #mapSearchBtn:hover {{
+                box-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
+            }}
+            #detailsPanel {{
+                position: absolute;
+                bottom: 12px;
+                left: 12px;
+                right: 12px;
+                z-index: 1000;
+                background: rgba(15, 23, 42, 0.85);
+                backdrop-filter: blur(8px);
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 8px;
+                padding: 10px 14px;
+                font-size: 0.82rem;
+                color: #ececf1;
+                line-height: 1.4;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+            }}
+            .cesium-viewer-bottom {{ display: none !important; }}
+        </style>
+        <div id="mapWrapper">
+            <div id="cesiumContainer"></div>
+            <div id="searchPanel">
+                 <input type="text" id="mapSearchInput" placeholder="Search any place or question...">
+                 <button id="mapSearchBtn">Search</button>
+            </div>
+            <div id="detailsPanel">
+                🌍 <b>Interactive 3D Globe</b><br/>
+                Click any marker or any place on the sphere to fly to it and view historical/geographical details here.
+            </div>
+        </div>
+        <script src="https://cesium.com/downloads/cesiumjs/releases/1.105/Build/Cesium/Cesium.js"></script>
+        <script>
+            Cesium.Ion.defaultAccessToken = '';
+
+            try {{
+                const viewer = new Cesium.Viewer('cesiumContainer', {{
+                    imageryProvider: new Cesium.UrlTemplateImageryProvider({{
+                        url: 'https://mt1.google.com/vt/lyrs=y&x={{x}}&y={{y}}&z={{z}}',
+                        maximumLevel: 20
+                    }}),
+                    fullscreenElement: document.getElementById('mapWrapper'),
+                    fullscreenButton: true,
+                    baseLayerPicker: false,
+                    geocoder: false,
+                    navigationHelpButton: false,
+                    homeButton: false,
+                    sceneModePicker: false,
+                    timeline: false,
+                    animation: false
+                }});
+
+                viewer.resize();
+                setTimeout(() => {{ viewer.resize(); }}, 200);
+
+                viewer.camera.setView({{
+                    destination: Cesium.Cartesian3.fromDegrees(86.9250, 27.9881, 10000000.0)
+                }});
+
+                const pointsData = {json.dumps(points_data)};
+                pointsData.forEach(p => {{
+                    viewer.entities.add({{
+                        position: Cesium.Cartesian3.fromDegrees(p.lng, p.lat),
+                        billboard: {{
+                            image: 'https://img.icons8.com/color/48/marker.png',
+                            width: 32,
+                            height: 32
+                        }},
+                        label: {{
+                            text: p.name,
+                            font: '14px Space Grotesk, sans-serif',
+                            fillColor: Cesium.Color.AQUA,
+                            outlineColor: Cesium.Color.BLACK,
+                            outlineWidth: 2,
+                            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                            pixelOffset: new Cesium.Cartesian2(0, -16)
+                        }}
+                    }});
+                }});
+
+                // selectedEntity handler for markers
+                viewer.selectedEntityChanged.addEventListener(function(entity) {{
+                    if (Cesium.defined(entity) && Cesium.defined(entity.label)) {{
+                        const name = entity.label.text.getValue();
+                        const descMap = {{
+                            "Mount Everest": "Highest peak on Earth, located in the Himalayas. Famous for mountaineering and unique sub-zero alpine ecosystems.",
+                            "Great Pyramids of Giza": "Ancient Egyptian pyramids near Cairo. Built during the Old Kingdom, they are marvels of ancient engineering.",
+                            "Mariana Trench": "The deepest oceanic trench on Earth, situated in the western Pacific Ocean. Famous for extreme pressure and unique deep-sea life.",
+                            "Amazon Rainforest": "World's largest tropical rainforest, stretching across South America. Home to unparalleled biodiversity and crucial global carbon sinks.",
+                            "CERN (Hadron Collider)": "World's largest particle physics laboratory near Geneva. Famous for the Large Hadron Collider (LHC) and discovering the Higgs Boson."
+                        }};
+                        const desc = descMap[name] || "Famous academic and geographic site.";
+                        document.getElementById('detailsPanel').innerHTML = "📍 <b>" + name + "</b><br/>" + desc;
+
+                        const cartographic = Cesium.Ellipsoid.WGS84.cartesianToCartographic(entity.position.getValue(viewer.clock.currentTime));
+                        const lat = Cesium.Math.toDegrees(cartographic.latitude);
+                        const lng = Cesium.Math.toDegrees(cartographic.longitude);
+                        window.parent.postMessage({{
+                            type: 'globe_click',
+                            name: name,
+                            lat: lat,
+                            lng: lng
+                        }}, '*');
+                    }}
+                }});
+
+                const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+                handler.setInputAction(function (click) {{
+                    viewer.selectedEntity = undefined;
+                    const pickedPosition = viewer.camera.pickEllipsoid(click.position, viewer.scene.globe.ellipsoid);
+                    if (pickedPosition) {{
+                        const cartographic = Cesium.Cartographic.fromCartesian(pickedPosition);
+                        const lat = Cesium.Math.toDegrees(cartographic.latitude);
+                        const lng = Cesium.Math.toDegrees(cartographic.longitude);
+                        const coordStr = lat.toFixed(4) + ', ' + lng.toFixed(4);
+
+                        document.getElementById('detailsPanel').innerHTML = "📍 <b>Coordinates: " + coordStr + "</b><br/>Click 'Analyze Location' in the sidebar to search detailed historical and geographical knowledge via Groq & Tavily AI.";
+
+                        window.parent.postMessage({{
+                            type: 'globe_click',
+                            name: coordStr,
+                            lat: lat,
+                            lng: lng
+                        }}, '*');
+                    }}
+                }}, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+                // Custom search input listeners
+                const searchInput = document.getElementById('mapSearchInput');
+                const searchBtn = document.getElementById('mapSearchBtn');
+
+                function triggerSearch() {{
+                    const query = searchInput.value.trim();
+                    if (!query) return;
+
+                    document.getElementById('detailsPanel').innerHTML = "🔍 <b>Searching: " + query + "...</b><br/>Fetching summary details and flying to target location...";
+
+                    const wikiUrl = 'https://en.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(query);
+                    fetch(wikiUrl)
+                        .then(res => res.json())
+                        .then(wikiData => {{
+                            let desc = "No direct summary found. Click 'Analyze Location' in the sidebar to search via Groq AI.";
+                            if (wikiData.extract) {{
+                                desc = wikiData.extract;
+                            }}
+
+                            const geoUrl = 'https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(query) + '&limit=1';
+                            fetch(geoUrl)
+                                .then(r => r.json())
+                                .then(geoData => {{
+                                    if (geoData && geoData.length > 0) {{
+                                        const lat = parseFloat(geoData[0].lat);
+                                        const lon = parseFloat(geoData[0].lon);
+
+                                        document.getElementById('detailsPanel').innerHTML = "📍 <b>" + (wikiData.title || query) + "</b><br/>" + desc;
+
+                                        viewer.camera.flyTo({{
+                                            destination: Cesium.Cartesian3.fromDegrees(lon, lat, 25000.0),
+                                            duration: 2.0
+                                        }});
+
+                                        window.parent.postMessage({{
+                                            type: 'globe_click',
+                                            name: query,
+                                            lat: lat,
+                                            lng: lon
+                                        }}, '*');
+                                    }} else {{
+                                        document.getElementById('detailsPanel').innerHTML = "📍 <b>" + (wikiData.title || query) + "</b><br/>" + desc + "<br/><span style='color:#ef4444;'>Failed to geocode location coordinates on map.</span>";
+                                    }}
+                                }})
+                                .catch(err => {{
+                                    document.getElementById('detailsPanel').innerHTML = "📍 <b>" + (wikiData.title || query) + "</b><br/>" + desc;
+                                }});
+                        }})
+                        .catch(err => {{
+                            document.getElementById('detailsPanel').innerHTML = "❌ <b>Error</b><br/>Failed to fetch search results.";
+                        }});
+                }}
+
+                searchBtn.addEventListener('click', triggerSearch);
+                searchInput.addEventListener('keypress', function(e) {{
+                    if (e.key === 'Enter') {{
+                        triggerSearch();
+                    }}
+                }});
+            }} catch (e) {{
+                console.error("Cesium failed to load", e);
+                document.getElementById('cesiumContainer').innerHTML = "<div style='color:#ef4444; padding:20px; font-family:sans-serif;'>Failed to load 3D Globe: " + e.message + "</div>";
+            }}
+        </script>
+        """
+        st.components.v1.html(html_code, height=520)
+        _card_close()
+
+        st.markdown(
+            """
+            <script>
+                if (!window.globeListenerAdded) {
+                    window.addEventListener('message', function(event) {
+                        if (event.data && event.data.type === 'globe_click') {
+                            const name = event.data.name;
+                            const nameInput = document.querySelector('input[aria-label="Location Name or Custom Coordinates"]');
+                            if (nameInput) {
+                                const nativeSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+                                nativeSetter.call(nameInput, name);
+                                nameInput.dispatchEvent(new Event('input', { bubbles: true }));
+                                setTimeout(() => {
+                                    const analyzeBtn = Array.from(document.querySelectorAll('button')).find(btn => btn.textContent.includes('Analyze Location'));
+                                    if (analyzeBtn) {
+                                        analyzeBtn.click();
+                                    }
+                                }, 100);
+                            }
+                        }
+                    });
+                    window.globeListenerAdded = true;
+                }
+            </script>
+            """,
+            unsafe_allow_html=True
+        )
+
+    with col2:
+        # ── Location Analyzer ──
+        _card_open()
+        st.markdown("#### 🔬 Location Analyzer")
+
+        selected_place = st.text_input(
+            "Location Name or Custom Coordinates",
+            value="Mount Everest",
+            help="Click a red label on the globe or type a custom place name/coordinates."
+        )
+
+        analyze_clicked = st.button("🔍 Analyze Location", use_container_width=True)
+        _card_close()
+
+        if analyze_clicked or selected_place:
+            _card_open()
+            st.markdown(f"##### 📚 Academic Report: **{selected_place}**")
+
+            with logo_spinner(f"Retrieving research details for {selected_place}..."):
+                search_query = f"{selected_place} geographical scientific historical facts summary"
+                web_results = duckduckgo_search(search_query)
+                web_context = ""
+                if web_results:
+                    web_context = "\n".join([res['snippet'] for res in web_results])
+
+                system_role = (
+                    "You are a helpful science, history, and geography AI tutor. "
+                    "Write a neat, structured academic report on the requested location containing: "
+                    "1. Coordinates & Geographic Overview "
+                    "2. Historical & Cultural significance "
+                    "3. Scientific / Geological / Environmental importance "
+                    "4. Intriguing facts for students."
+                )
+                report = groq_chat(
+                    f"Context: {web_context}\n\nProvide an academic report for: {selected_place}",
+                    system=system_role
+                )
+                st.markdown(report)
+            _card_close()
+
+
+
+# ==============================================================================
+# MODULE 14b — Standalone Weather Forecast (branch of 3D Globe)
+# ==============================================================================
+
+def render_weather_forecast() -> None:
+    """⛅ Weather Forecast — live weather and 3-day forecast for any city, with AI insight."""
+    st.markdown("### ⛅ Weather Forecast")
+    st.caption("🌍 Branch of the Interactive 3D Globe · Powered by Open-Meteo (free, no API key required)")
+
+    import urllib.request
+    import urllib.parse
+    import json as _json
+    import datetime as _dt
+
+    # ── WMO code → emoji + label ──
+    def wx_icon(code: int) -> str:
+        if code == 0:          return "☀️"
+        if code in (1, 2, 3):  return "⛅"
+        if code in (45, 48):   return "🌫️"
+        if code in (51, 53, 55, 61, 63, 65): return "🌧️"
+        if code in (71, 73, 75): return "❄️"
+        if code in (80, 81, 82): return "🌦️"
+        if code in (95, 96, 99): return "⛈️"
+        return "🌡️"
+
+    def wx_label(code: int) -> str:
+        labels = {0:"Clear sky", 1:"Mainly clear", 2:"Partly cloudy", 3:"Overcast",
+                  45:"Fog", 48:"Icy fog", 51:"Light drizzle", 53:"Drizzle",
+                  55:"Dense drizzle", 61:"Slight rain", 63:"Moderate rain", 65:"Heavy rain",
+                  71:"Slight snow", 73:"Moderate snow", 75:"Heavy snow",
+                  80:"Slight showers", 81:"Moderate showers", 82:"Violent showers",
+                  95:"Thunderstorm", 96:"Thunderstorm w/ hail", 99:"Heavy thunderstorm"}
+        return labels.get(code, "Unknown")
+
+    # ── Search bar ──
+    col_search, col_btn = st.columns([4, 1], gap="small")
+    with col_search:
+        weather_city = st.text_input(
+            "🏙️ Enter City Name",
+            value=st.session_state.get("wx_city", "Kathmandu"),
+            key="wf_city_input",
+            placeholder="e.g. London, Tokyo, New York, Kathmandu...",
+            label_visibility="collapsed"
+        )
+    with col_btn:
+        get_btn = st.button("🌡️ Get Weather", use_container_width=True, key="wf_get_btn")
+
+    if not (get_btn and weather_city.strip()):
+        st.markdown(
+            """
+            <div style="text-align:center; padding:40px; color:var(--sub); font-size:0.9rem;">
+                🌍 Enter a city name above and click <b>Get Weather</b> to see live conditions
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        return
+
+    st.session_state["wx_city"] = weather_city.strip()
+
+    with st.spinner(f"Fetching weather for {weather_city}..."):
+        try:
+            # Geocoding
+            geo_url = (
+                "https://geocoding-api.open-meteo.com/v1/search"
+                f"?name={urllib.parse.quote(weather_city)}&count=5&language=en&format=json"
+            )
+            with urllib.request.urlopen(geo_url, timeout=8) as resp:
+                geo_data = _json.loads(resp.read())
+
+            if not geo_data.get("results"):
+                st.error(f"❌ City '{weather_city}' not found. Try a different spelling.")
+                return
+
+            r = geo_data["results"][0]
+            lat_w, lon_w = r["latitude"], r["longitude"]
+            country = r.get("country", "")
+            admin  = r.get("admin1", "")
+            city_name = r["name"]
+
+            # Open-Meteo API
+            wx_url = (
+                f"https://api.open-meteo.com/v1/forecast"
+                f"?latitude={lat_w}&longitude={lon_w}"
+                f"&current=temperature_2m,relative_humidity_2m,wind_speed_10m,"
+                f"weather_code,apparent_temperature,precipitation,wind_direction_10m,"
+                f"surface_pressure,visibility"
+                f"&hourly=temperature_2m,weather_code"
+                f"&daily=temperature_2m_max,temperature_2m_min,weather_code,"
+                f"precipitation_sum,wind_speed_10m_max,sunrise,sunset,uv_index_max"
+                f"&timezone=auto&forecast_days=7"
+            )
+            with urllib.request.urlopen(wx_url, timeout=10) as resp2:
+                wx = _json.loads(resp2.read())
+
+            cur   = wx["current"]
+            daily = wx["daily"]
+
+            temp   = cur["temperature_2m"]
+            feels  = cur["apparent_temperature"]
+            hum    = cur["relative_humidity_2m"]
+            wind   = cur["wind_speed_10m"]
+            wdir   = cur.get("wind_direction_10m", 0)
+            precip = cur["precipitation"]
+            press  = cur.get("surface_pressure", "—")
+            vis    = cur.get("visibility", "—")
+            code   = cur["weather_code"]
+            icon   = wx_icon(code)
+            label  = wx_label(code)
+
+            # ── Main hero card ──
+            st.markdown(
+                f"""
+                <div style="background:linear-gradient(135deg,rgba(0,180,255,0.12),rgba(100,60,255,0.08));
+                            border:1px solid rgba(0,200,255,0.2); border-radius:20px; padding:28px 32px;
+                            margin-bottom:20px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
+                        <div>
+                            <div style="font-size:0.78rem; color:var(--sub); letter-spacing:1px; text-transform:uppercase; margin-bottom:4px;">
+                                Live Conditions · {_dt.datetime.now().strftime('%H:%M, %d %b %Y')}
+                            </div>
+                            <div style="font-size:1.3rem; font-weight:700; color:var(--accent); margin-bottom:2px;">
+                                📍 {city_name}, {admin}, {country}
+                            </div>
+                            <div style="font-size:0.8rem; color:var(--sub);">
+                                {lat_w:.4f}°N · {lon_w:.4f}°E · {label}
+                            </div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-size:4rem; line-height:1;">{icon}</div>
+                            <div style="font-size:2.6rem; font-weight:900; color:var(--text); font-family:'Orbitron',monospace;">{temp}°C</div>
+                            <div style="font-size:0.85rem; color:var(--sub);">Feels like {feels}°C</div>
+                        </div>
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:22px;">
+                        <div style="background:rgba(255,255,255,0.05); border-radius:12px; padding:12px; text-align:center;">
+                            <div style="font-size:1.3rem;">💧</div>
+                            <div style="font-size:1rem; font-weight:700; color:var(--text);">{hum}%</div>
+                            <div style="font-size:0.68rem; color:var(--sub);">Humidity</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.05); border-radius:12px; padding:12px; text-align:center;">
+                            <div style="font-size:1.3rem;">💨</div>
+                            <div style="font-size:1rem; font-weight:700; color:var(--text);">{wind} km/h</div>
+                            <div style="font-size:0.68rem; color:var(--sub);">Wind ({wdir}°)</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.05); border-radius:12px; padding:12px; text-align:center;">
+                            <div style="font-size:1.3rem;">🌧️</div>
+                            <div style="font-size:1rem; font-weight:700; color:var(--text);">{precip} mm</div>
+                            <div style="font-size:0.68rem; color:var(--sub);">Precipitation</div>
+                        </div>
+                        <div style="background:rgba(255,255,255,0.05); border-radius:12px; padding:12px; text-align:center;">
+                            <div style="font-size:1.3rem;">🔵</div>
+                            <div style="font-size:1rem; font-weight:700; color:var(--text);">{press} hPa</div>
+                            <div style="font-size:0.68rem; color:var(--sub);">Pressure</div>
+                        </div>
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+            # ── 7-Day Forecast ──
+            st.markdown("#### 📅 7-Day Forecast")
+            days_count = min(7, len(daily["time"]))
+            day_cols = st.columns(days_count)
+            for i in range(days_count):
+                day_label = _dt.date.fromisoformat(daily["time"][i]).strftime("%a\n%d %b")
+                dc = daily["weather_code"][i]
+                sunrise = daily.get("sunrise", ["—"])[i].split("T")[-1][:5] if "sunrise" in daily else "—"
+                sunset  = daily.get("sunset", ["—"])[i].split("T")[-1][:5] if "sunset" in daily else "—"
+                uv = daily.get("uv_index_max", [0])[i] if "uv_index_max" in daily else 0
+                with day_cols[i]:
+                    is_today = i == 0
+                    border = "border:1px solid rgba(0,240,255,0.35);" if is_today else "border:1px solid rgba(255,255,255,0.07);"
+                    st.markdown(
+                        f"""
+                        <div style="background:rgba(255,255,255,{'0.08' if is_today else '0.03'});
+                                    {border} border-radius:14px; padding:12px 8px; text-align:center;">
+                            <div style="font-size:0.68rem; color:{'var(--accent)' if is_today else 'var(--sub)'}; font-weight:{'700' if is_today else '400'}; white-space:pre-line; margin-bottom:6px;">
+                                {day_label}{'\\n(Today)' if is_today else ''}
+                            </div>
+                            <div style="font-size:1.8rem; margin:4px 0;">{wx_icon(dc)}</div>
+                            <div style="color:var(--accent); font-weight:700; font-size:0.88rem;">{daily['temperature_2m_max'][i]}°</div>
+                            <div style="color:var(--sub); font-size:0.78rem;">{daily['temperature_2m_min'][i]}°</div>
+                            <div style="font-size:0.65rem; color:var(--sub); margin-top:6px; line-height:1.6;">
+                                💧{daily['precipitation_sum'][i]}mm<br>
+                                ☀{sunrise}<br>
+                                🌙{sunset}
+                            </div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+
+            # ── Hourly temperature chart (simple HTML sparkline) ──
+            st.markdown("<div style='margin-top:20px;'></div>", unsafe_allow_html=True)
+            st.markdown("#### 📈 Hourly Temperature (Next 24h)")
+            hourly_temps = wx["hourly"]["temperature_2m"][:24]
+            hourly_times = [t.split("T")[1][:5] for t in wx["hourly"]["time"][:24]]
+            chart_data = {"Time": hourly_times, "Temp (°C)": hourly_temps}
+            try:
+                import pandas as pd
+                df = pd.DataFrame(chart_data).set_index("Time")
+                st.line_chart(df, use_container_width=True, height=180)
+            except Exception:
+                st.caption("Chart unavailable (pandas not installed).")
+
+            # ── AI Weather Commentary ──
+            st.markdown("<div style='margin-top:20px;'></div>", unsafe_allow_html=True)
+            _card_open()
+            st.markdown("#### 🤖 AI Weather Insight")
+            with logo_spinner("Generating AI weather report..."):
+                wx_prompt = (
+                    f"Current weather in {city_name}, {country}: {temp}°C (feels {feels}°C), "
+                    f"humidity {hum}%, wind {wind} km/h ({wdir}°), precipitation {precip}mm, "
+                    f"pressure {press} hPa. Condition: {label}. "
+                    f"7-day max temps: {daily['temperature_2m_max'][:7]}. "
+                    f"Write a friendly 3-sentence weather summary, mention any notable conditions, "
+                    f"and give 2 practical tips for students going outside today."
+                )
+                insight = groq_chat(wx_prompt, system="You are a helpful and friendly meteorology assistant.")
+                st.markdown(insight)
+            _card_close()
+
+            # ── Other cities (if multiple results) ──
+            if len(geo_data["results"]) > 1:
+                st.markdown("<div style='margin-top:12px;'></div>", unsafe_allow_html=True)
+                with st.expander("📍 Other matching cities"):
+                    for alt in geo_data["results"][1:]:
+                        st.markdown(
+                            f"**{alt['name']}** — {alt.get('admin1','')}, {alt.get('country','')} "
+                            f"({alt['latitude']:.3f}°, {alt['longitude']:.3f}°)"
+                        )
+
+        except Exception as err:
+            st.error(f"❌ Weather fetch failed: {err}")
+
+
+
+
+
+        get_weather = st.button("🌡️ Get Weather", use_container_width=True, key="get_weather_btn")
+
+        if get_weather and weather_city.strip():
+            with st.spinner(f"Fetching weather for {weather_city}..."):
+                try:
+                    import urllib.request
+                    import json as _json
+
+                    # Open-Meteo geocoding (free, no key)
+                    geo_url = (
+                        f"https://geocoding-api.open-meteo.com/v1/search"
+                        f"?name={urllib.parse.quote(weather_city)}&count=1&language=en&format=json"
+                    )
+                    import urllib.parse
+                    with urllib.request.urlopen(geo_url, timeout=8) as resp:
+                        geo_data = _json.loads(resp.read())
+
+                    if not geo_data.get("results"):
+                        st.error(f"❌ City '{weather_city}' not found.")
+                    else:
+                        r = geo_data["results"][0]
+                        lat_w, lon_w = r["latitude"], r["longitude"]
+                        country = r.get("country", "")
+                        admin = r.get("admin1", "")
+
+                        # Open-Meteo weather API (free, no key)
+                        wx_url = (
+                            f"https://api.open-meteo.com/v1/forecast"
+                            f"?latitude={lat_w}&longitude={lon_w}"
+                            f"&current=temperature_2m,relative_humidity_2m,wind_speed_10m,"
+                            f"weather_code,apparent_temperature,precipitation"
+                            f"&daily=temperature_2m_max,temperature_2m_min,weather_code,"
+                            f"precipitation_sum,wind_speed_10m_max"
+                            f"&timezone=auto&forecast_days=4"
+                        )
+                        with urllib.request.urlopen(wx_url, timeout=8) as resp2:
+                            wx = _json.loads(resp2.read())
+
+                        cur = wx["current"]
+                        daily = wx["daily"]
+
+                        # WMO weather code → emoji
+                        def wx_icon(code):
+                            if code == 0: return "☀️"
+                            if code in (1, 2, 3): return "⛅"
+                            if code in (45, 48): return "🌫️"
+                            if code in (51, 53, 55, 61, 63, 65): return "🌧️"
+                            if code in (71, 73, 75): return "❄️"
+                            if code in (80, 81, 82): return "🌦️"
+                            if code in (95, 96, 99): return "⛈️"
+                            return "🌡️"
+
+                        temp = cur["temperature_2m"]
+                        feels = cur["apparent_temperature"]
+                        hum = cur["relative_humidity_2m"]
+                        wind = cur["wind_speed_10m"]
+                        precip = cur["precipitation"]
+                        icon = wx_icon(cur["weather_code"])
+
+                        st.markdown(
+                            f"""
+                            <div style="background:rgba(0,240,255,0.06); border:1px solid rgba(0,240,255,0.18);
+                                        border-radius:14px; padding:16px 18px; margin-bottom:12px;">
+                                <div style="font-size:2.6rem; text-align:center; margin-bottom:4px;">{icon}</div>
+                                <div style="text-align:center; font-size:1rem; font-weight:700;
+                                            color:var(--accent); margin-bottom:2px;">
+                                    {r['name']}, {admin}, {country}
+                                </div>
+                                <div style="text-align:center; font-size:2rem; font-weight:900;
+                                            color:var(--text); margin-bottom:8px;">{temp}°C</div>
+                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:0.78rem; color:var(--sub);">
+                                    <div>🌡️ Feels like: <b style="color:var(--text);">{feels}°C</b></div>
+                                    <div>💧 Humidity: <b style="color:var(--text);">{hum}%</b></div>
+                                    <div>💨 Wind: <b style="color:var(--text);">{wind} km/h</b></div>
+                                    <div>🌧️ Precip: <b style="color:var(--text);">{precip} mm</b></div>
+                                </div>
+                            </div>
+                            """,
+                            unsafe_allow_html=True
+                        )
+
+                        # 3-day forecast
+                        st.markdown("**📅 3-Day Forecast**")
+                        import datetime as _dt
+                        days = daily["time"][1:4]
+                        max_t = daily["temperature_2m_max"][1:4]
+                        min_t = daily["temperature_2m_min"][1:4]
+                        codes = daily["weather_code"][1:4]
+                        precips = daily["precipitation_sum"][1:4]
+                        winds = daily["wind_speed_10m_max"][1:4]
+
+                        fc_html = '<div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:8px;">'
+                        for i in range(3):
+                            day_label = _dt.date.fromisoformat(days[i]).strftime("%a %d %b")
+                            fc_html += f"""
+                            <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
+                                        border-radius:10px; padding:10px 8px; text-align:center; font-size:0.78rem;">
+                                <div style="font-size:0.7rem; color:var(--sub); margin-bottom:4px;">{day_label}</div>
+                                <div style="font-size:1.6rem;">{wx_icon(codes[i])}</div>
+                                <div style="color:var(--accent); font-weight:700;">{max_t[i]}°C</div>
+                                <div style="color:var(--sub);">{min_t[i]}°C</div>
+                                <div style="color:var(--sub); font-size:0.68rem; margin-top:4px;">
+                                    💧{precips[i]}mm 💨{winds[i]}km/h
+                                </div>
+                            </div>
+                            """
+                        fc_html += "</div>"
+                        st.markdown(fc_html, unsafe_allow_html=True)
+
+                        # AI weather commentary
+                        with logo_spinner("Generating AI weather insight..."):
+                            wx_prompt = (
+                                f"The current weather in {r['name']}, {country} is {temp}°C (feels like {feels}°C), "
+                                f"humidity {hum}%, wind {wind} km/h, precipitation {precip}mm. "
+                                f"Give a 2-sentence friendly weather summary and one practical tip for students."
+                            )
+                            wx_insight = groq_chat(wx_prompt, system="You are a helpful meteorology assistant.")
+                            st.info(f"🤖 **AI Insight:** {wx_insight}")
+
+                except Exception as wx_err:
+                    st.error(f"❌ Weather fetch failed: {wx_err}")
+
+        _card_close()
+
+
         _card_open()
         st.markdown("#### 🗺️ 3D Globe Viewer (Drag to rotate, scroll to zoom)")
         
