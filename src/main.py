@@ -34,7 +34,7 @@ st.set_page_config(
 # ---------------------------------------------------------------------------
 # Internal imports (after set_page_config)
 # ---------------------------------------------------------------------------
-from src.auth import get_user_info, verify_credentials, update_user_credentials  # noqa: E402
+from src.auth import get_user_info, verify_credentials, update_user_credentials, register_user  # noqa: E402
 from src.config import DEFAULT_THEME, GROQ_API_KEY, THEMES, AVAILABLE_MODELS  # noqa: E402
 from src.database import init_db  # noqa: E402
 from src.modules import (  # noqa: E402
@@ -50,6 +50,9 @@ from src.modules import (  # noqa: E402
     render_summariser,
     render_translator,
     render_url_intelligence,
+    render_image_generator,
+    render_globe_map,
+    render_cyber_panel,
 )
 
 # ---------------------------------------------------------------------------
@@ -97,11 +100,12 @@ def inject_css(theme: dict) -> None:
                 background-repeat: no-repeat !important;
             }}
             .login-box {{
-                background: rgba(255, 255, 255, 0.04) !important;
-                backdrop-filter: blur(30px) saturate(190%) !important;
-                -webkit-backdrop-filter: blur(30px) saturate(190%) !important;
-                border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
+                background: transparent !important;
+                border: none !important;
                 box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5) !important;
+                position: relative !important;
+                overflow: hidden !important;
+                z-index: 1 !important;
             }}
             """
 
@@ -175,7 +179,7 @@ def render_login_screen(theme: dict) -> None:
     # Row 1: Centered Single-Line Branding Header (Enhanced and more premium)
     st.markdown(
         f"""
-        <div class="login-box" style="margin-top: 10px; max-width: 100%; margin-bottom: 25px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <div class="login-box" style="margin: 10px auto 25px auto; max-width: 650px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
             <div class="scanner-container" style="margin-top: 5px; margin-bottom: 12px;">
                 <div class="scanner-eye left-eye"><div class="scanner-pupil"></div></div>
                 <div class="scanner-eye right-eye"><div class="scanner-pupil"></div></div>
@@ -292,15 +296,26 @@ def render_login_screen(theme: dict) -> None:
                             st.error(f"❌ Error: {e}")
 
     with col2:
-        st.info(
-            "💡 **Demo Credentials**\n\n"
-            "Use these details to log in:\n\n"
-            "- **Student Role**\n"
-            "  - Email: `student@edusphere.ai`\n"
-            "  - Pass: `student123`\n\n"
-            "- **Admin Role**\n"
-            "  - Email: `admin@edusphere.ai`\n"
-            "  - Pass: `admin123`"
+        st.markdown(
+            """
+            <div class="login-box" style="margin: 0; max-width: 100%; text-align: left; height: 100%; display: flex; flex-direction: column; justify-content: center;">
+                <h4 style="margin-top: 0; color: var(--accent); display: flex; align-items: center; gap: 8px;">💡 Demo Credentials</h4>
+                <p style="color: var(--text); font-size: 0.9rem; margin-bottom: 16px;">Use these details to log in:</p>
+                <div style="display: flex; flex-direction: column; gap: 14px;">
+                    <div style="background: rgba(255, 255, 255, 0.03); padding: 12px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.08);">
+                        <strong style="color: var(--accent2); font-size: 0.95rem; display: block; margin-bottom: 4px;">🎓 Student Role</strong>
+                        <span style="display: block; font-size: 0.85rem; color: var(--text); margin-top: 2px;">Email: <code style="background: rgba(0, 240, 255, 0.1); color: #00f0ff; padding: 2px 6px; border-radius: 4px;">student@edusphere.ai</code></span>
+                        <span style="display: block; font-size: 0.85rem; color: var(--text); margin-top: 2px;">Pass: <code style="background: rgba(0, 240, 255, 0.1); color: #00f0ff; padding: 2px 6px; border-radius: 4px;">student123</code></span>
+                    </div>
+                    <div style="background: rgba(255, 255, 255, 0.03); padding: 12px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.08);">
+                        <strong style="color: var(--accent2); font-size: 0.95rem; display: block; margin-bottom: 4px;">⚙️ Admin Role</strong>
+                        <span style="display: block; font-size: 0.85rem; color: var(--text); margin-top: 2px;">Email: <code style="background: rgba(255, 0, 127, 0.1); color: #ff007f; padding: 2px 6px; border-radius: 4px;">admin@edusphere.ai</code></span>
+                        <span style="display: block; font-size: 0.85rem; color: var(--text); margin-top: 2px;">Pass: <code style="background: rgba(255, 0, 127, 0.1); color: #ff007f; padding: 2px 6px; border-radius: 4px;">admin123</code></span>
+                    </div>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
         )
 
 
@@ -320,6 +335,9 @@ NAV_OPTIONS = [
     "🖼️ Visual & URL Intelligence",
     "🧹 Background Remover",
     "📋 Resume Builder",
+    "🎨 AI Image Generator",
+    "🌍 Interactive 3D Globe",
+    "🛡️ Cyber Security Panel",
     "📊 System Analytics",
     "🏛️ Architecture Blueprint",
     "⚙️ Settings & Profile",
@@ -336,6 +354,9 @@ MODULE_MAP = {
     "🖼️ Visual & URL Intelligence": render_url_intelligence,
     "🧹 Background Remover": render_bg_remover,
     "📋 Resume Builder": render_resume_builder,
+    "🎨 AI Image Generator": render_image_generator,
+    "🌍 Interactive 3D Globe": render_globe_map,
+    "🛡️ Cyber Security Panel": render_cyber_panel,
     "📊 System Analytics": render_analytics,
     "🏛️ Architecture Blueprint": render_architecture,
     "⚙️ Settings & Profile": lambda: render_settings(),

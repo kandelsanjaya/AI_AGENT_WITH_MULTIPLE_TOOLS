@@ -129,6 +129,35 @@ def _render_export_buttons(content: str, base_name: str = "output") -> None:
 
 def render_educhat() -> None:
     """🧠 EduChat & RAG Studio — document-aware conversational AI with LICT campus knowledge."""
+    # Inject JavaScript listener in the parent window to handle voice prompts from the iframe
+    st.markdown(
+        """
+        <script>
+            if (!window.voicePromptListenerAdded) {
+                window.addEventListener('message', function(event) {
+                    if (event.data && event.data.type === 'voice_prompt') {
+                        const text = event.data.text;
+                        const chatInput = document.querySelector('textarea[data-testid="stChatInputTextArea"]') || document.querySelector('.stChatInput textarea');
+                        if (chatInput) {
+                            const nativeSetter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set;
+                            nativeSetter.call(chatInput, text);
+                            chatInput.dispatchEvent(new Event('input', { bubbles: true }));
+                            setTimeout(() => {
+                                const sendBtn = chatInput.closest('[data-testid="stChatInput"]').querySelector('button');
+                                if (sendBtn) {
+                                    sendBtn.click();
+                                }
+                            }, 100);
+                        }
+                    }
+                });
+                window.voicePromptListenerAdded = true;
+            }
+        </script>
+        """,
+        unsafe_allow_html=True
+    )
+
     st.markdown("### 🧠 EduChat & RAG Search Engine")
 
     col_chat, col_panel = st.columns([2, 1])
@@ -170,85 +199,172 @@ def render_educhat() -> None:
 
     # ── Left panel: chat interface ─────────────────────────────────────────────
     with col_chat:
-        # Scrollable chat history area
-        chat_container = st.container(height=420)
-        with chat_container:
-            _render_chat_history()
+        # Unified chat box container (outer card style)
+        with st.container(border=True):
+            # Scrollable chat history area (no border)
+            chat_container = st.container(height=380, border=False)
+            with chat_container:
+                _render_chat_history()
+    
+            st.markdown("<hr style='margin: 8px 0; border-top: 1px solid rgba(255, 255, 255, 0.08); border-bottom: none;'>", unsafe_allow_html=True)
+    
+            # Also check for voice query param
+            voice_param = st.query_params.get("voice_prompt", "")
+            
+            # Display transcribed audio notification if received
+            if voice_param:
+                st.info(f"🎙️ **Transcribed Audio:** {voice_param}")
+                
+            prompt = st.chat_input("💬 Ask EduSphere anything…", key="edu_chat_input")
+            
+            st.components.v1.html(
+                """
+                <style>
+                    html, body {
+                        margin: 0;
+                        padding: 0;
+                        background: transparent;
+                        overflow: hidden;
+                    }
+                </style>
+                <div style="font-family:'Inter',sans-serif; display:flex; flex-direction:column;
+                            background-color: rgb(38, 39, 48); border: 1px solid transparent; position: relative;
+                            padding: 0.75rem 1rem; border-radius: 0.5rem; box-sizing: border-box; width: 100%; margin: 6px auto 0 auto;">
+                    <div style="display:flex; flex-direction:row; align-items:center; gap:0.5rem;">
+                        <button type="button" id="mic-btn"
+                            style="background:transparent;border:none;font-size:1.15rem;color:#ececf1;
+                                   cursor:pointer;outline:none;padding:0;transition:all .2s;display:flex;align-items:center;">🎙️</button>
+                        <select id="lang-select"
+                            style="background:transparent;color:#ececf1;border:none;
+                                   font-size:0.8rem;outline:none;cursor:pointer;padding:1px 2px; width:45px;">
+                            <option value="en-US" style="background:#262730;color:#ececf1;">EN</option>
+                            <option value="ne-NP" style="background:#262730;color:#ececf1;">NE</option>
+                            <option value="hi-IN" style="background:#262730;color:#ececf1;">HI</option>
+                            <option value="es-ES" style="background:#262730;color:#ececf1;">ES</option>
+                            <option value="fr-FR" style="background:#262730;color:#ececf1;">FR</option>
+                        </select>
+                        <span id="listening-indicator" style="color: #ef4444; font-size: 0.75rem; font-style: italic; display: none; align-items:center; gap:4px;">🔴 Listening...</span>
+                    </div>
+                    
+                    <textarea id="live-transcription-box" placeholder="Transcribed text will appear here..." style="width: 100%; height: 50px; background: rgba(0,0,0,0.25); color: #ececf1; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 6px; font-size: 0.85rem; outline: none; resize: none; margin-top: 8px; box-sizing: border-box; font-family: inherit;"></textarea>
+                    
+                    <div style="display: flex; gap: 8px; margin-top: 6px; justify-content: flex-end;">
+                        <button type="button" id="copy-btn" style="background: rgba(255,255,255,0.06); color: #ececf1; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 4px 8px; font-size: 0.75rem; cursor: pointer; outline: none;">📋 Copy</button>
+                        <button type="button" id="ask-btn" style="background: #00f0ff; color: #0f172a; border: none; border-radius: 4px; padding: 4px 10px; font-size: 0.75rem; font-weight: bold; cursor: pointer; outline: none;">💬 Ask Bot</button>
+                    </div>
+                </div>
+                <script>
+                    const micBtn = document.getElementById('mic-btn');
+                    const langSel = document.getElementById('lang-select');
+                    const indicator = document.getElementById('listening-indicator');
+                    const textBox = document.getElementById('live-transcription-box');
+                    const copyBtn = document.getElementById('copy-btn');
+                    const askBtn = document.getElementById('ask-btn');
+            
+                    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+                    if (!SR) {
+                        micBtn.style.opacity = '0.3';
+                        micBtn.title = 'Speech recognition not supported';
+                    } else {
+                        const rec = new SR();
+                        rec.continuous = false;
+                        rec.interimResults = true;
+            
+                        micBtn.addEventListener('click', () => {
+                            rec.lang = langSel.value;
+                            rec.start();
+                            micBtn.style.color = '#ef4444';
+                            micBtn.style.transform = 'scale(1.2)';
+                            indicator.style.display = 'inline-flex';
+                            textBox.value = '';
+                        });
+            
+                        rec.onresult = (e) => {
+                            let text = '';
+                            for (let i = e.resultIndex; i < e.results.length; ++i) {
+                                text += e.results[i][0].transcript;
+                            }
+                            textBox.value = text;
+                        };
+            
+                        rec.onspeechend = () => rec.stop();
+                        rec.onerror = (e) => {
+                            micBtn.style.color = '#ececf1';
+                            micBtn.style.transform = 'none';
+                            indicator.style.display = 'none';
+                        };
+                        rec.onend = () => {
+                            micBtn.style.color = '#ececf1';
+                            micBtn.style.transform = 'none';
+                            indicator.style.display = 'none';
+                        };
+                    }
 
-        # ── Slim voice-only strip above the native input ─────────────────────
-        st.components.v1.html(
-            """
-            <div style="font-family:'Inter',sans-serif; display:flex; align-items:center; gap:8px;
-                        background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.07);
-                        border-radius:14px; padding:5px 14px; margin-bottom:4px;">
-                <button type="button" id="mic-btn"
-                    style="background:transparent;border:none;font-size:1.2rem;color:#94a3b8;
-                           cursor:pointer;outline:none;padding:0;transition:color .2s;">🎙️</button>
-                <select id="lang-select"
-                    style="background:#1e1e24;color:#94a3b8;border:1px solid rgba(255,255,255,0.15);
-                           font-size:0.75rem;outline:none;border-radius:6px;padding:2px 5px;">
-                    <option value="en-US">EN</option>
-                    <option value="ne-NP">NE</option>
-                    <option value="hi-IN">HI</option>
-                    <option value="es-ES">ES</option>
-                    <option value="fr-FR">FR</option>
-                    <option value="zh-CN">ZH</option>
-                </select>
-                <span id="status" style="color:#64748b;font-size:0.78rem;font-style:italic;">
-                    Click 🎙️ to speak — transcribed text will appear in the box below
-                </span>
-            </div>
-            <script>
-                const micBtn = document.getElementById('mic-btn');
-                const langSel = document.getElementById('lang-select');
-                const statusEl = document.getElementById('status');
-
-                const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-                if (!SR) {
-                    micBtn.style.display = 'none';
-                    statusEl.textContent = 'Voice not supported in this browser.';
-                } else {
-                    const rec = new SR();
-                    rec.continuous = false;
-                    rec.interimResults = false;
-
-                    micBtn.addEventListener('click', () => {
-                        rec.lang = langSel.value;
-                        rec.start();
-                        micBtn.style.color = '#ef4444';
-                        statusEl.textContent = '🔴 Listening…';
+                    copyBtn.addEventListener('click', () => {
+                        textBox.select();
+                        navigator.clipboard.writeText(textBox.value).then(() => {
+                            copyBtn.textContent = '✅ Copied!';
+                            setTimeout(() => { copyBtn.textContent = '📋 Copy'; }, 2000);
+                        }).catch(() => {
+                            // Fallback
+                            document.execCommand('copy');
+                            copyBtn.textContent = '✅ Copied!';
+                            setTimeout(() => { copyBtn.textContent = '📋 Copy'; }, 2000);
+                        });
                     });
 
-                    rec.onresult = (e) => {
-                        const text = e.results[0][0].transcript;
-                        statusEl.textContent = '✅ Transcribed: ' + text + ' — sending…';
-                        const url = new URL(window.parent.location.href);
+                    askBtn.addEventListener('click', () => {
+                        const text = textBox.value.trim();
+                        if (text) {
+                            try {
+                                const parentDoc = window.parent.document;
+                                const chatInputContainer = parentDoc.querySelector('div[data-testid="stChatInput"]') || parentDoc.querySelector('.stChatInput');
+                                if (chatInputContainer) {
+                                    const chatInput = chatInputContainer.querySelector('textarea, input');
+                                    if (chatInput) {
+                                        const proto = chatInput.tagName === 'TEXTAREA' ? window.parent.HTMLTextAreaElement.prototype : window.parent.HTMLInputElement.prototype;
+                                        const nativeSetter = Object.getOwnPropertyDescriptor(proto, 'value').set;
+                                        nativeSetter.call(chatInput, text);
+                                        chatInput.dispatchEvent(new Event('input', { bubbles: true }));
+                                        setTimeout(() => {
+                                            const sendBtn = chatInputContainer.querySelector('button');
+                                            if (sendBtn) {
+                                                sendBtn.click();
+                                            }
+                                        }, 100);
+                                        textBox.value = '';
+                                    }
+                                } else {
+                                    fallbackRedirect(text);
+                                }
+                            } catch (e) {
+                                fallbackRedirect(text);
+                            }
+                        }
+                    });
+
+                    function fallbackRedirect(text) {
+                        let parentUrl = document.referrer;
+                        if (!parentUrl) {
+                            try {
+                                parentUrl = window.parent.location.href;
+                            } catch (e) {
+                                parentUrl = window.location.origin;
+                            }
+                        }
+                        const url = new URL(parentUrl);
                         url.searchParams.set('voice_prompt', text);
-                        window.parent.location.href = url.toString();
-                    };
+                        window.parent.location = url.toString();
+                        textBox.value = '';
+                    }
+                </script>
+                """,
+                height=150,
+            )
 
-                    rec.onspeechend = () => rec.stop();
-                    rec.onerror = (e) => {
-                        micBtn.style.color = '#94a3b8';
-                        statusEl.textContent = '⚠️ Error: ' + e.error;
-                    };
-                    rec.onend = () => {
-                        micBtn.style.color = '#94a3b8';
-                    };
-                }
-            </script>
-            """,
-            height=52,
-        )
-
-        # ── Native Streamlit chat input ──
-        prompt = st.chat_input("💬 Ask EduSphere anything…", key="edu_chat_input")
-
-        # Also check for voice query param (voice path)
-        voice_param = st.query_params.get("voice_prompt", "")
+        # Trigger chat processing if voice prompt was received
         if voice_param and not prompt:
             prompt = voice_param
-            st.query_params.clear()
 
         if not prompt:
             return
@@ -270,6 +386,8 @@ def render_educhat() -> None:
                 st.session_state.get("user_info", {}).get("name", "user"),
                 "assistant", greeting_resp,
             )
+            if "voice_prompt" in st.query_params:
+                st.query_params.clear()
             st.rerun()
 
         # Guardrails
@@ -280,11 +398,15 @@ def render_educhat() -> None:
                 f'<div class="g-card" style="border-color:#ef4444;">{CRISIS_RESOURCES}</div>',
                 unsafe_allow_html=True,
             )
-            return
+            if "voice_prompt" in st.query_params:
+                st.query_params.clear()
+            st.rerun()
         if guards.harmful or guards.private:
             st.session_state.blocked_count = st.session_state.get("blocked_count", 0) + 1
             st.error("🚫 Prompt blocked: Violates System Security or Data Privacy Policy.")
-            return
+            if "voice_prompt" in st.query_params:
+                st.query_params.clear()
+            st.rerun()
 
         # Record user message
         st.session_state.chat_history.append(
@@ -308,7 +430,9 @@ def render_educhat() -> None:
         if lict_context:
             context = f"\n\n🏫 **College Knowledge Base:**\n{lict_context}\n\n{context}"
 
-        if not context:
+        is_personal_query = any(phrase in prompt.lower() for phrase in ["my name", "who am i", "do you know me", "who i am"])
+
+        if not context and not is_personal_query:
             # Fallback to web search
             with logo_spinner("🔍 Context not found in local documents. Searching the web..."):
                 web_results = duckduckgo_search(prompt)
@@ -325,12 +449,30 @@ def render_educhat() -> None:
 
         full_prompt = f"{context}\n\nUser Question: {prompt}" if context else prompt
 
+        # Get user profile information for personalization (excluding sensitive details like email or ID)
+        user_info = st.session_state.get("user_info", {})
+        user_name = user_info.get("name", "User")
+        user_role = user_info.get("role", "Student")
+
+        custom_ai_name = st.session_state.get("custom_ai_name", "EduSphere AI")
+
+        identity_context = (
+            f"\n\nYou are talking to a user named '{user_name}' who holds the role '{user_role}'. "
+            f"Your name is currently '{custom_ai_name}'. "
+            "If they ask who you are or what your name is, state that your name is 'EduSphere AI' (or your custom name if they previously assigned one), and tell them 'you can call me anything you'd like'. "
+            "If the user gives you a new name (e.g. saying 'I will call you Jarvis' or 'your name is now Jarvis'), you must happily accept it, and you MUST include the tag `[SET_AI_NAME: <NewName>]` (for example: `[SET_AI_NAME: Jarvis]`) anywhere in your reply so the system remembers it. "
+            "If they ask who they are, what their name is, or if you know them, answer them naturally like a human "
+            "using this information. Do NOT under any circumstances disclose any other personal details like their email, "
+            "password hash, or user ID."
+        )
+
         if used_web_search:
             system_role = (
                 "You are an expert, encouraging academic AI tutor and College AI Assistant. "
                 "Answer questions precisely based on the Live Web Search Results context provided. "
                 "Cite your web sources (e.g. Source [1], Source [2], etc.) and links in the response. "
                 "CRITICAL: You must write your entire explanation and answer in the same language as the user's question."
+                f"{identity_context}"
             )
         else:
             system_role = (
@@ -340,11 +482,19 @@ def render_educhat() -> None:
                 "If context is provided, cite relevant sections. "
                 "If not, answer from your training knowledge. "
                 "CRITICAL: You must write your entire explanation and answer in the same language as the user's question."
+                f"{identity_context}"
             )
 
         # Collect response and store, then rerun to show inside the scrollable container
         with logo_spinner("🤖 EduSphere is thinking…"):
             response_text = groq_chat(full_prompt, system=system_role)
+
+        # Parse custom name request from response if present
+        import re
+        name_match = re.search(r'\[SET_AI_NAME:\s*([^\]]+)\]', response_text)
+        if name_match:
+            st.session_state.custom_ai_name = name_match.group(1).strip()
+            response_text = re.sub(r'\[SET_AI_NAME:\s*([^\]]+)\]', '', response_text).strip()
 
         st.session_state.chat_history.append(
             {"role": "assistant", "msg": response_text, "time": now_time}
@@ -360,6 +510,8 @@ def render_educhat() -> None:
             "assistant", response_text,
         )
 
+        if "voice_prompt" in st.query_params:
+            st.query_params.clear()
         st.rerun()
 
 
@@ -533,11 +685,168 @@ def render_translator() -> None:
     """🌍 Multi-Lingual Academic Translator."""
     st.markdown("### 🌍 Multi-Lingual Academic Translator")
 
+    # ── Voice Input handling for Translator ──
+    translate_voice = st.query_params.get("translate_voice_prompt", "")
+    default_text = "Neural networks utilise backpropagation to update weights based on gradient loss."
+    should_auto_translate = False
+    
+    if "translate_input" not in st.session_state:
+        st.session_state.translate_input = default_text
+        
+    if translate_voice:
+        st.session_state.translate_input = translate_voice
+        should_auto_translate = True
+        st.query_params.clear()
+
+    # ── Translator Voice Input component ──
+    st.components.v1.html(
+        """
+        <style>
+            html, body {
+                margin: 0;
+                padding: 0;
+                background: transparent;
+                overflow: hidden;
+            }
+        </style>
+        <div style="font-family:'Inter',sans-serif; display:flex; flex-direction:column;
+                    background-color: rgb(38, 39, 48); border: 1px solid transparent; position: relative;
+                    padding: 0.75rem 1rem; border-radius: 0.5rem; box-sizing: border-box; width: 100%; margin-bottom: 12px;">
+            <div style="display:flex; flex-direction:row; align-items:center; gap:0.5rem;">
+                <button type="button" id="trans-mic-btn"
+                    style="background:transparent;border:none;font-size:1.15rem;color:#ececf1;
+                           cursor:pointer;outline:none;padding:0;transition:all .2s;display:flex;align-items:center;gap:6px;">🎙️ Speak to Translate</button>
+                <select id="trans-lang-select"
+                    style="background:transparent;color:#ececf1;border:none;
+                           font-size:0.8rem;outline:none;cursor:pointer;padding:1px 2px; width:45px;">
+                    <option value="en-US" style="background:#262730;color:#ececf1;">EN</option>
+                    <option value="ne-NP" style="background:#262730;color:#ececf1;">NE</option>
+                    <option value="hi-IN" style="background:#262730;color:#ececf1;">HI</option>
+                    <option value="es-ES" style="background:#262730;color:#ececf1;">ES</option>
+                    <option value="fr-FR" style="background:#262730;color:#ececf1;">FR</option>
+                </select>
+                <span id="trans-indicator" style="color: #ef4444; font-size: 0.75rem; font-style: italic; display: none; align-items:center; gap:4px;">🔴 Listening...</span>
+            </div>
+            
+            <textarea id="trans-transcription-box" placeholder="Transcribed text will appear here..." style="width: 100%; height: 50px; background: rgba(0,0,0,0.25); color: #ececf1; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 6px; font-size: 0.85rem; outline: none; resize: none; margin-top: 8px; box-sizing: border-box; font-family: inherit;"></textarea>
+            
+            <div style="display: flex; gap: 8px; margin-top: 6px; justify-content: flex-end;">
+                <button type="button" id="trans-copy-btn" style="background: rgba(255,255,255,0.06); color: #ececf1; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 4px 8px; font-size: 0.75rem; cursor: pointer; outline: none;">📋 Copy</button>
+                <button type="button" id="trans-submit-btn" style="background: #00f0ff; color: #0f172a; border: none; border-radius: 4px; padding: 4px 10px; font-size: 0.75rem; font-weight: bold; cursor: pointer; outline: none;">🌐 Translate</button>
+            </div>
+        </div>
+        <script>
+            const micBtn = document.getElementById('trans-mic-btn');
+            const langSel = document.getElementById('trans-lang-select');
+            const indicator = document.getElementById('trans-indicator');
+            const textBox = document.getElementById('trans-transcription-box');
+            const copyBtn = document.getElementById('trans-copy-btn');
+            const submitBtn = document.getElementById('trans-submit-btn');
+    
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SR) {
+                micBtn.style.opacity = '0.3';
+                micBtn.title = 'Speech recognition not supported';
+            } else {
+                const rec = new SR();
+                rec.continuous = false;
+                rec.interimResults = true;
+    
+                micBtn.addEventListener('click', () => {
+                    rec.lang = langSel.value;
+                    rec.start();
+                    micBtn.style.color = '#ef4444';
+                    indicator.style.display = 'inline-flex';
+                    textBox.value = '';
+                });
+    
+                rec.onresult = (e) => {
+                    let text = '';
+                    for (let i = e.resultIndex; i < e.results.length; ++i) {
+                        text += e.results[i][0].transcript;
+                    }
+                    textBox.value = text;
+                };
+    
+                rec.onspeechend = () => rec.stop();
+                rec.onerror = (e) => {
+                    micBtn.style.color = '#ececf1';
+                    indicator.style.display = 'none';
+                };
+                rec.onend = () => {
+                    micBtn.style.color = '#ececf1';
+                    indicator.style.display = 'none';
+                };
+            }
+
+            copyBtn.addEventListener('click', () => {
+                textBox.select();
+                navigator.clipboard.writeText(textBox.value).then(() => {
+                    copyBtn.textContent = '✅ Copied!';
+                    setTimeout(() => { copyBtn.textContent = '📋 Copy'; }, 2000);
+                }).catch(() => {
+                    document.execCommand('copy');
+                    copyBtn.textContent = '✅ Copied!';
+                    setTimeout(() => { copyBtn.textContent = '📋 Copy'; }, 2000);
+                });
+            });
+
+            submitBtn.addEventListener('click', () => {
+                const text = textBox.value.trim();
+                if (text) {
+                    try {
+                        const parentDoc = window.parent.document;
+                        const transInput = parentDoc.querySelector('textarea[aria-label="Source Text"]') || parentDoc.querySelector('.stTextArea textarea');
+                        if (transInput) {
+                            const nativeSetter = Object.getOwnPropertyDescriptor(window.parent.HTMLTextAreaElement.prototype, 'value').set;
+                            nativeSetter.call(transInput, text);
+                            transInput.dispatchEvent(new Event('input', { bubbles: true }));
+                            setTimeout(() => {
+                                const buttons = Array.from(parentDoc.querySelectorAll('button'));
+                                const translateBtn = buttons.find(btn => btn.textContent.includes('Translate Text'));
+                                if (translateBtn) {
+                                    translateBtn.click();
+                                }
+                            }, 100);
+                            textBox.value = '';
+                        } else {
+                            fallbackRedirect(text);
+                        }
+                    } catch (e) {
+                        fallbackRedirect(text);
+                    }
+                }
+            });
+
+            function fallbackRedirect(text) {
+                let parentUrl = document.referrer;
+                if (!parentUrl) {
+                    try {
+                        parentUrl = window.parent.location.href;
+                    } catch (e) {
+                        parentUrl = window.location.origin;
+                    }
+                }
+                const url = new URL(parentUrl);
+                url.searchParams.set('translate_voice_prompt', text);
+                window.parent.location = url.toString();
+                textBox.value = '';
+            }
+        </script>
+        """,
+        height=150,
+    )
+
     input_text = st.text_area(
         "Source Text",
-        "Neural networks utilise backpropagation to update weights based on gradient loss.",
+        value=st.session_state.translate_input,
         height=120,
+        key="translator_source_text"
     )
+    
+    # Sync typed text back to state
+    st.session_state.translate_input = input_text
+
     col1, col2 = st.columns([1, 1])
     with col1:
         target_lang = st.selectbox(
@@ -547,7 +856,7 @@ def render_translator() -> None:
     with col2:
         formality = st.selectbox("Formality Level", ["Academic / Formal", "Conversational", "Technical"])
 
-    if st.button("🌐 Translate Text", key="btn_translate"):
+    if st.button("🌐 Translate Text", key="btn_translate") or should_auto_translate:
         if not input_text.strip():
             st.warning("Please provide source text.")
             return
@@ -1048,6 +1357,413 @@ Output in clean, well-formatted markdown."""
             st.markdown(resume_text)
             _card_close()
 
-        st.markdown("---")
-        st.markdown("#### ⬇️ Download Your Resume")
         _render_export_buttons(resume_text, f"resume_{full_name.replace(' ', '_')}")
+
+
+# ==============================================================================
+# MODULE 13 — AI Image Generator
+# ==============================================================================
+
+def render_image_generator() -> None:
+    """🎨 AI Image Generator — Rewrites prompt via Groq and pulls image from Pollinations."""
+    st.markdown("### 🎨 AI Image Generator")
+    
+    col1, col2 = st.columns([1, 1])
+    
+    with col1:
+        _card_open()
+        st.markdown("#### 📝 Describe Your Image Concept")
+        
+        user_prompt = st.text_area(
+            "Enter image concept / description",
+            placeholder="e.g. A futuristic learning university on Mars with students studying using neon hologram displays...",
+            height=120,
+            key="img_gen_prompt_input"
+        )
+        
+        enhance_prompt = st.checkbox("✨ Enhance prompt with Groq AI (Recommended)", value=True)
+        
+        aspect_ratio = st.selectbox(
+            "📐 Aspect Ratio",
+            ["1:1 (Square)", "16:9 (Widescreen)", "9:16 (Portrait)", "4:3 (Classic)"],
+            index=1
+        )
+        
+        gen_clicked = st.button("🎨 Generate Image", use_container_width=True)
+        _card_close()
+        
+    with col2:
+        _card_open()
+        st.markdown("#### 🖼️ Image Output")
+        
+        if gen_clicked:
+            if not user_prompt.strip():
+                st.warning("⚠️ Please provide a description first.")
+            else:
+                enhanced = user_prompt
+                if enhance_prompt:
+                    with logo_spinner("Expanding and refining prompt via Groq..."):
+                        enhance_instructions = (
+                            "You are a professional prompt engineer for Stable Diffusion/Midjourney. "
+                            "Expand the user's short concept into a highly detailed, descriptive, visually stunning prompt. "
+                            "Include lighting, camera angle, style, mood, and detail specifications. "
+                            "Keep your response strictly to the enhanced prompt text under 100 words. Do NOT include any intro or chat."
+                        )
+                        enhanced = groq_chat(user_prompt, system=enhance_instructions)
+                
+                # Aspect Ratio to Dimensions
+                dim_map = {
+                    "1:1 (Square)": (1024, 1024),
+                    "16:9 (Widescreen)": (1344, 768),
+                    "9:16 (Portrait)": (768, 1344),
+                    "4:3 (Classic)": (1024, 768)
+                }
+                width, height = dim_map[aspect_ratio]
+                
+                # Build URL using Pollinations
+                import urllib.parse
+                safe_prompt = urllib.parse.quote(enhanced)
+                import time
+                seed = int(time.time())
+                img_url = f"https://image.pollinations.ai/prompt/{safe_prompt}?width={width}&height={height}&nologo=true&seed={seed}"
+                
+                with logo_spinner("Generating image via high-speed CDN..."):
+                    # Render image
+                    st.image(img_url, caption=f"Generated Image: {user_prompt}", use_container_width=True)
+                    
+                    try:
+                        import requests
+                        from io import BytesIO
+                        from PIL import Image
+
+                        resp = requests.get(img_url, timeout=20)
+                        if resp.status_code == 200:
+                            img_data = resp.content
+                            img = Image.open(BytesIO(img_data))
+                            
+                            # Convert to PNG, JPG, WebP bytes
+                            png_io = BytesIO()
+                            img.save(png_io, format="PNG")
+                            png_bytes = png_io.getvalue()
+                            
+                            jpg_io = BytesIO()
+                            img.convert("RGB").save(jpg_io, format="JPEG")
+                            jpg_bytes = jpg_io.getvalue()
+                            
+                            webp_io = BytesIO()
+                            img.save(webp_io, format="WEBP")
+                            webp_bytes = webp_io.getvalue()
+                            
+                            st.markdown("##### 📥 Download in Different Formats:")
+                            col_d1, col_d2, col_d3 = st.columns(3)
+                            with col_d1:
+                                st.download_button("💾 Download .png", png_bytes, file_name="generated_image.png", mime="image/png", use_container_width=True)
+                            with col_d2:
+                                st.download_button("💾 Download .jpg", jpg_bytes, file_name="generated_image.jpg", mime="image/jpeg", use_container_width=True)
+                            with col_d3:
+                                st.download_button("💾 Download .webp", webp_bytes, file_name="generated_image.webp", mime="image/webp", use_container_width=True)
+                        else:
+                            st.error("Failed to download image bytes for format conversion.")
+                    except Exception as e:
+                        st.error(f"Error converting image formats: {e}")
+        else:
+            st.info("ℹ️ Enter a description and click Generate to see the image output here.")
+        _card_close()
+
+
+# ==============================================================================
+# MODULE 14 — Interactive 3D Globe
+# ==============================================================================
+
+def render_globe_map() -> None:
+    """🌍 Interactive 3D Globe Map for Academic Learning."""
+    st.markdown("### 🌍 Interactive 3D Globe Map")
+    
+    col1, col2 = st.columns([2, 1])
+    
+    # Predefined places of academic/scientific interest
+    PREDEFINED_PLACES = {
+        "Mount Everest": {"lat": 27.9881, "lng": 86.9250, "desc": "Highest point on Earth, located in the Himalayas on the border of Nepal and China."},
+        "Great Pyramids of Giza": {"lat": 29.9792, "lng": 31.1342, "desc": "Ancient structures located near Cairo, Egypt, built as tombs for Pharaohs."},
+        "Mariana Trench": {"lat": 11.3493, "lng": 142.1996, "desc": "Deepest known point in Earth's oceans, located in the Western Pacific."},
+        "Amazon Rainforest": {"lat": -3.4653, "lng": -62.2159, "desc": "World's largest tropical rainforest, famous for its biodiverse ecosystem."},
+        "CERN (Hadron Collider)": {"lat": 46.2333, "lng": 6.0491, "desc": "World's largest particle physics laboratory, located on the France-Switzerland border."}
+    }
+    
+    with col1:
+        _card_open()
+        st.markdown("#### 🗺️ 3D Globe Viewer (Drag to rotate, scroll to zoom)")
+        
+        import json
+        points_data = [
+            {"lat": val["lat"], "lng": val["lng"], "name": name, "color": "red", "size": 0.5}
+            for name, val in PREDEFINED_PLACES.items()
+        ]
+        
+        html_code = f"""
+        <script src="//unpkg.com/three"></script>
+        <script src="//unpkg.com/globe.gl"></script>
+        <div style="position: relative; width: 100%; height: 500px; overflow: hidden; border-radius: 8px;">
+            <div id="globeViz" style="width: 100%; height: 100%; background: #000;"></div>
+            <button id="capture-btn" style="position: absolute; top: 10px; right: 10px; z-index: 1000; 
+                background: #00f0ff; color: #0f172a; border: none; padding: 8px 16px; border-radius: 6px; 
+                font-weight: bold; cursor: pointer; font-family: sans-serif; font-size: 0.8rem; box-shadow: 0 0 10px rgba(0, 240, 255, 0.5);">
+                📷 Capture Globe Screenshot
+            </button>
+        </div>
+        <script>
+            const pointsData = {json.dumps(points_data)};
+            const globe = Globe({{ rendererConfig: {{ preserveDrawingBuffer: true }} }})
+                (document.getElementById('globeViz'))
+                .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
+                .bumpImageUrl('//unpkg.com/three-globe/example/img/earth-topology.png')
+                .labelsData(pointsData)
+                .labelLat(d => d.lat)
+                .labelLng(d => d.lng)
+                .labelText(d => d.name)
+                .labelColor(() => 'rgba(0, 240, 255, 0.9)')
+                .labelSize(0.8)
+                .onLabelClick((label) => {{
+                    window.parent.postMessage({{ type: 'globe_click', name: label.name, lat: label.lat, lng: label.lng }}, '*');
+                }});
+                
+            globe.controls().autoRotate = true;
+            globe.controls().autoRotateSpeed = 0.5;
+
+            document.getElementById('capture-btn').addEventListener('click', () => {{
+                // Render before capture to ensure active buffer content
+                globe.renderer().render(globe.scene(), globe.camera());
+                const dataUrl = globe.renderer().domElement.toDataURL("image/png");
+                const link = document.createElement('a');
+                link.download = 'globe_capture.png';
+                link.href = dataUrl;
+                link.click();
+            }});
+        </script>
+        """
+        st.components.v1.html(html_code, height=520)
+        _card_close()
+        
+        st.markdown(
+            """
+            <script>
+                if (!window.globeListenerAdded) {
+                    window.addEventListener('message', function(event) {
+                        if (event.data && event.data.type === 'globe_click') {
+                            const name = event.data.name;
+                            const nameInput = document.querySelector('input[aria-label="Location Name or Custom Coordinates"]');
+                            if (nameInput) {
+                                const nativeSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+                                nativeSetter.call(nameInput, name);
+                                nameInput.dispatchEvent(new Event('input', { bubbles: true }));
+                                setTimeout(() => {
+                                    const analyzeBtn = Array.from(document.querySelectorAll('button')).find(btn => btn.textContent.includes('Analyze Location'));
+                                    if (analyzeBtn) {
+                                        analyzeBtn.click();
+                                    }
+                                }, 100);
+                            }
+                        }
+                    });
+                    window.globeListenerAdded = true;
+                }
+            </script>
+            """,
+            unsafe_allow_html=True
+        )
+
+    with col2:
+        _card_open()
+        st.markdown("#### 🔬 Location Analyzer")
+        
+        selected_place = st.text_input(
+            "Location Name or Custom Coordinates",
+            value="Mount Everest",
+            help="Click a red label on the globe or type a custom place name/coordinates."
+        )
+        
+        analyze_clicked = st.button("🔍 Analyze Location", use_container_width=True)
+        _card_close()
+        
+        if analyze_clicked or selected_place:
+            _card_open()
+            st.markdown(f"##### 📚 Academic Report: **{selected_place}**")
+            
+            with logo_spinner(f"Retrieving research details for {selected_place}..."):
+                search_query = f"{selected_place} geographical scientific historical facts summary"
+                web_results = duckduckgo_search(search_query)
+                web_context = ""
+                if web_results:
+                    web_context = "\n".join([res['snippet'] for res in web_results])
+                
+                system_role = (
+                    "You are a helpful science, history, and geography AI tutor. "
+                    "Write a neat, structured academic report on the requested location containing: "
+                    "1. Coordinates & Geographic Overview "
+                    "2. Historical & Cultural significance "
+                    "3. Scientific / Geological / Environmental importance "
+                    "4. Intriguing facts for students."
+                )
+                report = groq_chat(
+                    f"Context: {web_context}\n\nProvide an academic report for: {selected_place}",
+                    system=system_role
+                )
+                st.markdown(report)
+            _card_close()
+
+
+# ==============================================================================
+# MODULE 15 — Cyber Security Panel
+# ==============================================================================
+
+def render_cyber_panel() -> None:
+    """🛡️ Cyber Security Panel — Analyze Spam, Phishing, Malware headers, and Threat Feeds."""
+    st.markdown("### 🛡️ Cyber Security Threat & File Analysis Panel")
+    
+    tab_email, tab_malware, tab_feeds = st.tabs([
+        "📧 Email & Link Safety",
+        "🪱 Malware & File Diagnostics",
+        "📡 Live Threat Intelligence"
+    ])
+    
+    with tab_email:
+        _card_open()
+        st.markdown("#### 📧 Email Header / Text / Link Reputation Analyzer")
+        
+        email_content = st.text_area(
+            "Paste Email Content (Subject, Body, Headers, or Links)",
+            placeholder="e.g. Dear customer, your account is suspended. Click here http://bank-verify-security.com to login...",
+            height=150,
+            key="cyber_email_text"
+        )
+        
+        analyze_email = st.button("🛡️ Analyze Threat Vector", key="btn_analyze_email")
+        _card_close()
+        
+        if analyze_email:
+            if not email_content.strip():
+                st.warning("Please paste some email content or links to analyze.")
+            else:
+                _card_open()
+                st.markdown("##### 🔍 Cyber Analyst Report")
+                
+                with logo_spinner("Running threat model analysis..."):
+                    import re
+                    links = re.findall(r'https?://[^\s<>"]+|www\.[^\s<>"]+', email_content)
+                    link_context = ""
+                    if links:
+                        link_context = "Found Links:\n" + "\n".join(links) + "\n\n"
+                    
+                    system_role = (
+                        "You are an expert Cyber Security Analyst and Incident Responder. "
+                        "Inspect the provided email/link threat vector. Detect signs of: "
+                        "- Phishing indicators (urgent tone, generic greetings, spelling errors, mismatched domains) "
+                        "- Spam markers "
+                        "- Link reputation (check if domains look spoofed or suspicious) "
+                        "Assign a Threat Level (Low / Medium / High / Critical) and outline mitigations."
+                    )
+                    
+                    report = groq_chat(
+                        f"{link_context}Email/Link Content to analyze:\n{email_content}",
+                        system=system_role
+                    )
+                    st.markdown(report)
+                _card_close()
+                
+    with tab_malware:
+        _card_open()
+        st.markdown("#### 🪱 File Structure & Malware Header Integrity Diagnostics")
+        st.info("Upload any file to analyze its headers (Magic Bytes) for integrity and potential masquerading.")
+        
+        uploaded_file = st.file_uploader(
+            "Upload File to Scan",
+            key="cyber_file_uploader",
+            help="Select any file (PNG, PDF, EXE, TXT, etc.). We inspect its header signature safely."
+        )
+        _card_close()
+        
+        if uploaded_file:
+            _card_open()
+            file_bytes = uploaded_file.getvalue()
+            file_size = len(file_bytes)
+            
+            header_hex = file_bytes[:16].hex().upper()
+            header_space = " ".join([header_hex[i:i+2] for i in range(0, len(header_hex), 2)])
+            
+            signatures = {
+                "89 50 4E 47 0D 0A 1A 0A": "PNG Image File",
+                "25 50 44 46": "PDF Document",
+                "FF D8 FF": "JPEG Image File",
+                "4D 5A": "Windows Executable (EXE / DLL)",
+                "50 4B 03 04": "ZIP / Office OpenXML Archive (DOCX/PPTX/ZIP)",
+                "7F 45 4C 46": "ELF Executable (Linux/Unix)",
+                "49 44 33": "MP3 Audio File",
+                "52 61 72 21 1A 07": "RAR Compressed Archive"
+            }
+            
+            detected_format = "Unknown / Custom Binary Data"
+            for sig, label in signatures.items():
+                sig_clean = sig.replace(" ", "")
+                if header_hex.startswith(sig_clean):
+                    detected_format = label
+                    break
+                    
+            st.markdown(f"**File Name:** `{uploaded_file.name}`")
+            st.markdown(f"**File Size:** `{file_size} bytes`")
+            st.markdown(f"**Magic Bytes (Hex Header):** `{header_space}`")
+            st.markdown(f"**Detected Signature Format:** `{detected_format}`")
+            
+            with logo_spinner("Evaluating file header integrity and safety profile..."):
+                prompt = (
+                    f"File Name: {uploaded_file.name}\n"
+                    f"File Size: {file_size} bytes\n"
+                    f"Header Hex: {header_hex}\n"
+                    f"Signature Match: {detected_format}\n\n"
+                    "Analyze if the file extension matches the signature (masquerading check), "
+                    "explain what this file signature means, and assess security concerns if any."
+                )
+                analysis = groq_chat(
+                    prompt,
+                    system="You are a Malware Analysis specialist. Provide a brief, professional integrity report."
+                )
+                st.markdown("##### 🧬 File Integrity Report")
+                st.markdown(analysis)
+            _card_close()
+            
+    with tab_feeds:
+        _card_open()
+        st.markdown("#### 📡 Global Cyber Security Threats & Vulnerability Feed")
+        st.info("Fetches real-time security alerts, CVE releases, and cyber attack reports using Tavily Search.")
+        
+        search_keyword = st.text_input("Vulnerability / Threat Keyword Search", value="Recent ransomware campaigns zero-day exploits")
+        fetch_clicked = st.button("📡 Fetch Threat Intel Feed", use_container_width=True)
+        _card_close()
+        
+        if fetch_clicked or search_keyword:
+            _card_open()
+            st.markdown(f"##### 📢 Intel Report for: *{search_keyword}*")
+            
+            with logo_spinner(f"Scanning web for threat intel on '{search_keyword}'..."):
+                results = duckduckgo_search(f"{search_keyword} security threat alert news cve")
+                if not results:
+                    st.warning("No recent threat reports found.")
+                else:
+                    context_pieces = []
+                    for idx, res in enumerate(results[:5], 1):
+                        context_pieces.append(
+                            f"**[{idx}] {res['title']}**\n"
+                            f"Source: {res['link']}\n"
+                            f"Intel Summary: {res['snippet']}\n"
+                        )
+                        st.markdown(f"🔗 [{res['title']}]({res['link']})")
+                        st.write(res['snippet'])
+                        st.markdown("---")
+                        
+                    intel_context = "\n".join(context_pieces)
+                    report = groq_chat(
+                        f"Intel Context:\n{intel_context}\n\nProvide a concise executive threat brief summarizing the main risks, active CVEs, and recommended protection steps.",
+                        system="You are a Cyber Threat Intelligence Specialist. Provide a clear, actionable brief."
+                    )
+                    st.markdown("##### 📝 Threat Intelligence Executive Brief")
+                    st.markdown(report)
+            _card_close()

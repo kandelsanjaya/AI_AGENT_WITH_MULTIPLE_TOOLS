@@ -86,9 +86,9 @@ section[data-testid="stSidebar"] [role="radiogroup"] label[aria-checked="true"] 
 
 .navbar {
     background: linear-gradient(var(--bg), var(--bg)) padding-box,
-        linear-gradient(90deg, var(--accent), var(--accent2), var(--border-neon), var(--accent)) border-box !important;
-    background-size: 200% 100% !important;
-    animation: waterflow 5s linear infinite !important;
+                linear-gradient(90deg, #00f0ff, #ff007f, #7f00ff, #00ff87, #00f0ff) border-box !important;
+    background-size: 200% auto !important;
+    animation: border-flow 4s linear infinite, neon-pulse 6s ease-in-out infinite alternate !important;
     border: 2px solid transparent !important;
     border-radius: 20px;
     padding: 16px 28px;
@@ -96,7 +96,18 @@ section[data-testid="stSidebar"] [role="radiogroup"] label[aria-checked="true"] 
     display: flex;
     align-items: center;
     justify-content: space-between;
-    box-shadow: 0 0 30px var(--glow);
+}
+
+@keyframes neon-pulse {
+    0% {
+        box-shadow: 0 0 20px rgba(0, 240, 255, 0.4), inset 0 0 8px rgba(0, 240, 255, 0.1);
+    }
+    50% {
+        box-shadow: 0 0 35px rgba(255, 0, 127, 0.5), inset 0 0 12px rgba(255, 0, 127, 0.15);
+    }
+    100% {
+        box-shadow: 0 0 20px rgba(127, 0, 255, 0.4), inset 0 0 8px rgba(127, 0, 255, 0.1);
+    }
 }
 
 .navbar-title {
@@ -111,24 +122,6 @@ section[data-testid="stSidebar"] [role="radiogroup"] label[aria-checked="true"] 
     text-shadow: 0 0 10px var(--glow);
 }
 
-/* ── Cards ────────────────────────────────────────────────── */
-.g-card {
-    background: linear-gradient(var(--card), var(--card)) padding-box,
-        linear-gradient(90deg, var(--accent), var(--accent2), var(--border-neon), var(--accent)) border-box !important;
-    background-size: 200% 100% !important;
-    border: 1.5px solid transparent !important;
-    border-radius: 16px;
-    padding: 24px;
-    margin: 14px 0;
-    box-shadow: 0 0 18px var(--border-glow), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.g-card:hover {
-    animation: waterflow 4s linear infinite !important;
-    box-shadow: 0 0 35px var(--glow);
-    transform: translateY(-2px);
-}
 
 /* ── Chat Bubbles ─────────────────────────────────────────── */
 .chat-user {
@@ -249,13 +242,35 @@ section[data-testid="stSidebar"] [role="radiogroup"] label[aria-checked="true"] 
     max-width: 520px;
     margin: 40px auto;
     padding: 36px 36px;
-    background: rgba(255, 255, 255, 0.04) !important;
-    backdrop-filter: blur(35px) saturate(200%) !important;
-    -webkit-backdrop-filter: blur(35px) saturate(200%) !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
+    background: linear-gradient(rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.95)) padding-box,
+                linear-gradient(90deg, #00f0ff, #ff007f, #7f00ff, #00ff87, #00f0ff) border-box !important;
+    background-size: 200% auto !important;
+    animation: border-flow 4s linear infinite !important;
+    border: 2px solid transparent !important;
     border-radius: 24px;
     box-shadow: 0 25px 60px rgba(0, 0, 0, 0.65) !important;
     text-align: center;
+}
+
+/* ── Streamlit Form Flowing Borders ───────────────────────── */
+div[data-testid="stForm"] {
+    background: linear-gradient(rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.95)) padding-box,
+                linear-gradient(90deg, #00f0ff, #ff007f, #7f00ff, #00ff87, #00f0ff) border-box !important;
+    background-size: 200% auto !important;
+    animation: border-flow 4s linear infinite !important;
+    border: 2px solid transparent !important;
+    border-radius: 24px !important;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.65) !important;
+    padding: 30px !important;
+}
+
+@keyframes border-flow {
+    0% {
+        background-position: 0% 0%;
+    }
+    100% {
+        background-position: -200% 0%;
+    }
 }
 
 /* ── Social Login Row & Buttons ───────────────────────────── */

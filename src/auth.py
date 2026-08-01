@@ -39,7 +39,7 @@ def seed_default_accounts():
             email="admin@edusphere.ai",
             password="admin123",
             full_name="System Administrator",
-            role="Admin"
+            role="Executive Lead"
         )
     except Exception:
         pass
@@ -50,7 +50,7 @@ def seed_default_accounts():
             email="student@edusphere.ai",
             password="student123",
             full_name="Alex Mercer",
-            role="Student"
+            role="Graduate Scholar"
         )
     except Exception:
         pass
