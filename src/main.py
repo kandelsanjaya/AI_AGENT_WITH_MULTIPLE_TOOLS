@@ -437,6 +437,53 @@ def render_settings() -> None:
                 st.rerun()
         _card_close()
 
+    st.markdown("---")
+    _card_open()
+    st.markdown("#### 🔑 Custom Groq API & Model Settings")
+    st.markdown(
+        """
+        <div style="font-size:0.85rem; color:var(--sub); margin-bottom:12px;">
+            Set a custom Groq API Key and select your preferred LLM model. These configurations will be saved in your session 
+            and override any <code>.env</code> key defaults. If left empty, the system automatically falls back to <code>.env</code> settings.
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    
+    custom_key = st.text_input(
+        "Custom Groq API Key",
+        value=st.session_state.get("custom_groq_api_key", ""),
+        type="password",
+        help="Paste your personal Groq API key here (starts with gsk_)"
+    )
+    
+    current_model = st.session_state.get("custom_groq_model", AVAILABLE_MODELS[0])
+    selected_model = st.selectbox(
+        "Preferred Groq Model / Mode",
+        AVAILABLE_MODELS,
+        index=AVAILABLE_MODELS.index(current_model) if current_model in AVAILABLE_MODELS else 0
+    )
+    
+    col_btn1, col_btn2 = st.columns([1, 1])
+    with col_btn1:
+        if st.button("💾 Save Custom API Settings", use_container_width=True):
+            st.session_state.custom_groq_api_key = custom_key.strip()
+            st.session_state.custom_groq_model = selected_model
+            # Also keep dashboard selection in sync
+            st.session_state.dashboard_model = selected_model
+            st.success("✅ Custom API settings saved successfully!")
+            st.rerun()
+            
+    with col_btn2:
+        if st.button("🗑️ Clear Custom Settings", use_container_width=True):
+            st.session_state.custom_groq_api_key = ""
+            st.session_state.custom_groq_model = ""
+            st.success("✅ Custom settings cleared. Falling back to .env.")
+            st.rerun()
+            
+    _card_close()
+
+
 
 def _card_open(extra_style: str = "") -> None:
     st.markdown(f'<div class="g-card" style="{extra_style}">', unsafe_allow_html=True)
@@ -505,10 +552,14 @@ def render_sidebar() -> str:
         st.markdown("<hr style='margin: 4px 0; border: none; border-top: 1px solid rgba(255, 255, 255, 0.06);'>", unsafe_allow_html=True)
 
         # API key status
-        if GROQ_API_KEY:
-            st.success("🟢 GROQ API Connected")
+        has_env_key = bool(GROQ_API_KEY)
+        has_custom_key = "custom_groq_api_key" in st.session_state and bool(st.session_state.custom_groq_api_key.strip())
+        if has_custom_key:
+            st.success("🟢 GROQ API Connected (Custom)")
+        elif has_env_key:
+            st.success("🟢 GROQ API Connected (System)")
         else:
-            st.error("🔴 GROQ API Key Missing — add to .env")
+            st.error("🔴 GROQ API Key Missing")
 
         # Chat export section
         chat_history = st.session_state.get("chat_history", [])

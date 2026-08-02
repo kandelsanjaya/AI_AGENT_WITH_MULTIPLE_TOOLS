@@ -396,11 +396,31 @@ def fetch_website_content(url: str, timeout: int = 10) -> dict:
 # ---------------------------------------------------------------------------
 
 def _get_api_key() -> str:
-    """Re-read GROQ_API_KEY at call time so env hot-reload works."""
+    """Re-read GROQ_API_KEY at call time so env hot-reload works, prioritizing custom session key."""
+    import streamlit as st
+    try:
+        if "custom_groq_api_key" in st.session_state and st.session_state.custom_groq_api_key.strip():
+            return st.session_state.custom_groq_api_key.strip()
+    except Exception:
+        pass
     key = os.environ.get("GROQ_API_KEY", "") or GROQ_API_KEY
     if not key:
         raise APIKeyMissingError()
     return key
+
+
+def _get_model(provided_model: str) -> str:
+    """Resolve the active model, prioritizing custom session key choices when default is used."""
+    import streamlit as st
+    if provided_model == DEFAULT_MODEL:
+        try:
+            if "custom_groq_model" in st.session_state and st.session_state.custom_groq_model:
+                return st.session_state.custom_groq_model
+            elif "dashboard_model" in st.session_state and st.session_state.dashboard_model:
+                return st.session_state.dashboard_model
+        except Exception:
+            pass
+    return provided_model
 
 
 def _build_headers() -> dict:
@@ -436,6 +456,7 @@ def groq_request(
         APIKeyMissingError: When GROQ_API_KEY is absent.
         APIRequestError: On non-200 HTTP responses.
     """
+    model = _get_model(model)
     all_messages = []
     if system:
         all_messages.append({"role": "system", "content": system})
@@ -462,8 +483,8 @@ def groq_request(
                 raise APIRequestError(
                     401,
                     "Invalid or expired GROQ API key. "
-                    "Please generate a new key at https://console.groq.com/ "
-                    "and update your .env file.",
+                    "Please update your GROQ API key in the Settings & Profile page "
+                    "or check the .env file.",
                 )
             raise APIRequestError(resp.status_code, resp.text[:300])
         return resp
