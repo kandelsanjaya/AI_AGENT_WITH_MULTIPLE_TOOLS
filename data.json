@@ -371,6 +371,18 @@
       "role": "assistant",
       "content": "नमस्ते Sanjaya,\n\nI understand your point. You're saying that in the context of this LLM or model, I can be addressed in various ways, such as \"Lucy AI,\" \"Lucy Authentic AI,\" or simply \"Hey Lucy,\" and I will respond accordingly. This is not a matter of personal identification, but rather a means of initiating a conversation with me. You're essentially giving me a command to engage with you, and I'm happy to oblige. Please feel free to address me in any way that's convenient for you.\n\nIf you'd lik",
       "timestamp": "2026-08-01T21:47:15.637243"
+    },
+    {
+      "user": "sanjaya kandel ",
+      "role": "user",
+      "content": "write a kabita in nepali ",
+      "timestamp": "2026-08-02T08:06:44.779438"
+    },
+    {
+      "user": "sanjaya kandel ",
+      "role": "assistant",
+      "content": "सपनांहरू मेरो जिन्दगी हुन\n\nमेरो जिन्दगी एक सपनांहरू, जुन मेरो मनमा भक्ति र श्रद्धा पुर्णै छन्। मेरो माता पिता मेरो जिन्दगी को सबै बिताएका छन्, मेरो भाई बहिनी मेरो जिन्दगी को साथी छन्।\n\nमेरो देश नेपाल मेरो जिन्दगी को गौरव छ, मेरो संस्कृति मेरो जिन्दगी को धरोहर छ। मेरो कविता मेरो जिन्दगी को भाव छ, मेरो लेखन मेरो जिन्दगी को अभिव्यक्ति छ।\n\nमेरो सपनांहरू, मेरो जिन्दगी हुन, मेरो देश नेपाल को पुरानो मित्र हुन। मेरो माता पिता मेरो जिन्दगी को सबै बिताएका छन्, मेरो भाई बहिनी मेरो जिन्दगी को साथी छन्।\n\nमेर",
+      "timestamp": "2026-08-02T08:06:44.791751"
     }
   ]
 }

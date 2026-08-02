@@ -1189,40 +1189,201 @@ def render_socratic_clarifier() -> None:
 # ==============================================================================
 
 def render_quiz_generator() -> None:
-    """🧪 Automated Quiz & Flashcard Engine."""
-    st.markdown("### 🧪 Automated Quiz & Flashcard Engine")
-    col1, col2 = st.columns([1, 1])
+    """🧪 Automated Quiz & University Exam Paper Generator."""
+    st.markdown("### 🧪 Automated Quiz & University Exam Generator")
+    st.markdown(
+        '<div style="color:var(--sub); font-size:0.88rem; margin-bottom:16px;">'
+        "Generate formal University Examination Question Papers, Class Practice Papers, or Quick Quizzes. "
+        "Customize university branding, structural guidelines, and download print-ready PDFs."
+        "</div>",
+        unsafe_allow_html=True,
+    )
+
+    col1, col2 = st.columns([1.2, 1], gap="medium")
 
     with col1:
         _card_open()
-        quiz_topic = st.text_input("Quiz Subject Matter", "Cellular Biology & ATP Synthesis")
-        num_q = st.slider("Number of Questions", 3, 15, 5)
-        difficulty = st.select_slider(
-            "Difficulty Level",
-            options=["High School", "Undergraduate", "Postgraduate"],
-            value="Undergraduate",
+        st.markdown("#### 🎓 Exam Configuration")
+        
+        exam_mode = st.selectbox(
+            "📝 Assessment Mode",
+            [
+                "🏫 Formal University Exam Paper",
+                "📖 Classroom Practice Paper",
+                "⚡ Quick Self-Assessment Quiz"
+            ]
         )
-        q_type = st.selectbox("Question Type", ["Multiple Choice (A–D)", "True / False", "Short Answer"])
+        
+        quiz_topic = st.text_input("Course Subject / Specific Topics", "Quantum Computing & Cryptography")
+        
+        difficulty = st.select_slider(
+            "Academic Standard / Level",
+            options=["High School", "Undergraduate (BSc/BE)", "Postgraduate (MSc/PhD)"],
+            value="Undergraduate (BSc/BE)",
+        )
         _card_close()
 
     with col2:
-        if st.button("🎯 Generate Assessment", key="btn_quiz"):
-            if not quiz_topic.strip():
-                st.warning("Please enter a subject matter.")
-                return
-            prompt = (
-                f"Create a {num_q}-question {q_type} quiz on '{quiz_topic}' "
-                f"for {difficulty} level students. "
-                "For multiple choice, provide choices A–D. "
-                "Highlight correct answers clearly and add detailed explanations for each."
-            )
-            with logo_spinner("Formulating questions…"):
-                result = groq_chat(prompt)
-            _card_open()
-            st.markdown(result)
-            _card_close()
-            _render_export_buttons(result, "quiz")
+        _card_open()
+        st.markdown("#### ⚙️ Structural Details")
+        
+        col_sub1, col_sub2 = st.columns(2)
+        with col_sub1:
+            num_q = st.slider("Total Questions", 3, 20, 8)
+            time_limit = st.selectbox("Exam Time Limit", ["No Limit", "45 Minutes", "90 Minutes", "3 Hours"])
+        with col_sub2:
+            q_type = st.selectbox("Question Style", ["Mixed Standards (Long & MCQs)", "Long Subjective / Analytical", "Multiple Choice (A–D)", "Short Answers"])
+            include_keys = st.checkbox("🔑 Include Answer Key & Details", value=True)
 
+        univ_name = st.text_input("University / Institutional Title", "EDUSPHERE ACADEMIC BOARD")
+        _card_close()
+
+    st.markdown("<div style='margin-top:14px;'></div>", unsafe_allow_html=True)
+
+    if st.button("🎯 Generate University Exam Paper", key="btn_quiz", use_container_width=True, type="primary"):
+        if not quiz_topic.strip():
+            st.warning("⚠️ Please specify a course subject or syllabus topic first.")
+            return
+
+        with logo_spinner("✍️ Formulating exam paper structure and answers..."):
+            # Structure prompt specifically for high-standard university tests
+            prompt = f"""
+Create a formal academic {exam_mode} on the subject/topic: '{quiz_topic}'.
+Standard: {difficulty} level.
+Total Questions: {num_q}.
+Time Limit: {time_limit}.
+Question Style: {q_type}.
+Institution Name: {univ_name.upper()}.
+
+Format Requirements:
+1. Start with a clean University Header including Time Allowed, Full Marks, and general Instructions.
+2. Structure the questions clearly under sections (e.g., SECTION A: Objective, SECTION B: Subjective).
+3. If subjective, provide complex, analytical questions typical of university exams.
+4. {"IMPORTANT: After the question paper, provide a clean page break marker '---' followed by a comprehensive 'ANSWER KEY & EXPLANATIONS' section." if include_keys else "Do not include the answers."}
+
+Ensure academic rigor, clarity, and precise scientific terminology. Return Markdown.
+"""
+            result = groq_chat(prompt, system="You are an Academic Registrar and University Course Evaluator.")
+
+            # Set up session state variables for rendered outputs
+            st.session_state.current_quiz_text = result
+            st.session_state.current_quiz_title = f"{univ_name.replace(' ', '_')}_{quiz_topic.replace(' ', '_')}"
+
+    # Show generated quiz if it exists in session state
+    if "current_quiz_text" in st.session_state:
+        st.markdown("### 📝 Generated Question Paper Preview")
+        _card_open()
+        st.markdown(st.session_state.current_quiz_text)
+        _card_close()
+
+        # Render custom export selector for University PDFs
+        _card_open("margin-top: 14px;")
+        st.markdown("#### 💾 Download Exam Paper")
+        
+        col_sel, col_btn = st.columns([2, 1], vertical_alignment="bottom")
+        with col_sel:
+            export_format = st.selectbox(
+                "Export Format Presets",
+                ["Formal Exam PDF (.pdf)", "Plain Text Document (.txt)"],
+                key="quiz_export_selector"
+            )
+        with col_btn:
+            if export_format == "Plain Text Document (.txt)":
+                st.download_button(
+                    label="⬇️ Download Document",
+                    data=st.session_state.current_quiz_text,
+                    file_name=f"{st.session_state.current_quiz_title}.txt",
+                    mime="text/plain",
+                    use_container_width=True,
+                    type="primary"
+                )
+            else:
+                # Custom high-quality PDF generator with Exam Header overlays
+                from .utils import generate_pdf_bytes
+                
+                # Prepend formal header before generating PDF bytes
+                import datetime as dtm
+                header_prefix = (
+                    f"=========================================================\n"
+                    f"               {univ_name.upper()}\n"
+                    f"               OFFICIAL UNIVERSITY EVALUATION\n"
+                    f"---------------------------------------------------------\n"
+                    f"Course: {quiz_topic}                  Standard: {difficulty}\n"
+                    f"Allowed Time: {time_limit}            Date: {dtm.datetime.now().strftime('%d %b %Y')}\n"
+                    f"=========================================================\n\n"
+                )
+                
+                # If we have an answer key, make it separate
+                full_content_for_pdf = header_prefix + st.session_state.current_quiz_text
+                pdf_bytes = generate_pdf_bytes(full_content_for_pdf)
+                
+                st.download_button(
+                    label="⬇️ Download Print-Ready PDF",
+                    data=pdf_bytes,
+                    file_name=f"{st.session_state.current_quiz_title}.pdf",
+                    mime="application/pdf",
+                    use_container_width=True,
+                    type="primary"
+                )
+        _card_close()
+
+    # ── NEW: .txt to PDF Document Converter Workspace ───────────────────────
+    st.markdown("<hr style='margin: 20px 0; border: none; border-top: 1px solid rgba(255,255,255,0.08);'>", unsafe_allow_html=True)
+    st.markdown("### 📄 Document Converter (.txt ➔ .pdf)")
+    st.markdown(
+        '<div style="color:var(--sub); font-size:0.85rem; margin-bottom:12px;">'
+        "Upload any plain text file or syllabus paper to compile and transform it into a formatted, Latin1-sanitized PDF document."
+        "</div>",
+        unsafe_allow_html=True,
+    )
+    
+    conv_col1, conv_col2 = st.columns([1, 1], gap="medium")
+    with conv_col1:
+        _card_open()
+        st.markdown("##### 📥 Upload Text File")
+        uploaded_txt = st.file_uploader("Choose a plain text file (.txt)", type=["txt"], key="txt_to_pdf_uploader")
+        _card_close()
+        
+    with conv_col2:
+        if uploaded_txt is not None:
+            _card_open()
+            st.markdown("##### ⚙️ Compilation Options")
+            # Read uploaded file content
+            txt_string = uploaded_txt.read().decode("utf-8", errors="replace")
+            
+            # Show premium styled scrollable document preview
+            st.markdown("##### 📝 Document Content Preview")
+            st.markdown(
+                f'<div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 12px; height: 180px; overflow-y: auto; font-family: \'Space Grotesk\', sans-serif; font-size: 0.85rem; color: var(--text-color); margin-bottom: 12px; white-space: pre-wrap; line-height: 1.5;">'
+                f'{txt_string}'
+                f'</div>',
+                unsafe_allow_html=True
+            )
+            
+            # Download PDF Conversion Trigger
+            from .utils import generate_pdf_bytes
+            converted_pdf = generate_pdf_bytes(txt_string)
+            orig_name = uploaded_txt.name.rsplit(".", 1)[0]
+            
+            st.markdown("<div style='margin-top:10px;'></div>", unsafe_allow_html=True)
+            st.download_button(
+                label="📥 Convert & Download PDF",
+                data=converted_pdf,
+                file_name=f"{orig_name}_converted.pdf",
+                mime="application/pdf",
+                use_container_width=True,
+                type="primary"
+            )
+            _card_close()
+        else:
+            _card_open("height: 100%; display: flex; align-items: center; justify-content: center; text-align: center;")
+            st.markdown(
+                '<div style="color:var(--sub); font-size:0.86rem; padding: 24px 0;">'
+                "Waiting for file upload...<br>Converted PDF will be instantly available for download here."
+                "</div>",
+                unsafe_allow_html=True
+            )
+            _card_close()
 
 # ==============================================================================
 # MODULE 5 — Code Lab
@@ -2865,6 +3026,14 @@ def render_weather_forecast() -> None:
         _card_open()
         st.markdown("#### 🗺️ 3D Globe Viewer (Drag to rotate, scroll to zoom)")
         
+        # Predefined places of academic/scientific interest
+        PREDEFINED_PLACES = {
+            "Mount Everest": {"lat": 27.9881, "lng": 86.9250, "desc": "Highest point on Earth, located in the Himalayas on the border of Nepal and China."},
+            "Great Pyramids of Giza": {"lat": 29.9792, "lng": 31.1342, "desc": "Ancient structures located near Cairo, Egypt, built as tombs for Pharaohs."},
+            "Mariana Trench": {"lat": 11.3493, "lng": 142.1996, "desc": "Deepest known point in Earth's oceans, located in the Western Pacific."},
+            "Amazon Rainforest": {"lat": -3.4653, "lng": -62.2159, "desc": "World's largest tropical rainforest, famous for its biodiverse ecosystem."},
+            "CERN (Hadron Collider)": {"lat": 46.2333, "lng": 6.0491, "desc": "World's largest particle physics laboratory, located on the France-Switzerland border."}
+        }
         import json
         points_data = [
             {"lat": val["lat"], "lng": val["lng"], "name": name, "color": "red", "size": 0.5}

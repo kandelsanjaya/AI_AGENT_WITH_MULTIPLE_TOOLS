@@ -115,28 +115,48 @@ def get_pdf_download_link(content: str, filename: str, label: str) -> str:
         pdf.add_page()
         pdf.set_font("Helvetica", size=11)
 
+        # Sanitize text to avoid Latin-1 encoding errors
+        content_clean = (
+            content.replace("—", "-")
+            .replace("–", "-")
+            .replace("“", '"')
+            .replace("”", '"')
+            .replace("‘", "'")
+            .replace("’", "'")
+            .replace("™", "TM")
+            .replace("©", "(c)")
+            .replace("®", "(r)")
+            .replace("●", "*")
+            .replace("⚡", "*")
+            .replace("🏫", "")
+            .replace("🎯", "")
+            .replace("📋", "")
+            .replace("📊", "")
+            .replace("🔑", "")
+        )
+        content_clean = content_clean.encode("latin-1", "replace").decode("latin-1")
+
         # Handle multi-line content with markdown-like headers
-        for line in content.split("\n"):
+        for line in content_clean.split("\n"):
             stripped = line.strip()
             if stripped.startswith("###"):
                 pdf.set_font("Helvetica", "B", 13)
-                pdf.cell(0, 8, stripped.lstrip("#").strip(), new_x="LMARGIN", new_y="NEXT")
+                pdf.multi_cell(0, 8, stripped.lstrip("#").strip())
                 pdf.set_font("Helvetica", size=11)
             elif stripped.startswith("##"):
                 pdf.set_font("Helvetica", "B", 14)
-                pdf.cell(0, 9, stripped.lstrip("#").strip(), new_x="LMARGIN", new_y="NEXT")
+                pdf.multi_cell(0, 9, stripped.lstrip("#").strip())
                 pdf.set_font("Helvetica", size=11)
             elif stripped.startswith("#"):
                 pdf.set_font("Helvetica", "B", 16)
-                pdf.cell(0, 10, stripped.lstrip("#").strip(), new_x="LMARGIN", new_y="NEXT")
+                pdf.multi_cell(0, 10, stripped.lstrip("#").strip())
                 pdf.set_font("Helvetica", size=11)
             elif stripped.startswith("**") and stripped.endswith("**"):
                 pdf.set_font("Helvetica", "B", 11)
                 pdf.multi_cell(0, 6, stripped.strip("*").strip())
                 pdf.set_font("Helvetica", size=11)
             elif stripped.startswith("- ") or stripped.startswith("* "):
-                pdf.cell(8)
-                pdf.multi_cell(0, 6, "• " + stripped[2:])
+                pdf.multi_cell(0, 6, "     • " + stripped[2:])
             elif stripped == "":
                 pdf.ln(4)
             else:
@@ -146,7 +166,7 @@ def get_pdf_download_link(content: str, filename: str, label: str) -> str:
                 clean = re.sub(r"`(.*?)`", r"\1", clean)
                 pdf.multi_cell(0, 6, clean)
 
-        pdf_bytes = pdf.output()
+        pdf_bytes = bytes(pdf.output())
         b64 = base64.b64encode(pdf_bytes).decode("utf-8")
         return (
             f'<a href="data:application/pdf;base64,{b64}" '
@@ -183,50 +203,125 @@ def get_audio_download_link(text: str, filename: str = "speech.mp3", label: str 
 
 
 def generate_pdf_bytes(content: str) -> bytes:
-    """Generate and return PDF bytes from markdown text content using fpdf2."""
+    """Generate and return styled PDF bytes from markdown text content using fpdf2."""
     try:
         from fpdf import FPDF
 
-        pdf = FPDF()
+        class StyledPDF(FPDF):
+            def header(self):
+                # Accent vertical sidebar
+                self.set_fill_color(59, 130, 246) # Blue accent
+                self.rect(0, 0, 7, 297, "F")
+                
+                # Top header bar
+                self.set_fill_color(30, 41, 59) # Slate background
+                self.rect(7, 0, 203, 14, "F")
+                
+                # Header text
+                self.set_font("Helvetica", "B", 7.5)
+                self.set_text_color(226, 232, 240)
+                self.text(12, 8, "EDUSPHERE AI ACADEMIC SYSTEM - VERIFIED REPORT")
+                self.set_text_color(0, 0, 0) # Reset
+
+            def footer(self):
+                # Footer text
+                self.set_y(-12)
+                self.set_font("Helvetica", "I", 7.5)
+                self.set_text_color(100, 116, 139)
+                self.text(130, 290, f"Page {self.page_no()} | Compiled by EduSphere AI Suite")
+
+        pdf = StyledPDF()
+        pdf.set_left_margin(14)
+        pdf.set_font("Helvetica", size=10) # Set default font before adding page
         pdf.set_auto_page_break(auto=True, margin=15)
+        pdf.alias_nb_pages()
         pdf.add_page()
-        pdf.set_font("Helvetica", size=11)
+        
+        # Start spacing
+        pdf.ln(12)
+
+        # Sanitize text to avoid Latin-1 encoding errors (replace curly quotes, em-dashes, etc.)
+        content_clean = (
+            content.replace("—", "-")
+            .replace("–", "-")
+            .replace("“", '"')
+            .replace("”", '"')
+            .replace("‘", "'")
+            .replace("’", "'")
+            .replace("™", "TM")
+            .replace("©", "(c)")
+            .replace("®", "(r)")
+            .replace("●", "*")
+            .replace("⚡", "*")
+            .replace("🏫", "")
+            .replace("🎯", "")
+            .replace("📋", "")
+            .replace("📊", "")
+            .replace("🔑", "")
+        )
+        # Encode and decode back using latin-1 ignore to clean out any remaining unsupported characters
+        content_clean = content_clean.encode("latin-1", "replace").decode("latin-1")
 
         # Handle multi-line content with markdown-like headers
-        for line in content.split("\n"):
+        for line in content_clean.split("\n"):
+            pdf.set_x(14) # Reset X coordinate before every line to avoid drift
             stripped = line.strip()
+            
+            # Draw dividers
+            if stripped.startswith("===") or stripped.startswith("---"):
+                pdf.set_draw_color(203, 213, 225)
+                pdf.set_line_width(0.4)
+                pdf.line(14, pdf.get_y() + 2, 200, pdf.get_y() + 2)
+                pdf.set_x(14)
+                pdf.ln(5)
+                continue
+
             if stripped.startswith("###"):
-                pdf.set_font("Helvetica", "B", 13)
-                pdf.cell(0, 8, stripped.lstrip("#").strip(), new_x="LMARGIN", new_y="NEXT")
-                pdf.set_font("Helvetica", size=11)
+                pdf.ln(2)
+                pdf.set_font("Helvetica", "B", 12.5)
+                pdf.set_text_color(30, 41, 59) # Slate
+                pdf.multi_cell(0, 7, stripped.lstrip("#").strip())
+                pdf.set_font("Helvetica", size=10)
+                pdf.set_text_color(0, 0, 0)
+                pdf.ln(1)
             elif stripped.startswith("##"):
-                pdf.set_font("Helvetica", "B", 14)
-                pdf.cell(0, 9, stripped.lstrip("#").strip(), new_x="LMARGIN", new_y="NEXT")
-                pdf.set_font("Helvetica", size=11)
+                pdf.ln(3)
+                pdf.set_font("Helvetica", "B", 13.5)
+                pdf.set_text_color(37, 99, 235) # Accent Blue
+                pdf.multi_cell(0, 8, stripped.lstrip("#").strip())
+                pdf.set_font("Helvetica", size=10)
+                pdf.set_text_color(0, 0, 0)
+                pdf.ln(2)
             elif stripped.startswith("#"):
-                pdf.set_font("Helvetica", "B", 16)
-                pdf.cell(0, 10, stripped.lstrip("#").strip(), new_x="LMARGIN", new_y="NEXT")
-                pdf.set_font("Helvetica", size=11)
-            elif stripped.startswith("**") and stripped.endswith("**"):
-                pdf.set_font("Helvetica", "B", 11)
-                pdf.multi_cell(0, 6, stripped.strip("*").strip())
-                pdf.set_font("Helvetica", size=11)
-            elif stripped.startswith("- ") or stripped.startswith("* "):
-                pdf.cell(8)
-                pdf.multi_cell(0, 6, "• " + stripped[2:])
-            elif stripped == "":
                 pdf.ln(4)
+                pdf.set_font("Helvetica", "B", 16)
+                pdf.set_text_color(17, 24, 39) # Deep Gray
+                pdf.multi_cell(0, 9, stripped.lstrip("#").strip())
+                pdf.set_font("Helvetica", size=10)
+                pdf.set_text_color(0, 0, 0)
+                pdf.ln(3)
+            elif stripped.startswith("**") and stripped.endswith("**"):
+                pdf.set_font("Helvetica", "B", 10.5)
+                pdf.multi_cell(0, 6, stripped.strip("*").strip())
+                pdf.set_font("Helvetica", size=10)
+            elif stripped.startswith("- ") or stripped.startswith("* "):
+                pdf.set_font("Helvetica", size=10)
+                pdf.multi_cell(0, 5.5, "     * " + stripped[2:])
+            elif stripped == "":
+                pdf.ln(3)
             else:
+                pdf.set_font("Helvetica", size=10)
                 # Clean markdown formatting for PDF
                 clean = re.sub(r"\*\*(.*?)\*\*", r"\1", stripped)
                 clean = re.sub(r"\*(.*?)\*", r"\1", clean)
                 clean = re.sub(r"`(.*?)`", r"\1", clean)
-                pdf.multi_cell(0, 6, clean)
+                pdf.multi_cell(0, 5.5, clean)
 
-        return pdf.output()
+        return bytes(pdf.output())
     except Exception as exc:
         log.error("PDF generation failed: %s", exc)
-        return content.encode("utf-8")
+        # Final fallback: encode content using latin-1 to avoid download failures
+        return content.encode("latin-1", "replace")
 
 
 def generate_audio_bytes(text: str) -> Optional[bytes]:
