@@ -1216,10 +1216,31 @@ def render_quiz_generator() -> None:
         
         quiz_topic = st.text_input("Course Subject / Specific Topics", "Quantum Computing & Cryptography")
         
-        difficulty = st.select_slider(
-            "Academic Standard / Level",
-            options=["High School", "Undergraduate (BSc/BE)", "Postgraduate (MSc/PhD)"],
-            value="Undergraduate (BSc/BE)",
+        difficulty = st.selectbox(
+            "🎓 Academic Standard / Target Grade",
+            options=[
+                "Primary School (Grade 1-5)",
+                "Middle School (Grade 6-8)",
+                "High School (Grade 9-12)",
+                "Undergraduate (BSc/BE/BA)",
+                "Postgraduate (MSc/PhD)",
+                "Job Interview Preparation"
+            ],
+            index=3,
+        )
+
+        nepal_faculty = st.selectbox(
+            "🏛️ Nepal Faculty / Board Affiliation",
+            options=[
+                "None / General Assessment",
+                "Tribhuvan University (TU - IOE/IOM/FOHSS/FMS)",
+                "Kathmandu University (KU - SOE/SOM/SOS)",
+                "Pokhara University (PoU)",
+                "Purbanchal University (PU)",
+                "National Examinations Board (NEB - Grade 11/12)",
+                "CTEVT (Diploma/Technical)"
+            ],
+            index=1
         )
         _card_close()
 
@@ -1232,7 +1253,22 @@ def render_quiz_generator() -> None:
             num_q = st.slider("Total Questions", 3, 20, 8)
             time_limit = st.selectbox("Exam Time Limit", ["No Limit", "45 Minutes", "90 Minutes", "3 Hours"])
         with col_sub2:
-            q_type = st.selectbox("Question Style", ["Mixed Standards (Long & MCQs)", "Long Subjective / Analytical", "Multiple Choice (A–D)", "Short Answers"])
+            q_type = st.selectbox(
+                "Question Style", 
+                [
+                    "Mixed Standards (Long & Short & MCQs)", 
+                    "Long Questions (10 Marks each)", 
+                    "Short Questions (5 Marks each)",
+                    "Long Subjective / Analytical Only", 
+                    "Multiple Choice (A–D) Only", 
+                    "Short Answers Only"
+                ]
+            )
+            hardness = st.select_slider(
+                "🔥 Difficulty Rating",
+                options=["Easy", "Medium", "Hard", "Expert / Analytical"],
+                value="Hard"
+            )
             include_keys = st.checkbox("🔑 Include Answer Key & Details", value=True)
 
         univ_name = st.text_input("University / Institutional Title", "EDUSPHERE ACADEMIC BOARD")
@@ -1249,19 +1285,21 @@ def render_quiz_generator() -> None:
             # Structure prompt specifically for high-standard university tests
             prompt = f"""
 Create a formal academic {exam_mode} on the subject/topic: '{quiz_topic}'.
-Standard: {difficulty} level.
+Target Grade/Level: {difficulty}.
+Nepal Board/Faculty Affiliation: {nepal_faculty}.
+Difficulty/Hardness Rating: {hardness}.
 Total Questions: {num_q}.
 Time Limit: {time_limit}.
 Question Style: {q_type}.
 Institution Name: {univ_name.upper()}.
 
 Format Requirements:
-1. Start with a clean University Header including Time Allowed, Full Marks, and general Instructions.
-2. Structure the questions clearly under sections (e.g., SECTION A: Objective, SECTION B: Subjective).
-3. If subjective, provide complex, analytical questions typical of university exams.
+1. Start with a clean Header including Time Allowed, Board Affiliation ({nepal_faculty}), Difficulty level, Target Standard, and general Instructions.
+2. Structure the questions clearly under sections matching the selected level (e.g., SECTION A: Objective, SECTION B: Subjective).
+3. Adjust question complexity to match both the level ({difficulty}), board guidelines ({nepal_faculty}), and difficulty rating ({hardness}).
 4. {"IMPORTANT: After the question paper, provide a clean page break marker '---' followed by a comprehensive 'ANSWER KEY & EXPLANATIONS' section." if include_keys else "Do not include the answers."}
 
-Ensure academic rigor, clarity, and precise scientific terminology. Return Markdown.
+Ensure appropriate complexity, clarity, and precise scientific terminology matching Nepali educational board standards where applicable. Return Markdown.
 """
             result = groq_chat(prompt, system="You are an Academic Registrar and University Course Evaluator.")
 
