@@ -57,69 +57,19 @@
 
 ## ✨ Features
 
-<table>
-<tr><th width="30%">Module</th><th>Description</th></tr>
-<tr><td>🧠 <b>EduChat & RAG Studio</b></td><td>Memory-aware, document-driven chatbot with FAISS vector retrieval and full chat memory</td></tr>
-<tr><td>🎞️ <b>Presentation Generator</b></td><td>AI PowerPoint generator with dynamic charts, contrast panels, animations, and watermarking</td></tr>
-<tr><td>📚 <b>Study Planner</b></td><td>AI-generated personalised study schedules</td></tr>
-<tr><td>🔬 <b>Socratic Clarifier</b></td><td>Concept deconstruction through Socratic dialogue</td></tr>
-<tr><td>🧪 <b>Quiz Generator</b></td><td>Auto-generated MCQ / University-standard exam papers with printable PDF keys, topic selectors, and built-in <b>.txt to PDF document converter</b></td></tr>
-<tr><td>💻 <b>Code Lab</b></td><td>Bug detection, explanation, and complexity optimisation</td></tr>
-<tr><td>🌍 <b>Academic Translator</b></td><td>Multi-lingual translation with formality control</td></tr>
-<tr><td>📝 <b>Executive Summariser</b></td><td>Bullet / abstract / ELI5 text summarisation</td></tr>
-<tr><td>🖼️ <b>URL Intelligence</b></td><td>Web page scraping and AI summarisation</td></tr>
-<tr><td>🧹 <b>Background Remover</b></td><td>AI-powered image background removal</td></tr>
-<tr><td>📊 <b>Analytics</b></td><td>Session telemetry and usage dashboard</td></tr>
-<tr><td>🛡️ <b>Cyber Security Panel</b></td><td>Threat intel feeds, CVE scans, and network header audits</td></tr>
-</table>
-
-<div align="center">
-<img src="https://progress-bar.dev/100/?title=Modules%20Shipped&width=400&color=22D3EE" alt="progress"/>
-</div>
-
----
-
-## 💎 Custom Interactions & UI
-
-> <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=400&size=14&duration=1800&pause=400&color=22D3EE&center=false&vCenter=true&multiline=false&width=560&lines=Rendered+entirely+with+animated+CSS+%E2%80%94+no+heavy+JS+frameworks." alt="ui tagline"/>
-
-- 🔮 **Lava-Lamp Orb** — centered glowing graduation-cap dashboard logo using morphing SVG polygon masks with shifting contrast
-- 🐹 **Rhythmic Page Transitions** — page-load animations powered by a hamster-wheel loader component that masks asset-loading latency
-- 💾 **Persistent Memory** — chat logs, activity trails, and registered profiles written directly to a local SQLite database (`users.dbs`)
-- 🧭 **Interactive Quick Access** — dashboard modules double as active trigger selectors that update sidebar navigation state live
-
-<div align="center">
-
-| Theme | Preview Vibe |
+| Module | Description |
 |---|---|
-| ⚡ Futuristic Glassmorphism | Cyan neon on deep navy |
-| 🌸 Cyber Command Center | Magenta on near-black |
-| ⚪ Minimal AI SaaS | Clean grayscale |
-| 🔮 Holographic Neon | Purple / magenta glow |
-| 🌑 College Dark | Cyan on academic dark |
-| ☀️ College Light | Blue on bright white |
-
-</div>
-
----
-
-## 📄 Text to PDF Converter & Styled Layouts
-
-EduSphere AI contains an integrated, high-fidelity PDF rendering engine.
-
-### ⚙️ How to Use:
-1. Navigate to the **🧪 Quiz & Assessment Generator** module.
-2. Scroll to the **📄 Document Converter (.txt ➔ .pdf)** section at the bottom.
-3. Drop or upload any plain `.txt` file.
-4. Preview the document inside the scrollable sheet viewer in the application.
-5. Click **Convert & Download PDF** to get a formatted, sanitized document.
-
-### 🎨 Premium Design System Features:
-* **Blue Corporate Sidebar**: Rendered vertically on the left of every page.
-* **Top Header Slate Banner**: Contains the validated institutional metadata.
-* **Dynamic Header Levels**: Maps markdown headers (`#`, `##`, `###`) to styled Helvetica headings.
-* **Horizontal Divider Lines**: Compiles markdown separators (`---` or `===`) into crisp line dividers.
-* **Stable Layout Engine**: Prevents cursor coordinates drift and handles wide Latin-1 Unicode conversions.
+| 🧠 EduChat & RAG Studio | Document-aware chatbot with FAISS vector retrieval |
+| 📚 Study Planner | AI-generated personalised study schedules |
+| 🔬 Socratic Clarifier | Concept deconstruction through Socratic dialogue |
+| 🧪 Quiz Generator | Auto-generated MCQ/True-False assessments |
+| 💻 Code Lab | Bug detection, explanation, and complexity optimisation |
+| 🌍 Academic Translator | Multi-lingual translation with formality control |
+| 📝 Executive Summariser | Bullet/abstract/ELI5 text summarisation |
+| 🖼️ URL Intelligence | Web page scraping and AI summarisation |
+| 🧹 Background Remover | AI-powered image background removal |
+| 📊 Analytics | Session telemetry and usage dashboard |
+| 🏛️ Architecture | System architecture and DB schema documentation |
 
 ---
 
@@ -262,6 +212,10 @@ git push origin feature/your-feature
 ## 📄 License
 
 MIT © EduSphere AI Team
+
+<div align="center">
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:8B5CF6,50:1B2340,100:0B0F1A&height=150&section=footer" width="100%"/>
+</div>
 
 <div align="center">
 <img src="https://capsule-render.vercel.app/api?type=waving&color=0:8B5CF6,50:1B2340,100:0B0F1A&height=150&section=footer" width="100%"/>
