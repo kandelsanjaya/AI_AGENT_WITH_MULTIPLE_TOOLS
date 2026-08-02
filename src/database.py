@@ -89,6 +89,25 @@ def init_db():
             )
             """
         )
+        # ── Activity Log ────────────────────────────────────────
+        c.execute(
+            """
+            CREATE TABLE IF NOT EXISTS activity_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                user_name TEXT,
+                action TEXT NOT NULL,
+                detail TEXT,
+                module TEXT DEFAULT 'general',
+                created_at TEXT NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+            """
+        )
+        try:
+            c.execute("ALTER TABLE activity_log ADD COLUMN module TEXT DEFAULT 'general'")
+        except Exception:
+            pass
     log.info("Database initialised at %s", DB_PATH)
 
 
@@ -250,3 +269,79 @@ def get_all_user_messages(user_id: int) -> list[dict]:
             (user_id,),
         )
         return [dict(r) for r in c.fetchall()]
+
+
+def get_all_users() -> list[dict]:
+    """Fetch all registered users (admin view)."""
+    with get_connection() as conn:
+        c = conn.cursor()
+        c.execute(
+            "SELECT id, username, email, full_name, role, created_at FROM users ORDER BY created_at DESC"
+        )
+        return [dict(r) for r in c.fetchall()]
+
+
+# ─────────────────────────── ACTIVITY LOG ─────────────────────────────────── #
+
+def log_activity(
+    user_id: int, user_name: str, action: str, detail: str = "", module: str = "general"
+) -> None:
+    """Record any user action in the activity_log table."""
+    try:
+        with get_connection() as conn:
+            c = conn.cursor()
+            c.execute(
+                """INSERT INTO activity_log (user_id, user_name, action, detail, module, created_at)
+                   VALUES (?, ?, ?, ?, ?, ?)""",
+                (
+                    user_id, user_name, action,
+                    (detail or "")[:500], module,
+                    datetime.datetime.now().isoformat(),
+                ),
+            )
+    except Exception as exc:
+        log.warning("Activity log write failed: %s", exc)
+
+
+def get_user_activity(user_id: int, limit: int = 100) -> list[dict]:
+    """Get the most recent activities for a specific user."""
+    with get_connection() as conn:
+        c = conn.cursor()
+        c.execute(
+            """SELECT action, detail, module, created_at FROM activity_log
+               WHERE user_id = ? ORDER BY id DESC LIMIT ?""",
+            (user_id, limit),
+        )
+        return [dict(r) for r in c.fetchall()]
+
+
+def get_all_activity(limit: int = 200) -> list[dict]:
+    """Get recent activity across all users (admin view)."""
+    with get_connection() as conn:
+        c = conn.cursor()
+        c.execute(
+            """SELECT user_name, action, detail, module, created_at FROM activity_log
+               ORDER BY id DESC LIMIT ?""",
+            (limit,),
+        )
+        return [dict(r) for r in c.fetchall()]
+
+
+def get_activity_stats() -> dict:
+    """Return aggregate activity statistics."""
+    with get_connection() as conn:
+        c = conn.cursor()
+        c.execute("SELECT COUNT(*) as total FROM activity_log")
+        total = c.fetchone()["total"]
+        c.execute("SELECT COUNT(DISTINCT user_id) as users FROM activity_log")
+        users = c.fetchone()["users"]
+        c.execute(
+            "SELECT module, COUNT(*) as cnt FROM activity_log GROUP BY module ORDER BY cnt DESC"
+        )
+        by_module = [dict(r) for r in c.fetchall()]
+        c.execute(
+            """SELECT strftime('%Y-%m-%d', created_at) as day, COUNT(*) as cnt
+               FROM activity_log GROUP BY day ORDER BY day DESC LIMIT 7"""
+        )
+        by_day = [dict(r) for r in c.fetchall()]
+    return {"total": total, "unique_users": users, "by_module": by_module, "by_day": by_day}

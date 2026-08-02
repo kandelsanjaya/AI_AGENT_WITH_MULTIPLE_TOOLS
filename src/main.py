@@ -55,6 +55,7 @@ from src.modules import (  # noqa: E402
     render_globe_map,
     render_weather_forecast,
     render_cyber_panel,
+    render_presentation_generator,
 )
 
 # ---------------------------------------------------------------------------
@@ -330,6 +331,7 @@ def render_login_screen(theme: dict) -> None:
 NAV_OPTIONS = [
     "🏠 Dashboard",
     "🧠 EduChat & RAG Studio",
+    "🎞️ Presentation Generator",
     "📚 Study Planner & Syllabus",
     "🧪 Quiz & Assessment Generator",
     "💻 Code Lab & Explainer",
@@ -349,6 +351,7 @@ NAV_OPTIONS = [
 MODULE_MAP = {
     "🏠 Dashboard": render_dashboard,
     "🧠 EduChat & RAG Studio": render_educhat,
+    "🎞️ Presentation Generator": render_presentation_generator,
     "📚 Study Planner & Syllabus": render_study_planner,
     "🧪 Quiz & Assessment Generator": render_quiz_generator,
     "💻 Code Lab & Explainer": render_code_lab,
@@ -485,7 +488,19 @@ def render_sidebar() -> str:
         st.markdown("<hr style='margin: 4px 0; border: none; border-top: 1px solid rgba(255, 255, 255, 0.06);'>", unsafe_allow_html=True)
 
         # Navigation
-        selected = st.radio("📌 Navigation", NAV_OPTIONS, label_visibility="collapsed")
+        if "selected_menu" not in st.session_state:
+            st.session_state.selected_menu = NAV_OPTIONS[0]
+
+        # Use index helper to synchronize the radio selection
+        current_sel_idx = 0
+        if st.session_state.selected_menu in NAV_OPTIONS:
+            current_sel_idx = NAV_OPTIONS.index(st.session_state.selected_menu)
+
+        selected = st.radio("📌 Navigation", NAV_OPTIONS, index=current_sel_idx, label_visibility="collapsed")
+        
+        if selected != st.session_state.selected_menu:
+            st.session_state.selected_menu = selected
+            st.rerun()
 
         st.markdown("<hr style='margin: 4px 0; border: none; border-top: 1px solid rgba(255, 255, 255, 0.06);'>", unsafe_allow_html=True)
 
@@ -816,8 +831,29 @@ def main() -> None:
         render_login_screen(theme)
         st.stop()
 
-    selected_menu = render_sidebar()
+    render_sidebar()
     render_navbar()
+
+    # Cache the menu state to detect transitions
+    if "last_dispatched_menu" not in st.session_state:
+        st.session_state.last_dispatched_menu = None
+
+    selected_menu = st.session_state.get("selected_menu", NAV_OPTIONS[0])
+    
+    # If switching tabs, show the premium hamster loader screen briefly to mask transition latency
+    if st.session_state.last_dispatched_menu and st.session_state.last_dispatched_menu != selected_menu:
+        st.session_state.last_dispatched_menu = selected_menu
+        placeholder = st.empty()
+        with placeholder.container():
+            render_hamster_loader(
+                label=f"Loading {selected_menu.split(' ', 1)[-1]}...",
+                sub_label="Assembling workspace modules and assets..."
+            )
+        time.sleep(0.35)
+        placeholder.empty()
+        st.rerun()
+
+    st.session_state.last_dispatched_menu = selected_menu
 
     # Dispatch to the correct module
     render_fn = MODULE_MAP.get(selected_menu)
