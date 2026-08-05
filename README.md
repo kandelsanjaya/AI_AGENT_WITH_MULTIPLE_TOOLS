@@ -211,11 +211,8 @@ git push origin feature/your-feature
 
 ## 📄 License
 
-MIT © EduSphere AI Team
+MIT © EduSphere AI Team (Sanjaya kandel) 
 
-<div align="center">
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:8B5CF6,50:1B2340,100:0B0F1A&height=150&section=footer" width="100%"/>
-</div>
 
 <div align="center">
 <img src="https://capsule-render.vercel.app/api?type=waving&color=0:8B5CF6,50:1B2340,100:0B0F1A&height=150&section=footer" width="100%"/>
