@@ -130,7 +130,7 @@ def _render_export_buttons(content: str, base_name: str = "output") -> None:
 # ==============================================================================
 
 def render_dashboard() -> None:
-    """🏠 EduSphere AI Dashboard — Lucy-AI style workspace home."""
+    """🏠 EduSphere AI Dashboard — Premium UI Workspace."""
     user = st.session_state.user_info or {}
     name = user.get("name", "User")
     role = user.get("role", "Student")
@@ -142,413 +142,233 @@ def render_dashboard() -> None:
     chat_len = len(st.session_state.get("chat_history", []))
     session_mins = int((now - st.session_state.get("session_start", now)).total_seconds() / 60)
 
-    # ── Stat Row ──
+    # ── Premium Welcome Banner ──
     st.markdown(
         f"""
-        <div style="margin-bottom:20px;">
-            <div style="font-family:'Space Grotesk',sans-serif; font-size:1.35rem; font-weight:700;
-                        color:var(--text); margin-bottom:18px;">
-                Your AI Agent Workspace
-                <span style="font-size:0.95rem; color:var(--accent); margin-left:8px;">+</span>
-            </div>
-            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px;">
-                <div style="background:var(--card); border:1px solid rgba(255,255,255,0.07);
-                            border-radius:14px; padding:18px 20px;">
-                    <div style="font-size:0.68rem; color:var(--sub); letter-spacing:1px; text-transform:uppercase;
-                                margin-bottom:8px;">Total Queries</div>
-                    <div style="font-size:2rem; font-weight:800; color:var(--text); font-family:'Orbitron',monospace;">{total_q}</div>
-                    <div style="font-size:0.72rem; color:#4ade80; margin-top:6px;">▲ Active session</div>
-                </div>
-                <div style="background:var(--card); border:1px solid rgba(255,255,255,0.07);
-                            border-radius:14px; padding:18px 20px;">
-                    <div style="font-size:0.68rem; color:var(--sub); letter-spacing:1px; text-transform:uppercase;
-                                margin-bottom:8px;">Chat Messages</div>
-                    <div style="font-size:2rem; font-weight:800; color:var(--text); font-family:'Orbitron',monospace;">{chat_len}</div>
-                    <div style="font-size:0.72rem; color:var(--accent); margin-top:6px;">▲ This session</div>
-                </div>
-                <div style="background:var(--card); border:1px solid rgba(255,255,255,0.07);
-                            border-radius:14px; padding:18px 20px;">
-                    <div style="font-size:0.68rem; color:var(--sub); letter-spacing:1px; text-transform:uppercase;
-                                margin-bottom:8px;">Session Duration</div>
-                    <div style="font-size:2rem; font-weight:800; color:var(--text); font-family:'Orbitron',monospace;">{session_mins}m</div>
-                    <div style="font-size:0.72rem; color:var(--accent2); margin-top:6px;">Since login</div>
-                </div>
-                <div style="background:var(--card); border:1px solid rgba(255,255,255,0.07);
-                            border-radius:14px; padding:18px 20px;">
-                    <div style="font-size:0.68rem; color:var(--sub); letter-spacing:1px; text-transform:uppercase;
-                                margin-bottom:8px;">Role Access</div>
-                    <div style="font-size:1.4rem; font-weight:800; color:var(--text); font-family:'Orbitron',monospace;">{role[:5].upper()}</div>
-                    <div style="font-size:0.72rem; color:#fb923c; margin-top:6px;">● Authenticated</div>
-                </div>
+        <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
+                    border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 32px 40px;
+                    margin-bottom: 24px; position: relative; overflow: hidden; backdrop-filter: blur(10px);">
+            <div style="position: absolute; top: -50%; left: -10%; width: 50%; height: 200%; 
+                        background: radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, transparent 70%); 
+                        transform: rotate(-45deg); pointer-events: none;"></div>
+            <div style="position: relative; z-index: 1;">
+                <h1 style="margin:0; font-size: 2.4rem; font-family: 'Space Grotesk', sans-serif; font-weight: 800; letter-spacing: -0.5px;">
+                    {greeting}, <span style="background: linear-gradient(90deg, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">{name}</span> 👋
+                </h1>
+                <p style="margin: 8px 0 0 0; font-size: 1.05rem; color: var(--sub); max-width: 600px;">
+                    Welcome to your EduSphere AI workspace. All systems are online and ready to assist you.
+                </p>
             </div>
         </div>
         """,
         unsafe_allow_html=True
     )
 
+    # ── Quick Ask Integrated Bar ──
+    quick_q = st.chat_input("Ask EduSphere AI anything right here...")
+    if quick_q:
+        with logo_spinner("Thinking..."):
+            answer = groq_chat(
+                quick_q.strip(),
+                system="You are EduSphere AI, a helpful educational assistant. Give a concise but thorough answer."
+            )
+            st.session_state.total_queries = total_q + 1
+        st.markdown(
+            f"""
+            <div style="background: rgba(255,255,255,0.05); border-left: 4px solid var(--accent); padding: 16px; border-radius: 8px; margin-bottom: 24px;">
+                <strong style="color: var(--accent);">EduSphere AI:</strong><br><br>{answer}
+            </div>
+            """, 
+            unsafe_allow_html=True
+        )
+
+
     # ── Main area + right panel ──
-    left_col, right_col = st.columns([2.2, 1], gap="medium")
+    left_col, right_col = st.columns([2.4, 1], gap="large")
 
     with left_col:
-        # Greeting card — UIverse lava-lamp orb (rendered inside streamlit component iframe to prevent sanitization)
-        _card_open()
+        # ── Stat Row (Glassmorphic) ──
+        st.markdown("#### 📊 Real-time Metrics")
+        st.markdown(
+            f"""
+            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:28px;">
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+                            border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+                            backdrop-filter: blur(5px); transition: transform 0.2s ease;">
+                    <div style="font-size:1.8rem; margin-bottom: 4px;">⚡</div>
+                    <div style="font-size:2.2rem; font-weight:800; font-family:'Orbitron',monospace; 
+                                background: linear-gradient(180deg, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                        {total_q}
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--sub); font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-top:4px;">Queries</div>
+                </div>
+                
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+                            border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+                            backdrop-filter: blur(5px); transition: transform 0.2s ease;">
+                    <div style="font-size:1.8rem; margin-bottom: 4px;">💬</div>
+                    <div style="font-size:2.2rem; font-weight:800; font-family:'Orbitron',monospace; 
+                                background: linear-gradient(180deg, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                        {chat_len}
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--sub); font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-top:4px;">Messages</div>
+                </div>
 
-        import streamlit.components.v1 as _stc_orb
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+                            border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+                            backdrop-filter: blur(5px); transition: transform 0.2s ease;">
+                    <div style="font-size:1.8rem; margin-bottom: 4px;">⏱️</div>
+                    <div style="font-size:2.2rem; font-weight:800; font-family:'Orbitron',monospace; 
+                                background: linear-gradient(180deg, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                        {session_mins}m
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--sub); font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-top:4px;">Session</div>
+                </div>
 
-        _greeting_v = greeting
-        _name_v     = name
-
-        _html = """<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<style>
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body {
-    background: transparent;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 200px;
-    font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
-    overflow: hidden;
-  }
-
-  .loader {
-    --color-one: #ffbf48;
-    --color-two: #be4a1d;
-    --color-three: #ffbf4780;
-    --color-four: #bf4a1d80;
-    --color-five: #ffbf4740;
-    --time-animation: 2s;
-    --size: 1; /* You can change the size */
-    position: relative;
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    transform: scale(var(--size));
-    box-shadow:
-      0 0 25px 0 var(--color-three),
-      0 20px 50px 0 var(--color-four);
-    animation: colorize calc(var(--time-animation) * 3) ease-in-out infinite;
-  }
-
-  .loader::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    border-top: solid 1px var(--color-one);
-    border-bottom: solid 1px var(--color-two);
-    background: linear-gradient(180deg, var(--color-five), var(--color-four));
-    box-shadow:
-      inset 0 10px 10px 0 var(--color-three),
-      inset 0 -10px 10px 0 var(--color-four);
-  }
-
-  .loader .box {
-    width: 100px;
-    height: 100px;
-    background: linear-gradient(
-      180deg,
-      var(--color-one) 30%,
-      var(--color-two) 70%
-    );
-    mask: url(#clipping);
-    -webkit-mask: url(#clipping);
-  }
-
-  .loader svg {
-    position: absolute;
-  }
-
-  .loader svg #clipping {
-    filter: contrast(15);
-    animation: roundness calc(var(--time-animation) / 2) linear infinite;
-  }
-
-  .loader svg #clipping polygon {
-    filter: blur(7px);
-  }
-
-  .loader svg #clipping polygon:nth-child(1) {
-    transform-origin: 75% 25%;
-    transform: rotate(90deg);
-  }
-
-  .loader svg #clipping polygon:nth-child(2) {
-    transform-origin: 50% 50%;
-    animation: rotation var(--time-animation) linear infinite reverse;
-  }
-
-  .loader svg #clipping polygon:nth-child(3) {
-    transform-origin: 50% 60%;
-    animation: rotation var(--time-animation) linear infinite;
-    animation-delay: calc(var(--time-animation) / -3);
-  }
-
-  .loader svg #clipping polygon:nth-child(4) {
-    transform-origin: 40% 40%;
-    animation: rotation var(--time-animation) linear infinite reverse;
-  }
-
-  .loader svg #clipping polygon:nth-child(5) {
-    transform-origin: 40% 40%;
-    animation: rotation var(--time-animation) linear infinite reverse;
-    animation-delay: calc(var(--time-animation) / -2);
-  }
-
-  .loader svg #clipping polygon:nth-child(6) {
-    transform-origin: 60% 40%;
-    animation: rotation var(--time-animation) linear infinite;
-  }
-
-  .loader svg #clipping polygon:nth-child(7) {
-    transform-origin: 60% 40%;
-    animation: rotation var(--time-animation) linear infinite;
-    animation-delay: calc(var(--time-animation) / -1.5);
-  }
-
-  @keyframes rotation {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
-  }
-
-  @keyframes roundness {
-    0% {
-      filter: contrast(15);
-    }
-    20% {
-      filter: contrast(3);
-    }
-    40% {
-      filter: contrast(3);
-    }
-    60% {
-      filter: contrast(15);
-    }
-    100% {
-      filter: contrast(15);
-    }
-  }
-
-  @keyframes colorize {
-    0% {
-      filter: hue-rotate(0deg);
-    }
-    20% {
-      filter: hue-rotate(-30deg);
-    }
-    40% {
-      filter: hue-rotate(-60deg);
-    }
-    60% {
-      filter: hue-rotate(-90deg);
-    }
-    80% {
-      filter: hue-rotate(-45deg);
-    }
-    100% {
-      filter: hue-rotate(0deg);
-    }
-  }
-
-  .orb-container {
-    position: relative;
-    width: 100px;
-    height: 100px;
-    margin-bottom: 12px;
-  }
-
-  .emoji-overlay {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 2.2rem;
-    z-index: 10;
-    pointer-events: none;
-    animation: float 2.5s ease-in-out infinite;
-  }
-
-  @keyframes float {
-    0%, 100% { transform: translate(-50%, -50%) translateY(0px); }
-    50% { transform: translate(-50%, -50%) translateY(-5px); }
-  }
-
-  .greeting-text {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #f8fafc;
-    margin-bottom: 4px;
-    text-align: center;
-  }
-
-  .subtitle-text {
-    font-size: 0.85rem;
-    color: #94a3b8;
-    text-align: center;
-  }
-</style>
-</head>
-<body>
-  <div class="orb-container">
-    <div class="loader">
-      <svg width="100" height="100" viewBox="0 0 100 100">
-        <defs>
-          <mask id="clipping">
-            <polygon points="0,0 100,0 100,100 0,100" fill="black"></polygon>
-            <polygon points="25,25 75,25 50,75" fill="white"></polygon>
-            <polygon points="50,25 75,75 25,75" fill="white"></polygon>
-            <polygon points="35,35 65,35 50,65" fill="white"></polygon>
-            <polygon points="35,35 65,35 50,65" fill="white"></polygon>
-            <polygon points="35,35 65,35 50,65" fill="white"></polygon>
-            <polygon points="35,35 65,35 50,65" fill="white"></polygon>
-          </mask>
-        </defs>
-      </svg>
-      <div class="box"></div>
-    </div>
-    <div class="emoji-overlay">🎓</div>
-  </div>
-  <div class="greeting-text">GREETING_VAL, <span style="color:#60a5fa;">NAME_VAL</span>! 👋</div>
-  <div class="subtitle-text">How can EduSphere AI help you today?</div>
-</body>
-</html>"""
-
-        _html = _html.replace("GREETING_VAL", _greeting_v).replace("NAME_VAL", _name_v)
-        _stc_orb.html(_html, height=210, scrolling=False)
-        _card_close()
-
-
-        # Quick ask
-        st.markdown("<div style='margin-top:14px;'></div>", unsafe_allow_html=True)
-        _card_open()
-        st.markdown("#### 💬 Quick Ask EduSphere AI")
-        quick_q = st.text_area(
-            "Ask me anything...",
-            placeholder="Ask me anything — e.g. 'Explain Newton's 3rd law', 'Write a Python function...'",
-            height=80,
-            key="dashboard_quick_ask",
-            label_visibility="collapsed"
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+                            border-radius: 16px; padding: 20px; text-align: center; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+                            backdrop-filter: blur(5px); transition: transform 0.2s ease;">
+                    <div style="font-size:1.8rem; margin-bottom: 4px;">👤</div>
+                    <div style="font-size:1.6rem; font-weight:800; font-family:'Orbitron',monospace; 
+                                background: linear-gradient(180deg, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 6px 0;">
+                        {role[:5].upper()}
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--sub); font-weight:600; text-transform:uppercase; letter-spacing:1px; margin-top:4px;">Access</div>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
         )
-        qcol1, qcol2 = st.columns([1, 4])
-        with qcol1:
-            ask_btn = st.button("▶ Ask", key="dashboard_ask_btn", use_container_width=True)
-        with qcol2:
-            st.caption("Powered by Groq LLaMA 3.1 · RAG Studio")
 
-        if ask_btn and quick_q.strip():
-            with logo_spinner("Thinking..."):
-                answer = groq_chat(
-                    quick_q.strip(),
-                    system="You are EduSphere AI, a helpful educational assistant. Give a concise but thorough answer."
-                )
-                st.session_state.total_queries = total_q + 1
-            st.markdown(f"**🤖 EduSphere AI:**\n\n{answer}")
-        _card_close()
-
-        # Quick-access module cards
-        st.markdown("<div style='margin-top:14px;'></div>", unsafe_allow_html=True)
+        # ── Quick Module Access (Premium Grid) ──
         st.markdown("#### 🚀 Quick Module Access")
         modules_grid = [
-            ("📝", "Summarise PDF", "📝 Executive Summariser", "#00f0ff"),
-            ("🎨", "Generate Image", "🎨 AI Image Generator", "#8b5cf6"),
-            ("💻", "Write Code", "💻 Code Lab & Explainer", "#4ade80"),
-            ("🌍", "Translate Text", "🌍 Academic Translator", "#fb923c"),
-            ("📊", "Analyse Data", "📊 System Analytics", "#f472b6"),
-            ("🧪", "Take Quiz", "🧪 Quiz & Assessment Generator", "#38bdf8"),
+            ("📝", "Summariser", "📝 Executive Summariser", "linear-gradient(135deg, #0ea5e9, #2563eb)"),
+            ("🎨", "Image Gen", "🎨 AI Image Generator", "linear-gradient(135deg, #8b5cf6, #d946ef)"),
+            ("💻", "Code Lab", "💻 Code Lab & Explainer", "linear-gradient(135deg, #10b981, #059669)"),
+            ("🌍", "Translator", "🌍 Academic Translator", "linear-gradient(135deg, #f59e0b, #ea580c)"),
+            ("📊", "Data Analyst", "📝 Executive Summariser", "linear-gradient(135deg, #ec4899, #e11d48)"),
+            ("📋", "Resume", "📋 Resume Builder", "linear-gradient(135deg, #64748b, #334155)"),
         ]
+        
         mcols = st.columns(3)
-        for idx, (icon, label, nav_key, color) in enumerate(modules_grid):
+        for idx, (icon, label, nav_key, bg_grad) in enumerate(modules_grid):
             with mcols[idx % 3]:
                 # Render beautiful custom cards with a real Streamlit overlay button
                 with st.container():
                     st.markdown(
                         f"""
-                        <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
-                                    border-radius:12px; padding:14px 12px; text-align:center; position:relative;
-                                    transition:all 0.2s; min-height: 125px;">
-                            <div style="font-size:1.6rem; margin-bottom:6px;">{icon}</div>
-                            <div style="font-size:0.78rem; font-weight:600; color:var(--text); margin-bottom:4px;">{label}</div>
-                            <div style="font-size:0.65rem; color:{color}; font-weight:700;">{nav_key.split(' ', 1)[1]}</div>
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+                                    border-radius: 16px; padding: 20px; display: flex; align-items: center; gap: 16px;
+                                    transition: transform 0.2s, background 0.2s; cursor: pointer; min-height: 90px;
+                                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                            <div style="background: {bg_grad}; width: 48px; height: 48px; border-radius: 12px;
+                                        display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
+                                        box-shadow: 0 4px 12px rgba(0,0,0,0.3); flex-shrink: 0;">
+                                {icon}
+                            </div>
+                            <div>
+                                <div style="font-size: 1rem; font-weight: 700; color: #f1f5f9;">{label}</div>
+                                <div style="font-size: 0.75rem; color: #94a3b8; margin-top: 2px;">Open Tool ↗</div>
+                            </div>
                         </div>
                         """,
                         unsafe_allow_html=True
                     )
-                    # Overlay button to make the card clickable and trigger a sidebar state change
-                    if st.button(f"🚀 Open {label}", key=f"quick_btn_{idx}", use_container_width=True):
+                    # Overlay invisible button to make the entire visual card act as a button
+                    if st.button(" ", key=f"quick_btn_{idx}", help=f"Open {label}", use_container_width=True):
                         st.session_state.selected_menu = nav_key
                         st.rerun()
-                    st.markdown("<div style='margin-bottom:10px;'></div>", unsafe_allow_html=True)
 
     with right_col:
-        # Memory / Vector Index Status
-        _card_open()
+        # ── Memory / Vector Index Status (Animated) ──
+        _card_open("padding: 24px;")
         st.markdown("#### 🗃️ Memory Status")
         vi = st.session_state.get("vector_index")
         doc_count = len(vi.texts) if vi else 0
-        mem_pct = min(int(doc_count / 2), 100)
+        mem_pct = min(int((doc_count / 200) * 100), 100)
+        status_color = "#10b981" if mem_pct < 60 else ("#f59e0b" if mem_pct < 85 else "#ef4444")
         st.markdown(
             f"""
-            <div style="margin-bottom:10px;">
-                <div style="display:flex; justify-content:space-between; font-size:0.78rem;
-                            color:var(--sub); margin-bottom:6px;">
-                    <span>Memory Usage</span>
-                    <span style="color:{'#4ade80' if mem_pct < 60 else '#fb923c'};">
-                        {'Good' if mem_pct < 60 else 'Moderate'}
-                    </span>
+            <div style="margin-top: 8px;">
+                <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight: 600;
+                            color:var(--text); margin-bottom:8px;">
+                    <span>Usage</span>
+                    <span style="color:{status_color};">{mem_pct}%</span>
                 </div>
-                <div style="background:rgba(255,255,255,0.06); border-radius:99px; height:6px;">
-                    <div style="background:linear-gradient(90deg,var(--accent),var(--accent2));
-                                width:{max(mem_pct,3)}%; height:6px; border-radius:99px;"></div>
+                <div style="background:rgba(255,255,255,0.05); border-radius:99px; height:8px; overflow: hidden; position: relative;">
+                    <div style="background: {status_color}; width: {max(mem_pct, 2)}%; height: 100%; 
+                                border-radius: 99px; transition: width 1s ease-in-out;
+                                box-shadow: 0 0 10px {status_color};"></div>
                 </div>
-                <div style="font-size:0.7rem; color:var(--sub); margin-top:5px;">{doc_count} / 200 items</div>
+                <div style="font-size:0.75rem; color:var(--sub); margin-top:10px; display: flex; justify-content: space-between;">
+                    <span>{doc_count} Documents</span>
+                    <span>200 Max</span>
+                </div>
             </div>
             """,
             unsafe_allow_html=True
         )
         _card_close()
 
-        # Recent chat activity
-        st.markdown("<div style='margin-top:12px;'></div>", unsafe_allow_html=True)
-        _card_open()
-        st.markdown("#### 💬 Recent Chats")
+        # ── Recent chat activity ──
+        st.markdown("<div style='margin-top:16px;'></div>", unsafe_allow_html=True)
+        _card_open("padding: 24px;")
+        st.markdown("#### 💬 Recent Activity")
         history = st.session_state.get("chat_history", [])
         if history:
             recents = [m for m in history if m["role"] == "user"][-4:][::-1]
-            for msg in recents:
-                preview = msg["msg"][:42] + "..." if len(msg["msg"]) > 42 else msg["msg"]
+            st.markdown("<div style='display: flex; flex-direction: column; gap: 12px; margin-top: 12px;'>", unsafe_allow_html=True)
+            for i, msg in enumerate(recents):
+                preview = msg["msg"][:35] + "..." if len(msg["msg"]) > 35 else msg["msg"]
+                opacity = 1.0 - (i * 0.2)
                 st.markdown(
                     f"""
-                    <div style="padding:7px 0; border-bottom:1px solid rgba(255,255,255,0.05);
-                                font-size:0.78rem; color:var(--sub); display:flex; justify-content:space-between;">
-                        <span style="color:var(--text);">💬 {preview}</span>
-                        <span style="font-size:0.68rem; flex-shrink:0; margin-left:8px;">now</span>
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
+                                padding: 12px; border-radius: 12px; display: flex; align-items: center; gap: 12px;
+                                opacity: {opacity}; transition: opacity 0.2s;">
+                        <div style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; width: 32px; height: 32px; 
+                                    border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem;">
+                            👤
+                        </div>
+                        <div style="flex: 1; overflow: hidden;">
+                            <div style="font-size:0.85rem; color:var(--text); white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">
+                                {preview}
+                            </div>
+                            <div style="font-size:0.7rem; color:var(--sub); margin-top:2px;">Just now</div>
+                        </div>
                     </div>
                     """,
                     unsafe_allow_html=True
                 )
+            st.markdown("</div>", unsafe_allow_html=True)
         else:
-            st.caption("No chat history yet — start a conversation in EduChat!")
+            st.info("No activity yet. Use the Quick Ask or EduChat to get started!")
         _card_close()
 
-        # Model selector (display only)
-        st.markdown("<div style='margin-top:12px;'></div>", unsafe_allow_html=True)
-        _card_open()
-        st.markdown("#### 🤖 Active Model")
+        # ── Model selector (display only) ──
+        st.markdown("<div style='margin-top:16px;'></div>", unsafe_allow_html=True)
+        _card_open("padding: 24px;")
+        st.markdown("#### 🤖 Engine Status")
         from .config import AVAILABLE_MODELS
         model_options = list(AVAILABLE_MODELS.keys()) if isinstance(AVAILABLE_MODELS, dict) else AVAILABLE_MODELS
         if "dashboard_model" not in st.session_state:
             st.session_state.dashboard_model = model_options[0] if model_options else "llama-3.1-8b-instant"
+        
+        st.markdown(
+            f"""
+            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); 
+                        padding: 12px; border-radius: 10px; display: flex; align-items: center; gap: 12px; margin-top: 12px;">
+                <div style="width: 10px; height: 10px; background: #10b981; border-radius: 50%; box-shadow: 0 0 8px #10b981;"></div>
+                <div>
+                    <div style="font-size: 0.85rem; font-weight: 700; color: #10b981;">ONLINE & READY</div>
+                    <div style="font-size: 0.75rem; color: var(--sub); margin-top: 2px;">Accelerated Inference</div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True
+        )
+        
+        st.markdown("<div style='margin-top:12px; margin-bottom:4px; font-size:0.8rem; color:var(--sub);'>Active Model</div>", unsafe_allow_html=True)
         chosen = st.selectbox(
             "Model",
             model_options,
@@ -557,35 +377,33 @@ def render_dashboard() -> None:
             label_visibility="collapsed"
         )
         st.session_state.dashboard_model = chosen
-        st.markdown(
-            f'<div style="font-size:0.72rem; color:#4ade80; margin-top:4px;">● Online · Groq Accelerated</div>',
-            unsafe_allow_html=True
-        )
         _card_close()
 
-        # EduSphere info card (kept!)
-        st.markdown("<div style='margin-top:12px;'></div>", unsafe_allow_html=True)
-        _card_open()
-        st.markdown("#### 🎓 EduSphere AI")
+        # ── EduSphere info card ──
+        st.markdown("<div style='margin-top:16px;'></div>", unsafe_allow_html=True)
+        _card_open("padding: 24px;")
+        st.markdown("#### 🎓 Platform Overview")
         st.markdown(
             """
-            <div style="font-size:0.78rem; color:var(--sub); line-height:1.7;">
-                <div style="color:var(--accent); font-weight:600; margin-bottom:6px;">
-                    Enterprise Educational Ecosystem
+            <div style="font-size:0.82rem; color:var(--sub); line-height:1.8; margin-top: 12px;">
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                    <span style="color: #60a5fa;">✓</span> 14 AI-powered modules
                 </div>
-                <div>● 14 AI-powered modules</div>
-                <div>● FAISS RAG document search</div>
-                <div>● 7 premium UI themes</div>
-                <div>● Groq LLaMA 3.1 inference</div>
-                <div>● 3D CesiumJS globe</div>
-                <div style="margin-top:8px; color:var(--accent2); font-size:0.7rem;">
-                    Powered by Groq · FAISS · Streamlit
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                    <span style="color: #60a5fa;">✓</span> FAISS RAG document search
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                    <span style="color: #60a5fa;">✓</span> Groq LLaMA 3.1 inference
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="color: #60a5fa;">✓</span> Enterprise-grade security
                 </div>
             </div>
             """,
             unsafe_allow_html=True
         )
         _card_close()
+
 
 
 # ==============================================================================
@@ -1714,34 +1532,210 @@ def render_translator() -> None:
 
 def render_summariser() -> None:
     """📝 Academic Text & Paper Summariser."""
-    st.markdown("### 📝 Academic Text & Paper Summariser")
+    st.markdown("### 📝 Executive Summariser & Data Analyst")
 
-    long_text = st.text_area("Input Academic Passage", height=220)
-    col1, col2 = st.columns([1, 1])
-    with col1:
-        format_type = st.selectbox(
-            "Summary Format",
-            ["Bullet Core Takeaways", "Executive One-Pager", "Abstract Style", "ELI5 (Simple Explanation)"],
-        )
-    with col2:
-        word_limit = st.slider("Target Word Count", 50, 500, 150)
+    tab1, tab2 = st.tabs(["📝 Text Summariser", "📊 Data Analyst"])
 
-    if st.button("📑 Summarise", key="btn_summarise"):
-        if not long_text.strip():
-            st.warning("Please provide input text.")
-            return
-        prompt = (
-            f"Summarise the following text using the '{format_type}' format. "
-            f"Target approximately {word_limit} words. "
-            "Be precise and preserve key academic insights.\n\n"
-            f"Text:\n{long_text}"
-        )
-        with logo_spinner("Summarising…"):
-            result = groq_chat(prompt)
-        _card_open()
-        st.markdown(result)
-        _card_close()
-        _render_export_buttons(result, "summary")
+    with tab1:
+        long_text = st.text_area("Input Academic Passage", height=220)
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            format_type = st.selectbox(
+                "Summary Format",
+                ["Bullet Core Takeaways", "Executive One-Pager", "Abstract Style", "ELI5 (Simple Explanation)"],
+            )
+        with col2:
+            word_limit = st.slider("Target Word Count", 50, 500, 150)
+
+        if st.button("📑 Summarise", key="btn_summarise"):
+            if not long_text.strip():
+                st.warning("Please provide input text.")
+                return
+            prompt = (
+                f"Summarise the following text using the '{format_type}' format. "
+                f"Target approximately {word_limit} words. "
+                "Be precise and preserve key academic insights.\n\n"
+                f"Text:\n{long_text}"
+            )
+            with logo_spinner("Summarising…"):
+                result = groq_chat(prompt)
+            _card_open()
+            st.markdown(result)
+            _card_close()
+            _render_export_buttons(result, "summary")
+
+    with tab2:
+        st.markdown("Upload a dataset for automated comprehensive AI analysis and visualization.")
+        uploaded_file = st.file_uploader("Upload Data (CSV, JSON, XLSX, TXT, MD)", type=["csv", "json", "xlsx", "xls", "txt", "md"])
+        
+        if uploaded_file is not None:
+            try:
+                import pandas as pd
+                import matplotlib.pyplot as plt
+                import io
+                
+                # Load the dataset
+                file_extension = uploaded_file.name.split(".")[-1].lower()
+                
+                with logo_spinner("Parsing dataset..."):
+                    if file_extension == "csv":
+                        df = pd.read_csv(uploaded_file)
+                    elif file_extension in ["xls", "xlsx"]:
+                        df = pd.read_excel(uploaded_file)
+                    elif file_extension == "json":
+                        df = pd.read_json(uploaded_file)
+                    elif file_extension in ["txt", "md"]:
+                        df = pd.read_csv(uploaded_file, sep="\t") # Assume tab-separated for text files as fallback
+                    else:
+                        st.error("Unsupported file format.")
+                        return
+
+                st.success("✅ Dataset loaded successfully!")
+                
+                with st.expander("🔍 Dataset Preview"):
+                    st.dataframe(df.head(10), use_container_width=True)
+                    st.caption(f"Rows: {df.shape[0]} | Columns: {df.shape[1]}")
+                
+                if st.button("🚀 Generate Comprehensive Analysis", key="btn_data_analyst"):
+                    # 1. Prepare statistical summary for the LLM (Security: don't send raw data)
+                    desc = df.describe(include='all').to_string()
+                    missing_info = df.isnull().sum().to_string()
+                    types_info = df.dtypes.to_string()
+                    
+                    data_context = (
+                        f"Dataset Shape: {df.shape[0]} rows, {df.shape[1]} columns.\n\n"
+                        f"Data Types:\n{types_info}\n\n"
+                        f"Missing Values:\n{missing_info}\n\n"
+                        f"Statistical Summary:\n{desc}"
+                    )
+                    
+                    # 2. Get AI Analysis
+                    prompt = (
+                        "You are an expert Data Analyst AI. I am providing you with the statistical summary and schema of a dataset (not the raw data). "
+                        "Please provide a comprehensive, structured data analysis report. "
+                        "Include: \n"
+                        "- High-level overview of the data\n"
+                        "- Key statistical insights and anomalies\n"
+                        "- Potential implications or trends based on the statistics\n"
+                        "- Recommendations for further investigation\n\n"
+                        f"Data Summary Context:\n{data_context}"
+                    )
+                    
+                    with logo_spinner("AI is analyzing the data..."):
+                        analysis_result = groq_chat(prompt)
+                    
+                    # 3. Generate Charts (Matplotlib)
+                    with logo_spinner("Generating charts..."):
+                        image_bytes_list = []
+                        num_cols = df.select_dtypes(include=['number']).columns.tolist()
+                        cat_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
+                        
+                        _card_open()
+                        st.markdown(analysis_result)
+                        _card_close()
+                        
+                        st.markdown("### 📈 Visualizations")
+                        col1, col2 = st.columns(2)
+                        
+                        plots_generated = 0
+                        # Try to set a modern style if available
+                        try:
+                            plt.style.use("dark_background")
+                        except:
+                            pass
+                        
+                        # Plot 1: Correlation Matrix (if > 1 numeric col)
+                        if len(num_cols) > 1:
+                            fig1, ax1 = plt.subplots(figsize=(6, 4))
+                            corr = df[num_cols].corr()
+                            cax = ax1.matshow(corr, cmap='coolwarm')
+                            fig1.colorbar(cax)
+                            ax1.set_xticks(range(len(num_cols)))
+                            ax1.set_yticks(range(len(num_cols)))
+                            ax1.set_xticklabels(num_cols, rotation=45, ha='left')
+                            ax1.set_yticklabels(num_cols)
+                            ax1.set_title("Correlation Heatmap", pad=20)
+                            fig1.tight_layout()
+                            
+                            buf1 = io.BytesIO()
+                            fig1.savefig(buf1, format="png", dpi=150)
+                            buf1.seek(0)
+                            image_bytes_list.append(buf1.read())
+                            col1.image(buf1, caption="Correlation Heatmap")
+                            plt.close(fig1)
+                            plots_generated += 1
+                            
+                        # Plot 2: Distribution of first numeric col
+                        if len(num_cols) > 0:
+                            fig2, ax2 = plt.subplots(figsize=(6, 4))
+                            col_name = num_cols[0]
+                            ax2.hist(df[col_name].dropna(), bins=20, color='skyblue', edgecolor='black')
+                            ax2.set_title(f"Distribution of {col_name}")
+                            fig2.tight_layout()
+                            
+                            buf2 = io.BytesIO()
+                            fig2.savefig(buf2, format="png", dpi=150)
+                            buf2.seek(0)
+                            image_bytes_list.append(buf2.read())
+                            
+                            target_col = col1 if plots_generated % 2 == 0 else col2
+                            target_col.image(buf2, caption=f"Distribution of {col_name}")
+                            plt.close(fig2)
+                            plots_generated += 1
+                            
+                        # Plot 3: Distribution of second numeric col OR first categorical
+                        if len(num_cols) > 1:
+                            fig3, ax3 = plt.subplots(figsize=(6, 4))
+                            col_name = num_cols[1]
+                            ax3.boxplot(df[col_name].dropna())
+                            ax3.set_title(f"Boxplot of {col_name}")
+                            fig3.tight_layout()
+                            
+                            buf3 = io.BytesIO()
+                            fig3.savefig(buf3, format="png", dpi=150)
+                            buf3.seek(0)
+                            image_bytes_list.append(buf3.read())
+                            
+                            target_col = col1 if plots_generated % 2 == 0 else col2
+                            target_col.image(buf3, caption=f"Boxplot of {col_name}")
+                            plt.close(fig3)
+                            plots_generated += 1
+                        elif len(cat_cols) > 0:
+                            fig3, ax3 = plt.subplots(figsize=(6, 4))
+                            col_name = cat_cols[0]
+                            counts = df[col_name].value_counts().head(10)
+                            counts.plot(kind='bar', ax=ax3, color='lightgreen')
+                            ax3.set_title(f"Top 10 categories in {col_name}")
+                            fig3.tight_layout()
+                            
+                            buf3 = io.BytesIO()
+                            fig3.savefig(buf3, format="png", dpi=150)
+                            buf3.seek(0)
+                            image_bytes_list.append(buf3.read())
+                            
+                            target_col = col1 if plots_generated % 2 == 0 else col2
+                            target_col.image(buf3, caption=f"Bar chart of {col_name}")
+                            plt.close(fig3)
+                            plots_generated += 1
+                        
+                        if plots_generated == 0:
+                            st.info("Dataset doesn't have sufficient numeric/categorical variation for automatic plotting.")
+                        
+                        # 4. Provide PDF Export
+                        st.markdown("---")
+                        from .utils import get_analytical_pdf_download_link
+                        
+                        download_html = get_analytical_pdf_download_link(
+                            content=analysis_result,
+                            image_bytes_list=image_bytes_list,
+                            filename="data_analysis_report.pdf",
+                            label="Download Data Analyst PDF Report"
+                        )
+                        st.markdown(download_html, unsafe_allow_html=True)
+
+            except Exception as e:
+                log.error("Data Analyst error: %s", e)
+                st.error(f"❌ Error processing dataset: {e}")
 
 
 # ==============================================================================
