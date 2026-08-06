@@ -2054,13 +2054,778 @@ edusphere-ai/
 
 
 # ==============================================================================
-# MODULE 12 — Resume Builder (NEW)
+# MODULE 12 — Resume Builder + Portfolio Website Builder
 # ==============================================================================
 
+# ──────────────────────────────────────────────────────────────────────────────
+# PORTFOLIO HTML TEMPLATE ENGINE
+# ──────────────────────────────────────────────────────────────────────────────
+
+def _generate_portfolio_html(data: dict, theme: str) -> str:
+    """Generate a complete single-file animated HTML portfolio website."""
+
+    themes = {
+        "🌌 Nebula Dark": {
+            "bg": "#050a14",
+            "card": "rgba(15,25,50,0.7)",
+            "accent": "#00f0ff",
+            "accent2": "#7c3aed",
+            "accent3": "#ff007f",
+            "text": "#e2e8f0",
+            "muted": "#64748b",
+            "border": "rgba(0,240,255,0.2)",
+            "glow": "rgba(0,240,255,0.3)",
+            "particle_color": "0,240,255",
+            "loader_color": "#00f0ff",
+            "gradient": "linear-gradient(135deg,#050a14 0%,#0d1b3e 50%,#050a14 100%)",
+            "aurora1": "rgba(0,240,255,0.08)",
+            "aurora2": "rgba(124,58,237,0.08)",
+            "aurora3": "rgba(255,0,127,0.06)",
+        },
+        "🔥 Crimson Forge": {
+            "bg": "#0d0500",
+            "card": "rgba(30,10,5,0.75)",
+            "accent": "#ff4500",
+            "accent2": "#ff8c00",
+            "accent3": "#ffd700",
+            "text": "#fde8d8",
+            "muted": "#8b6355",
+            "border": "rgba(255,69,0,0.25)",
+            "glow": "rgba(255,69,0,0.35)",
+            "particle_color": "255,80,0",
+            "loader_color": "#ff4500",
+            "gradient": "linear-gradient(135deg,#0d0500 0%,#200800 50%,#0d0500 100%)",
+            "aurora1": "rgba(255,69,0,0.08)",
+            "aurora2": "rgba(255,140,0,0.07)",
+            "aurora3": "rgba(255,215,0,0.05)",
+        },
+        "🌊 Ocean Pulse": {
+            "bg": "#020d1a",
+            "card": "rgba(5,25,50,0.72)",
+            "accent": "#00d4ff",
+            "accent2": "#0077ff",
+            "accent3": "#00ffb3",
+            "text": "#cde8f5",
+            "muted": "#4a7a96",
+            "border": "rgba(0,212,255,0.2)",
+            "glow": "rgba(0,212,255,0.3)",
+            "particle_color": "0,212,255",
+            "loader_color": "#00d4ff",
+            "gradient": "linear-gradient(135deg,#020d1a 0%,#041e38 50%,#020d1a 100%)",
+            "aurora1": "rgba(0,212,255,0.07)",
+            "aurora2": "rgba(0,119,255,0.07)",
+            "aurora3": "rgba(0,255,179,0.05)",
+        },
+        "🌿 Emerald Matrix": {
+            "bg": "#010d05",
+            "card": "rgba(5,25,12,0.72)",
+            "accent": "#00ff41",
+            "accent2": "#39d353",
+            "accent3": "#00e5ff",
+            "text": "#ccffd8",
+            "muted": "#3a7a50",
+            "border": "rgba(0,255,65,0.2)",
+            "glow": "rgba(0,255,65,0.3)",
+            "particle_color": "0,255,65",
+            "loader_color": "#00ff41",
+            "gradient": "linear-gradient(135deg,#010d05 0%,#041a0c 50%,#010d05 100%)",
+            "aurora1": "rgba(0,255,65,0.07)",
+            "aurora2": "rgba(57,211,83,0.06)",
+            "aurora3": "rgba(0,229,255,0.05)",
+        },
+    }
+
+    t = themes.get(theme, themes["🌌 Nebula Dark"])
+
+    name       = data.get("name", "Your Name")
+    title      = data.get("title", "Full-Stack Developer & AI Enthusiast")
+    email      = data.get("email", "")
+    phone      = data.get("phone", "")
+    location   = data.get("location", "")
+    github     = data.get("github", "")
+    linkedin   = data.get("linkedin", "")
+    about      = data.get("about", "I build thoughtful digital products and experiences.")
+    skills_raw = data.get("skills", "Python, JavaScript, React, Machine Learning")
+    projects   = data.get("projects", "")
+    education  = data.get("education", "")
+    certs      = data.get("certs", "")
+
+    # Parse skills into list
+    skills_list = [s.strip() for s in skills_raw.replace("\n", ",").split(",") if s.strip()]
+
+    # Build skills pills HTML
+    skills_pills = "".join(
+        f'<span class="skill-pill" style="animation-delay:{i*0.07:.2f}s">{s}</span>'
+        for i, s in enumerate(skills_list)
+    )
+
+    # Build skill bars (first 6 skills with fake percentages for visual effect)
+    skill_bars_html = ""
+    bar_vals = [92, 85, 78, 88, 72, 80, 76, 90, 82, 70]
+    for i, s in enumerate(skills_list[:8]):
+        pct = bar_vals[i % len(bar_vals)]
+        skill_bars_html += f"""
+        <div class="skill-bar-item" style="animation-delay:{i*0.1:.1f}s">
+          <div class="skill-bar-label"><span>{s}</span><span>{pct}%</span></div>
+          <div class="skill-bar-track"><div class="skill-bar-fill" style="width:{pct}%;animation-delay:{i*0.1+0.3:.1f}s"></div></div>
+        </div>"""
+
+    # Build project cards HTML
+    project_cards_html = ""
+    if projects.strip():
+        for i, line in enumerate(projects.strip().split("\n")):
+            if line.strip() and not line.startswith("•"):
+                parts = line.split("—") if "—" in line else line.split("-")
+                proj_name = parts[0].strip()
+                proj_desc = parts[1].strip() if len(parts) > 1 else "A remarkable project."
+                project_cards_html += f"""
+                <div class="proj-card" style="animation-delay:{i*0.1:.1f}s">
+                  <div class="proj-glow"></div>
+                  <h3>{proj_name}</h3>
+                  <p>{proj_desc}</p>
+                  <div class="proj-tags"><span>Featured</span><span>#{i+1}</span></div>
+                </div>"""
+
+    if not project_cards_html:
+        project_cards_html = '<div class="proj-card"><h3>Add Your Projects</h3><p>Projects you add in the form will appear here.</p></div>'
+
+    # Roles for typewriter
+    roles = [title, "Creative Coder", "Problem Solver", "Digital Craftsman"]
+    roles_js = str(roles).replace("'", '"')
+
+    html = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="{name} — portfolio website">
+<title>{name} | Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {{
+  --bg:{t['bg']};--card:{t['card']};--accent:{t['accent']};--accent2:{t['accent2']};
+  --accent3:{t['accent3']};--text:{t['text']};--muted:{t['muted']};--border:{t['border']};
+  --glow:{t['glow']};--gradient:{t['gradient']};
+  --font-body:'Inter',sans-serif;--font-title:'Space Grotesk',sans-serif;--font-mono:'JetBrains Mono',monospace;
+}}
+*,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
+html{{scroll-behavior:smooth}}
+body{{background:var(--bg);color:var(--text);font-family:var(--font-body);overflow-x:hidden;line-height:1.6}}
+
+/* ── LOADER ── */
+#loader{{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity 0.5s ease}}
+#loader.done{{opacity:0;pointer-events:none}}
+.ld-title{{font-family:var(--font-title);font-size:2.5rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}}
+.ld-sub{{font-family:var(--font-mono);font-size:0.85rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase}}
+.ld-bar{{width:260px;height:3px;background:rgba(255,255,255,0.08);border-radius:99px;overflow:hidden}}
+.ld-bar-fill{{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:99px;transition:width 0.04s linear;box-shadow:0 0 8px var(--glow)}}
+.ld-pct{{font-family:var(--font-mono);font-size:0.8rem;color:var(--accent)}}
+@keyframes ldFill{{to{{width:100%}}}}
+.ld-rings{{display:flex;gap:12px}}
+.ld-ring{{width:14px;height:14px;border-radius:50%;border:2px solid var(--accent);animation:ldPulse 1.2s ease-in-out infinite}}
+.ld-ring:nth-child(2){{animation-delay:.2s;border-color:var(--accent2)}}
+.ld-ring:nth-child(3){{animation-delay:.4s;border-color:var(--accent3)}}
+.ld-ring:nth-child(4){{animation-delay:.6s}}
+@keyframes ldPulse{{0%,100%{{transform:scale(1);opacity:1}}50%{{transform:scale(1.4);opacity:.5}}}}
+
+/* ── CANVAS BG ── */
+#bgCanvas{{position:fixed;inset:0;z-index:0;pointer-events:none}}
+
+/* ── AURORA ── */
+.aurora{{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0;animation:auroraFloat 8s ease-in-out infinite}}
+.aurora-1{{width:600px;height:600px;background:{t['aurora1']};top:-200px;left:-150px;animation-delay:0s}}
+.aurora-2{{width:500px;height:500px;background:{t['aurora2']};top:30%;right:-200px;animation-delay:3s}}
+.aurora-3{{width:400px;height:400px;background:{t['aurora3']};bottom:-100px;left:40%;animation-delay:5s}}
+@keyframes auroraFloat{{0%,100%{{transform:translate(0,0) scale(1)}}50%{{transform:translate(30px,20px) scale(1.08)}}}}
+
+/* ── SCROLL PROGRESS ── */
+#progress{{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2),var(--accent3));z-index:9998;width:0%;transition:width .1s}}
+
+/* ── NAVBAR ── */
+.nav{{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:999;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;background:rgba(5,10,20,0.65);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.1);border-radius:50px;width:90%;max-width:800px;box-shadow:0 10px 30px rgba(0,0,0,0.3);transition:all .3s}}
+.nav:hover{{background:rgba(5,10,20,0.8);border-color:var(--accent);box-shadow:0 10px 40px var(--glow)}}
+.nav-brand{{font-family:var(--font-title);font-weight:800;font-size:1.3rem;color:var(--text);text-decoration:none;letter-spacing:1px;display:flex;align-items:center;gap:6px}}
+.nav-brand span{{color:var(--accent)}}
+.nav-links{{display:flex;gap:30px;list-style:none;margin-left:auto}}
+.nav-links a{{color:var(--text);text-decoration:none;font-size:0.95rem;font-weight:600;transition:all .3s;position:relative;padding:8px 12px;border-radius:20px}}
+.nav-links a:hover{{color:var(--bg);background:var(--accent);box-shadow:0 0 15px var(--glow)}}
+
+/* ── FULLSCREEN BTN ── */
+.fs-btn{{position:fixed;bottom:30px;right:30px;width:55px;height:55px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;border:none;box-shadow:0 4px 25px var(--glow);cursor:pointer;z-index:9999;display:flex;align-items:center;justify-content:center;font-size:1.5rem;transition:all .3s}}
+.fs-btn:hover{{transform:scale(1.1);box-shadow:0 6px 35px var(--glow);color:#fff}}
+
+/* ── HERO ── */
+.hero{{min-height:100vh;display:flex;align-items:center;padding:120px 5% 60px;position:relative;z-index:1;gap:60px}}
+.hero-copy{{flex:1;max-width:600px}}
+.hero-eyebrow{{font-family:var(--font-mono);font-size:0.78rem;color:var(--accent);letter-spacing:3px;text-transform:uppercase;margin-bottom:16px}}
+.hero-name{{font-family:var(--font-title);font-size:clamp(2.5rem,6vw,4.5rem);font-weight:800;line-height:1.1;margin-bottom:12px;background:linear-gradient(135deg,var(--text) 0%,var(--accent) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent}}
+.hero-role{{font-size:1.4rem;color:var(--muted);margin-bottom:20px;font-weight:400}}
+.hero-role span{{color:var(--accent);font-weight:600}}
+.type-caret{{display:inline-block;width:2px;height:1.2em;background:var(--accent);margin-left:3px;animation:blink .7s step-end infinite;vertical-align:bottom}}
+@keyframes blink{{0%,100%{{opacity:1}}50%{{opacity:0}}}}
+.hero-desc{{color:var(--muted);font-size:1.05rem;line-height:1.7;margin-bottom:32px;max-width:480px}}
+.hero-actions{{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:36px}}
+.btn{{padding:12px 28px;border-radius:50px;font-weight:600;font-size:0.95rem;text-decoration:none;transition:all .3s;display:inline-flex;align-items:center;gap:8px;cursor:pointer;border:none}}
+.btn-primary{{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:0 0 25px var(--glow)}}
+.btn-primary:hover{{transform:translateY(-3px);box-shadow:0 0 40px var(--glow)}}
+.btn-secondary{{background:transparent;color:var(--accent);border:1px solid var(--border)}}
+.btn-secondary:hover{{background:var(--accent);color:#000;transform:translateY(-3px)}}
+.hero-stats{{display:flex;gap:36px}}
+.stat{{display:flex;flex-direction:column}}
+.stat-val{{font-family:var(--font-title);font-size:1.8rem;font-weight:800;color:var(--accent)}}
+.stat-lbl{{font-size:0.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px}}
+.hero-visual{{flex:0 0 400px;position:relative}}
+.portrait-frame{{width:340px;height:380px;position:relative;margin:0 auto}}
+.portrait-orb{{position:absolute;border-radius:50%;animation:orbFloat 6s ease-in-out infinite}}
+.portrait-orb-1{{width:320px;height:320px;background:radial-gradient(circle,{t['aurora2']} 0%,transparent 70%);top:-20px;left:-20px}}
+.portrait-orb-2{{width:250px;height:250px;background:radial-gradient(circle,{t['aurora1']} 0%,transparent 70%);bottom:-30px;right:-30px;animation-delay:3s}}
+@keyframes orbFloat{{0%,100%{{transform:translate(0,0) scale(1)}}50%{{transform:translate(10px,-15px) scale(1.05)}}}}
+.portrait-glass{{width:100%;height:100%;border-radius:30px;background:var(--card);border:1px solid var(--border);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:center;font-size:7rem;box-shadow:0 0 60px var(--glow),inset 0 1px 0 rgba(255,255,255,0.1);position:relative;z-index:1;overflow:hidden}}
+.portrait-glass::before{{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.05),transparent);pointer-events:none}}
+.float-tag{{position:absolute;padding:6px 14px;border-radius:30px;font-size:0.75rem;font-weight:600;background:var(--card);border:1px solid var(--border);backdrop-filter:blur(10px);color:var(--accent);z-index:2;animation:tagFloat 4s ease-in-out infinite}}
+.tag-tl{{top:-10px;left:-30px;animation-delay:0s}}
+.tag-tr{{top:-10px;right:-30px;animation-delay:1s}}
+.tag-bl{{bottom:20px;left:-40px;animation-delay:2s}}
+.tag-br{{bottom:20px;right:-40px;animation-delay:3s}}
+@keyframes tagFloat{{0%,100%{{transform:translateY(0)}}50%{{transform:translateY(-8px)}}}}
+
+/* ── SECTIONS ── */
+.section{{padding:90px 5%;position:relative;z-index:1}}
+.section-head{{text-align:center;margin-bottom:60px}}
+.eyebrow{{font-family:var(--font-mono);font-size:0.78rem;color:var(--accent);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;display:block}}
+.section-head h2{{font-family:var(--font-title);font-size:clamp(1.8rem,4vw,2.8rem);font-weight:700;margin-bottom:14px}}
+.section-head p{{color:var(--muted);max-width:500px;margin:0 auto}}
+
+/* ── GLASS CARD ── */
+.glass{{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:32px;backdrop-filter:blur(20px);transition:all .3s;position:relative;overflow:hidden}}
+.glass::before{{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.03),transparent);pointer-events:none}}
+.glass:hover{{border-color:var(--accent);box-shadow:0 0 30px var(--glow);transform:translateY(-4px)}}
+.grid-2{{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px}}
+
+/* ── SKILLS ── */
+.skill-pill{{display:inline-block;padding:6px 16px;border-radius:30px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--accent);font-size:0.85rem;margin:5px;transition:all .3s;animation:pillPop .4s ease both}}
+.skill-pill:hover{{background:var(--accent);color:#000;border-color:var(--accent);transform:scale(1.05)}}
+@keyframes pillPop{{from{{opacity:0;transform:scale(0.8)}}to{{opacity:1;transform:scale(1)}}}}
+.skill-bar-item{{margin-bottom:18px}}
+.skill-bar-label{{display:flex;justify-content:space-between;font-size:0.88rem;margin-bottom:7px;color:var(--text)}}
+.skill-bar-track{{height:6px;background:rgba(255,255,255,0.07);border-radius:99px;overflow:hidden}}
+.skill-bar-fill{{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:99px;width:0%;transition:width 1.2s cubic-bezier(.25,.46,.45,.94);box-shadow:0 0 10px var(--glow)}}
+
+/* ── PROJECTS ── */
+.proj-grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:24px}}
+.proj-card{{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px;position:relative;overflow:hidden;transition:all .3s;animation:fadeUp .6s ease both}}
+.proj-card:hover{{border-color:var(--accent);transform:translateY(-6px);box-shadow:0 0 40px var(--glow)}}
+.proj-glow{{position:absolute;width:200px;height:200px;background:radial-gradient(circle,var(--glow),transparent);top:-80px;right:-80px;pointer-events:none;opacity:0;transition:opacity .3s}}
+.proj-card:hover .proj-glow{{opacity:1}}
+.proj-card h3{{font-family:var(--font-title);font-size:1.1rem;font-weight:700;margin-bottom:10px;color:var(--accent)}}
+.proj-card p{{color:var(--muted);font-size:0.88rem;line-height:1.6}}
+.proj-tags{{display:flex;gap:8px;margin-top:16px}}
+.proj-tags span{{padding:3px 12px;border-radius:20px;font-size:0.72rem;font-weight:600;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--accent2)}}
+@keyframes fadeUp{{from{{opacity:0;transform:translateY(20px)}}to{{opacity:1;transform:translateY(0)}}}}
+
+/* ── CONTACT ── */
+.contact-info{{display:flex;flex-direction:column;gap:16px}}
+.contact-row{{display:flex;align-items:center;gap:12px;padding:14px 18px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;transition:all .3s}}
+.contact-row:hover{{border-color:var(--accent);background:rgba(255,255,255,0.05)}}
+.contact-row .ci-icon{{font-size:1.2rem}}
+.contact-row a{{color:var(--text);text-decoration:none;font-size:0.9rem;transition:color .2s}}
+.contact-row:hover a{{color:var(--accent)}}
+
+/* ── FOOTER ── */
+footer{{position:relative;z-index:1;border-top:1px solid var(--border);padding:40px 5%;text-align:center}}
+.ribbon{{overflow:hidden;white-space:nowrap;background:linear-gradient(90deg,var(--accent),var(--accent2),var(--accent3),var(--accent));background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-family:var(--font-mono);font-size:0.8rem;letter-spacing:3px;padding:12px 0;margin-bottom:24px;animation:ribbonMove 10s linear infinite}}
+@keyframes ribbonMove{{to{{background-position:200%}}}}
+.ribbon-track{{display:inline-block;animation:scrollRibbon 20s linear infinite}}
+@keyframes scrollRibbon{{from{{transform:translateX(0)}}to{{transform:translateX(-50%)}}}}
+.footer-copy{{color:var(--muted);font-size:0.82rem}}
+
+/* ── REVEAL ANIMATION ── */
+.reveal{{opacity:0;transform:translateY(30px);transition:all .7s cubic-bezier(.25,.46,.45,.94)}}
+.reveal.visible{{opacity:1;transform:translateY(0)}}
+
+@media(max-width:768px){{
+  .hero{{flex-direction:column;text-align:center;padding-top:100px}}
+  .hero-visual{{display:none}}
+  .hero-stats{{justify-content:center}}
+  .nav-links{{display:none}}
+}}
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="ld-rings">
+    <div class="ld-ring"></div><div class="ld-ring"></div>
+    <div class="ld-ring"></div><div class="ld-ring"></div>
+  </div>
+  <div class="ld-title">{name.split()[0] if name.split() else name}</div>
+  <div class="ld-sub">Loading Portfolio</div>
+  <div class="ld-bar"><div class="ld-bar-fill"></div></div>
+  <div class="ld-pct" id="ldPct">0%</div>
+</div>
+
+<!-- SCROLL PROGRESS -->
+<div id="progress"></div>
+
+<!-- CANVAS BG -->
+<canvas id="bgCanvas"></canvas>
+
+<!-- AURORA -->
+<div class="aurora aurora-1"></div>
+<div class="aurora aurora-2"></div>
+<div class="aurora aurora-3"></div>
+
+<!-- NAVBAR -->
+<nav class="nav">
+  <a class="nav-brand" href="#home">{name.split()[0] if name.split() else name}</a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#skills">Skills</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<main>
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-copy reveal">
+    <p class="hero-eyebrow">✨ Welcome to my portfolio</p>
+    <h1 class="hero-name">Hi, I'm {name}.</h1>
+    <p class="hero-role">I am <span id="typeText">{title}</span><span class="type-caret"></span></p>
+    <p class="hero-desc">{about}</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="#projects">View Work</a>
+      <a class="btn btn-secondary" href="#contact">Contact Me</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><span class="stat-val">{len(skills_list)}+</span><span class="stat-lbl">Skills</span></div>
+      <div class="stat"><span class="stat-val">∞</span><span class="stat-lbl">Passion</span></div>
+      <div class="stat"><span class="stat-val">24/7</span><span class="stat-lbl">Online</span></div>
+    </div>
+  </div>
+  <div class="hero-visual reveal">
+    <div class="portrait-frame">
+      <div class="portrait-orb portrait-orb-1"></div>
+      <div class="portrait-orb portrait-orb-2"></div>
+      <div class="portrait-glass">👤</div>
+      <div class="float-tag tag-tl">{skills_list[0] if skills_list else 'Developer'}</div>
+      <div class="float-tag tag-tr">{skills_list[1] if len(skills_list)>1 else 'Designer'}</div>
+      <div class="float-tag tag-bl">{skills_list[2] if len(skills_list)>2 else 'Creator'}</div>
+      <div class="float-tag tag-br">{'AI' if 'ai' not in skills_list[0].lower() else skills_list[-1]}</div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="section" id="about">
+  <div class="section-head reveal">
+    <span class="eyebrow">About Me</span>
+    <h2>The person behind the work.</h2>
+    <p>Passionate about crafting digital experiences that are both beautiful and functional.</p>
+  </div>
+  <div class="grid-2">
+    <div class="glass reveal">
+      <h3 style="font-family:var(--font-title);margin-bottom:12px;color:var(--accent)">What I Do</h3>
+      <p style="color:var(--muted);line-height:1.8">{about}</p>
+      {'<p style="margin-top:14px;color:var(--muted)"><strong style="color:var(--text)">Education:</strong> ' + education.replace(chr(10),'<br>') + '</p>' if education else ''}
+    </div>
+    <div class="glass reveal">
+      <h3 style="font-family:var(--font-title);margin-bottom:16px;color:var(--accent)">Tech Stack</h3>
+      <div>{skills_pills}</div>
+      {'<div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);color:var(--muted);font-size:0.88rem"><strong style="color:var(--text)">Certifications:</strong><br>' + certs.replace(chr(10),'<br>') + '</div>' if certs else ''}
+    </div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section class="section" id="skills" style="background:linear-gradient(180deg,transparent,rgba(255,255,255,0.01),transparent)">
+  <div class="section-head reveal">
+    <span class="eyebrow">Skills</span>
+    <h2>Tools & Strengths.</h2>
+  </div>
+  <div class="glass reveal" style="max-width:700px;margin:0 auto">
+    {skill_bars_html}
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section class="section" id="projects">
+  <div class="section-head reveal">
+    <span class="eyebrow">Projects</span>
+    <h2>Selected work.</h2>
+  </div>
+  <div class="proj-grid">
+    {project_cards_html}
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="section" id="contact">
+  <div class="section-head reveal">
+    <span class="eyebrow">Contact</span>
+    <h2>Let's connect.</h2>
+    <p>Open for collaborations, freelance, and full-time roles.</p>
+  </div>
+  <div style="max-width:500px;margin:0 auto">
+    <div class="glass reveal">
+      <div class="contact-info">
+        {f'<div class="contact-row"><span class="ci-icon">📧</span><a href="mailto:{email}">{email}</a></div>' if email else ''}
+        {f'<div class="contact-row"><span class="ci-icon">📱</span><span>{phone}</span></div>' if phone else ''}
+        {f'<div class="contact-row"><span class="ci-icon">📍</span><span>{location}</span></div>' if location else ''}
+        {f'<div class="contact-row"><span class="ci-icon">💼</span><a href="{linkedin}" target="_blank">LinkedIn</a></div>' if linkedin else ''}
+        {f'<div class="contact-row"><span class="ci-icon">🐙</span><a href="{github}" target="_blank">GitHub</a></div>' if github else ''}
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <div class="ribbon"><div class="ribbon-track">
+    ✦ {name.upper()} &nbsp; ✦ {title.upper()} &nbsp; ✦ {location.upper() or 'WORLD'} &nbsp;
+    ✦ {name.upper()} &nbsp; ✦ {title.upper()} &nbsp; ✦ {location.upper() or 'WORLD'} &nbsp;
+    ✦ {name.upper()} &nbsp; ✦ {title.upper()} &nbsp; ✦ {location.upper() or 'WORLD'} &nbsp;
+  </div></div>
+  <p class="footer-copy">&copy; 2026 {name}. All Rights Reserved. Built with EduSphere AI.</p>
+</footer>
+<!-- FULLSCREEN BTN -->
+<button class="fs-btn" id="fsBtn" title="Toggle Fullscreen">⛶</button>
+<script>
+document.addEventListener('DOMContentLoaded', function() {{
+
+// ── Loader: robust step-based counter, no CSS animation conflict
+var _loaderEl  = document.getElementById('loader');
+var _barFill   = document.querySelector('.ld-bar-fill');
+var _pctTxt    = document.getElementById('ldPct');
+var _loaderPct = 0;
+function _loaderStep() {{
+  _loaderPct += 2;
+  if (_loaderPct > 100) _loaderPct = 100;
+  if (_barFill) _barFill.style.width = _loaderPct + '%';
+  if (_pctTxt)  _pctTxt.textContent  = _loaderPct + '%';
+  if (_loaderPct < 100) {{
+    setTimeout(_loaderStep, 18);
+  }} else {{
+    setTimeout(function() {{
+      if (_loaderEl) {{
+        _loaderEl.classList.add('done');
+        setTimeout(function() {{ if (_loaderEl) _loaderEl.style.display = 'none'; }}, 550);
+      }}
+    }}, 300);
+  }}
+}}
+setTimeout(_loaderStep, 80);
+
+// ── Typewriter
+(function () {{
+  var roles = {roles_js};
+  var roleIndex = 0;
+  var charIndex = 0;
+  var deleting = false;
+  var element = document.getElementById('typeText');
+  if (!element) return;
+
+  function type() {{
+    var current = roles[roleIndex];
+
+    if (!deleting) {{
+      element.textContent = current.substring(0, charIndex + 1);
+      charIndex++;
+      if (charIndex === current.length) {{
+        deleting = true;
+        return setTimeout(type, 1200);
+      }}
+    }} else {{
+      element.textContent = current.substring(0, charIndex - 1);
+      charIndex--;
+      if (charIndex === 0) {{
+        deleting = false;
+        roleIndex = (roleIndex + 1) % roles.length;
+      }}
+    }}
+
+    setTimeout(type, deleting ? 50 : 90);
+  }}
+
+  type();
+}})();
+
+// ── Particle canvas
+(function() {{
+  var cv  = document.getElementById('bgCanvas');
+  if (!cv) return;
+  var ctx = cv.getContext('2d');
+  var W, H, pts = [];
+  function resize() {{ W = cv.width = window.innerWidth; H = cv.height = window.innerHeight; }}
+  resize();
+  window.addEventListener('resize', resize);
+  for (var i = 0; i < 70; i++) {{
+    pts.push({{ x: Math.random()*W, y: Math.random()*H,
+               vx: (Math.random()-.5)*.5, vy: (Math.random()-.5)*.5 }});
+  }}
+  function draw() {{
+    ctx.clearRect(0, 0, W, H);
+    for (var p = 0; p < pts.length; p++) {{
+      pts[p].x += pts[p].vx; pts[p].y += pts[p].vy;
+      if (pts[p].x < 0 || pts[p].x > W) pts[p].vx *= -1;
+      if (pts[p].y < 0 || pts[p].y > H) pts[p].vy *= -1;
+      ctx.beginPath(); ctx.arc(pts[p].x, pts[p].y, 1.5, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba({t["particle_color"]},0.6)'; ctx.fill();
+    }}
+    for (var a = 0; a < pts.length; a++) {{
+      for (var b = a+1; b < pts.length; b++) {{
+        var dx = pts[a].x-pts[b].x, dy = pts[a].y-pts[b].y;
+        var d  = Math.sqrt(dx*dx+dy*dy);
+        if (d < 120) {{
+          ctx.beginPath(); ctx.moveTo(pts[a].x, pts[a].y); ctx.lineTo(pts[b].x, pts[b].y);
+          ctx.strokeStyle = 'rgba({t["particle_color"]},'+(((1-d/120)*0.18)).toFixed(2)+')';
+          ctx.lineWidth = 0.7; ctx.stroke();
+        }}
+      }}
+    }}
+    requestAnimationFrame(draw);
+  }}
+  draw();
+}})();
+
+// ── Scroll progress
+var _progBar = document.getElementById('progress');
+window.addEventListener('scroll', function() {{
+  var sc = document.documentElement;
+  var pct = sc.scrollTop / (sc.scrollHeight - sc.clientHeight) * 100;
+  if (_progBar) _progBar.style.width = pct + '%';
+}});
+
+// ── Reveal on scroll
+var revealEls = document.querySelectorAll('.reveal');
+if (window.IntersectionObserver) {{
+  var io = new IntersectionObserver(function(ents) {{
+    ents.forEach(function(e) {{ if (e.isIntersecting) e.target.classList.add('visible'); }});
+  }}, {{ threshold: 0.12 }});
+  revealEls.forEach(function(el) {{ io.observe(el); }});
+}} else {{
+  revealEls.forEach(function(el) {{ el.classList.add('visible'); }});
+}}
+
+// ── Skill bars animate on scroll
+var bars = document.querySelectorAll('.skill-bar-fill');
+bars.forEach(function(b) {{ b.dataset.w = b.style.width; b.style.width = '0%'; }});
+if (window.IntersectionObserver) {{
+  var bIO = new IntersectionObserver(function(ents) {{
+    ents.forEach(function(e) {{
+      if (e.isIntersecting) {{ e.target.style.width = e.target.dataset.w || '70%'; e.target.style.transition='width 1.2s cubic-bezier(.25,.46,.45,.94)'; }}
+    }});
+  }}, {{ threshold: 0.3 }});
+  bars.forEach(function(b) {{ bIO.observe(b); }});
+}} else {{
+  setTimeout(function() {{ bars.forEach(function(b) {{ b.style.width = b.dataset.w || '70%'; }}); }}, 800);
+}}
+
+// FULLSCREEN TOGGLE
+var fsb = document.getElementById('fsBtn');
+if (fsb) {{
+  fsb.addEventListener('click', function() {{
+    if (!document.fullscreenElement) {{
+      document.documentElement.requestFullscreen().catch(err => {{
+        console.log("Error attempting to enable fullscreen: " + err.message);
+      }});
+    }} else {{
+      document.exitFullscreen();
+    }}
+  }});
+  document.addEventListener('fullscreenchange', function() {{
+    if (document.fullscreenElement) {{
+      fsb.textContent = '✕';
+      fsb.style.background = 'rgba(255,50,50,0.8)';
+    }} else {{
+      fsb.textContent = '⛶';
+      fsb.style.background = 'linear-gradient(135deg,var(--accent),var(--accent2))';
+    }}
+  }});
+}}
+
+}}); // end DOMContentLoaded
+</script>
+</body>
+</html>"""
+    return html
+
+
+def render_portfolio_builder() -> None:
+    """🌐 Real-Time Portfolio Website Builder."""
+    st.markdown(
+        """
+        <div style="text-align:center;margin-bottom:6px;">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:3px;
+                       color:var(--accent);text-transform:uppercase;">Portfolio Builder</span>
+          <h3 style="margin:6px 0 4px;font-size:1.4rem;">🌐 Build Your Personal Website — Instantly</h3>
+          <p style="color:var(--sub);font-size:0.88rem;">Fill your info, pick a theme, and get a full animated HTML site in seconds.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    _card_open()
+    col1, col2 = st.columns(2)
+
+    with col1:
+        p_name     = st.text_input("👤 Full Name",          placeholder="Sanjaya Kandel",          key="pf_name",     value=st.session_state.get("resume_name", ""))
+        p_title    = st.text_input("🏷️ Professional Title", placeholder="Full-Stack Developer & AI Enthusiast", key="pf_title")
+        p_email    = st.text_input("📧 Email",              placeholder="you@example.com",          key="pf_email",    value=st.session_state.get("resume_email", ""))
+        p_phone    = st.text_input("📱 Phone",              placeholder="+977-9800000000",          key="pf_phone",    value=st.session_state.get("resume_phone", ""))
+        p_location = st.text_input("📍 Location",           placeholder="Kathmandu, Nepal",         key="pf_location", value=st.session_state.get("resume_location", ""))
+
+    with col2:
+        p_about    = st.text_area(
+            "💬 About / Bio",
+            placeholder="I build thoughtful digital products and experiences that feel clear from the first interaction.",
+            height=100,
+            key="pf_about",
+        )
+        p_github   = st.text_input("🐙 GitHub URL",   placeholder="https://github.com/yourname",    key="pf_github")
+        p_linkedin = st.text_input("💼 LinkedIn URL",  placeholder="https://linkedin.com/in/yourname", key="pf_linkedin", value=st.session_state.get("resume_linkedin", ""))
+        p_skills   = st.text_input("💡 Skills (comma-separated)", placeholder="Python, React, AI, UI/UX, Node.js", key="pf_skills", value=st.session_state.get("resume_skills", ""))
+
+    p_projects = st.text_area(
+        "🚀 Projects (one per line, format: Name — Description)",
+        placeholder="EduSphere AI — AI-powered learning platform built with Streamlit & GROQ\nPortfolio Site — Personal animated website with particle effects",
+        height=100,
+        key="pf_projects",
+        value=st.session_state.get("resume_projects", ""),
+    )
+    p_education = st.text_input("🎓 Education", placeholder="BSc. CSIT — Lumbini ICT Campus (2020-2024)", key="pf_education", value=st.session_state.get("resume_education", ""))
+    p_certs     = st.text_input("🏆 Certifications", placeholder="AWS Cloud Practitioner, Google IT Support", key="pf_certs", value=st.session_state.get("resume_certs", ""))
+
+    _card_close()
+
+    # Theme selector — visually styled
+    st.markdown("#### 🎨 Choose Your Theme")
+    theme_cols = st.columns(4)
+    theme_options = [
+        ("🌌", "Nebula Dark",    "#050a14", "#00f0ff", "#7c3aed"),
+        ("🔥", "Crimson Forge",  "#0d0500", "#ff4500", "#ff8c00"),
+        ("🌊", "Ocean Pulse",    "#020d1a", "#00d4ff", "#0077ff"),
+        ("🌿", "Emerald Matrix", "#010d05", "#00ff41", "#39d353"),
+    ]
+    for i, (emoji, label, bg, acc, acc2) in enumerate(theme_options):
+        with theme_cols[i]:
+            st.markdown(
+                f"""<div style="background:{bg};border:2px solid {acc};border-radius:16px;padding:14px;text-align:center;
+                           box-shadow:0 0 20px {acc}40;cursor:pointer;margin-bottom:8px;">
+                      <div style="font-size:1.8rem;margin-bottom:6px;">{emoji}</div>
+                      <div style="color:{acc};font-weight:700;font-size:0.85rem;">{label}</div>
+                      <div style="display:flex;gap:6px;justify-content:center;margin-top:8px;">
+                        <span style="width:14px;height:14px;border-radius:50%;background:{acc};display:inline-block"></span>
+                        <span style="width:14px;height:14px;border-radius:50%;background:{acc2};display:inline-block"></span>
+                      </div>
+                    </div>""",
+                unsafe_allow_html=True,
+            )
+
+    p_theme = st.selectbox(
+        "🖌️ Select Theme",
+        ["🌌 Nebula Dark", "🔥 Crimson Forge", "🌊 Ocean Pulse", "🌿 Emerald Matrix"],
+        key="pf_theme",
+    )
+
+    build_btn = st.button("⚡ Build My Website — Instantly!", key="btn_build_portfolio", use_container_width=True)
+
+    if build_btn:
+        if not p_name.strip():
+            st.warning("Please enter your name to build the portfolio.")
+            return
+
+        data = {
+            "name":      p_name.strip(),
+            "title":     p_title.strip() or "Full-Stack Developer & AI Enthusiast",
+            "email":     p_email.strip(),
+            "phone":     p_phone.strip(),
+            "location":  p_location.strip(),
+            "github":    p_github.strip(),
+            "linkedin":  p_linkedin.strip(),
+            "about":     p_about.strip() or "I build thoughtful digital products and experiences.",
+            "skills":    p_skills.strip() or "Python, JavaScript, React, AI, UI/UX",
+            "projects":  p_projects.strip(),
+            "education": p_education.strip(),
+            "certs":     p_certs.strip(),
+        }
+
+        with logo_spinner("⚡ Compiling your portfolio website…"):
+            import time as _time
+            _time.sleep(0.3)
+            html_output = _generate_portfolio_html(data, p_theme)
+
+        st.session_state.portfolio_html   = html_output
+        st.session_state.portfolio_name   = p_name
+        st.success("✅ Your portfolio is ready! Scroll down to preview and download.", icon="🎉")
+
+    # ── Display if built ──────────────────────────────────────────────────────
+    if st.session_state.get("portfolio_html"):
+        html_output = st.session_state.portfolio_html
+        p_name_saved = st.session_state.get("portfolio_name", "portfolio")
+
+        st.markdown("---")
+        st.markdown("### 🖥️ Live Preview")
+        st.caption("This is your actual website rendered live. Scroll inside the preview to explore all sections.")
+
+        # Live preview iframe (custom iframe with allowfullscreen)
+        import base64
+        b64_html = base64.b64encode(html_output.encode("utf-8")).decode()
+        iframe_code = f'<iframe src="data:text/html;base64,{b64_html}" width="100%" height="720" style="border:1px solid rgba(255,255,255,0.1); border-radius:12px; background:#000;" allowfullscreen="true" webkitallowfullscreen="true" mozallowfullscreen="true" allow="fullscreen"></iframe>'
+        st.markdown(iframe_code, unsafe_allow_html=True)
+
+        st.markdown("---")
+
+        # ── Export row ────────────────────────────────────────────────────────
+        st.markdown("### 📦 Export Your Website")
+        col_dl, col_copy = st.columns(2)
+
+        with col_dl:
+            fname = f"{p_name_saved.replace(' ', '_').lower()}_portfolio.html"
+            st.download_button(
+                label="⬇️ Download HTML File",
+                data=html_output.encode("utf-8"),
+                file_name=fname,
+                mime="text/html",
+                key="dl_portfolio_html",
+                use_container_width=True,
+            )
+            st.caption(f"Downloads as `{fname}` — open in any browser, no server needed!")
+
+        with col_copy:
+            # Claude-style copy: show the full HTML in a code area
+            if st.button("📋 Show Full HTML to Copy", key="btn_show_html", use_container_width=True):
+                st.session_state.show_portfolio_code = not st.session_state.get("show_portfolio_code", False)
+
+        if st.session_state.get("show_portfolio_code", False):
+            st.markdown("**📄 Your complete HTML file** — Select All (`Ctrl+A`) and Copy (`Ctrl+C`):")
+            st.code(html_output, language="html")
+            st.info("💡 Copy the code above and paste it into a `.html` file. Open in any browser to see your portfolio!", icon="💡")
+
+
 def render_resume_builder() -> None:
-    """📋 AI-Powered Professional Resume Builder."""
-    st.markdown("### 📋 AI-Powered Professional Resume Builder")
-    st.caption("Fill in your details below and let AI craft a professional resume for you.")
+    """📋 AI-Powered Resume & Portfolio Builder."""
+    st.markdown("### 📋 Resume & Portfolio Builder")
+    st.caption("Build your professional resume and generate an animated personal portfolio website.")
+
+    tab_resume, tab_portfolio = st.tabs(["📋 Resume Builder", "🌐 Portfolio Website Builder"])
+
+    with tab_resume:
+        _render_resume_tab()
+
+    with tab_portfolio:
+        render_portfolio_builder()
+
+
+def _render_resume_tab() -> None:
+    """Inner resume builder content (Tab 1)."""
+    st.markdown("##### 📋 AI-Powered Professional Resume")
+    st.caption("Fill in your details and let AI craft a professional resume for you.")
 
     _card_open()
     col1, col2 = st.columns(2)
@@ -3339,81 +4104,13 @@ def render_weather_forecast() -> None:
         """
         st.components.v1.html(html_code, height=520)
         _card_close()
-        
-        st.markdown(
-            """
-            <script>
-                if (!window.globeListenerAdded) {
-                    window.addEventListener('message', function(event) {
-                        if (event.data && event.data.type === 'globe_click') {
-                            const name = event.data.name;
-                            const nameInput = document.querySelector('input[aria-label="Location Name or Custom Coordinates"]');
-                            if (nameInput) {
-                                const nativeSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
-                                nativeSetter.call(nameInput, name);
-                                nameInput.dispatchEvent(new Event('input', { bubbles: true }));
-                                setTimeout(() => {
-                                    const analyzeBtn = Array.from(document.querySelectorAll('button')).find(btn => btn.textContent.includes('Analyze Location'));
-                                    if (analyzeBtn) {
-                                        analyzeBtn.click();
-                                    }
-                                }, 100);
-                            }
-                        }
-                    });
-                    window.globeListenerAdded = true;
-                }
-            </script>
-            """,
-            unsafe_allow_html=True
-        )
-
-    with col2:
-        _card_open()
-        st.markdown("#### 🔬 Location Analyzer")
-        
-        selected_place = st.text_input(
-            "Location Name or Custom Coordinates",
-            value="Mount Everest",
-            help="Click a red label on the globe or type a custom place name/coordinates."
-        )
-        
-        analyze_clicked = st.button("🔍 Analyze Location", use_container_width=True)
-        _card_close()
-        
-        if analyze_clicked or selected_place:
-            _card_open()
-            st.markdown(f"##### 📚 Academic Report: **{selected_place}**")
-            
-            with logo_spinner(f"Retrieving research details for {selected_place}..."):
-                search_query = f"{selected_place} geographical scientific historical facts summary"
-                web_results = duckduckgo_search(search_query)
-                web_context = ""
-                if web_results:
-                    web_context = "\n".join([res['snippet'] for res in web_results])
-                
-                system_role = (
-                    "You are a helpful science, history, and geography AI tutor. "
-                    "Write a neat, structured academic report on the requested location containing: "
-                    "1. Coordinates & Geographic Overview "
-                    "2. Historical & Cultural significance "
-                    "3. Scientific / Geological / Environmental importance "
-                    "4. Intriguing facts for students."
-                )
-                report = groq_chat(
-                    f"Context: {web_context}\n\nProvide an academic report for: {selected_place}",
-                    system=system_role
-                )
-                st.markdown(report)
-            _card_close()
-
 
 # ==============================================================================
 # MODULE 15 — Cyber Security Panel
 # ==============================================================================
 
 def render_cyber_panel() -> None:
-    """🛡️ Cyber Security Panel — Analyze Spam, Phishing, Malware headers, and Threat Feeds."""
+    """Cyber Security Panel - Analyze Spam, Phishing, Malware headers, and Threat Feeds."""
     st.markdown("### 🛡️ Cyber Security Threat & File Analysis Panel")
     
     tab_email, tab_malware, tab_feeds = st.tabs([
@@ -3573,7 +4270,7 @@ def render_cyber_panel() -> None:
 # ==============================================================================
 
 def render_presentation_generator() -> None:
-    """🎞️ AI Presentation Generator — Create beautiful, downloadable PowerPoint slides from any prompt."""
+    """AI Presentation Generator - Create beautiful, downloadable PowerPoint slides from any prompt."""
     st.markdown("### 🎞️ AI Presentation Generator")
     st.markdown(
         '<div style="color:var(--sub); font-size:0.88rem; margin-bottom:16px;">'
@@ -4123,20 +4820,18 @@ def _generate_and_show_ppt(
         + (1 if include_table and table_data else 0)
         + 1
     )
-    st.success(f"✅ Presentation generated! **{total} slides** ready.")
+    st.success(f"Presentation generated! **{total} slides** ready.")
     st.markdown(
-        f"""
-        <div style="background:var(--card); border:1px solid rgba(255,255,255,0.12); border-radius:14px;
-                    padding:22px; margin:14px 0; text-align:center;">
-            <div style="font-size:2.8rem; margin-bottom:8px;">🎉</div>
-            <div style="font-size:1.1rem; font-weight:700; color:var(--text); margin-bottom:6px;">
-                Your Presentation is Ready!
-            </div>
-            <div style="font-size:0.85rem; color:var(--sub);">
-                {total} slides &nbsp;·&nbsp; {theme_choice} theme &nbsp;·&nbsp; EduSphere AI watermark on every slide
-            </div>
-        </div>
-        """,
+        '<div style="background:var(--card); border:1px solid rgba(255,255,255,0.12); border-radius:14px; '
+        'padding:22px; margin:14px 0; text-align:center;">'
+        '<div style="font-size:2.8rem; margin-bottom:8px;">*</div>'
+        '<div style="font-size:1.1rem; font-weight:700; color:var(--text); margin-bottom:6px;">'
+        'Your Presentation is Ready!'
+        '</div>'
+        '<div style="font-size:0.85rem; color:var(--sub);">'
+        '{total} slides &nbsp;·&nbsp; {theme_choice} theme &nbsp;·&nbsp; EduSphere AI watermark on every slide'
+        '</div>'
+        '</div>'.format(total=total, theme_choice=theme_choice),
         unsafe_allow_html=True,
     )
     safe = "".join(c if c.isalnum() or c in " _-" else "_" for c in topic[:40]).strip().replace(" ", "_")
