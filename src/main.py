@@ -18,6 +18,7 @@ from __future__ import annotations
 import datetime
 import time
 from pathlib import Path
+from textwrap import dedent
 
 import streamlit as st
 
@@ -145,7 +146,7 @@ def init_session_state() -> None:
 def render_hamster_loader(label: str = "EduSphere AI is running...", sub_label: str = "Spinning up resources"):
     """Injected Hamster loader animation using UIverse design."""
     st.markdown(
-        f"""
+        dedent(f"""
         <div class="hamster-loader-wrapper">
             <div aria-label="Orange and tan hamster running in a metal wheel" role="img" class="wheel-and-hamster">
                 <div class="wheel"></div>
@@ -168,7 +169,7 @@ def render_hamster_loader(label: str = "EduSphere AI is running...", sub_label: 
             <div class="hamster-loader-label">{label}</div>
             <div class="hamster-loader-sub">{sub_label}</div>
         </div>
-        """,
+        """),
         unsafe_allow_html=True,
     )
 
@@ -181,7 +182,7 @@ def render_login_screen(theme: dict) -> None:
     """Render the login & registration UI with tabs, social login support and custom CSS integrations."""
     # Row 1: Centered Single-Line Branding Header (Enhanced and more premium)
     st.markdown(
-        f"""
+        dedent(f"""
         <div class="login-box" style="margin: 10px auto 25px auto; max-width: 650px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
             <div class="scanner-container" style="margin-top: 5px; margin-bottom: 12px;">
                 <div class="scanner-eye left-eye"><div class="scanner-pupil"></div></div>
@@ -195,7 +196,7 @@ def render_login_screen(theme: dict) -> None:
                 Groq LLaMA 3.1 &bull; Active FAISS RAG Storage &bull; 12 Integrated Agents
             </div>
         </div>
-        """,
+        """),
         unsafe_allow_html=True,
     )
 
@@ -270,7 +271,7 @@ def render_login_screen(theme: dict) -> None:
 
     with col2:
         st.markdown(
-            """
+            dedent("""
             <div class="login-box" style="margin: 0; max-width: 100%; text-align: left; height: 100%; display: flex; flex-direction: column; justify-content: center;">
                 <h4 style="margin-top: 0; color: var(--accent); display: flex; align-items: center; gap: 8px;">💡 Demo Credentials</h4>
                 <p style="color: var(--text); font-size: 0.9rem; margin-bottom: 16px;">Use these details to log in:</p>
@@ -287,7 +288,7 @@ def render_login_screen(theme: dict) -> None:
                     </div>
                 </div>
             </div>
-            """,
+            """),
             unsafe_allow_html=True
         )
 
@@ -297,7 +298,7 @@ def render_login_screen(theme: dict) -> None:
         unsafe_allow_html=True
     )
     st.markdown(
-        """
+        dedent("""
         <div style="display:flex; justify-content:center; align-items:center; gap:18px; width:100%; margin-bottom:20px;">
             <button class="glass-social-btn google" onclick="alert('Google Auth integration coming soon!')">
                 <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -318,7 +319,7 @@ def render_login_screen(theme: dict) -> None:
                 </svg>
             </button>
         </div>
-        """,
+        """),
         unsafe_allow_html=True
     )
 
@@ -593,7 +594,7 @@ def render_sidebar() -> str:
 def render_navbar() -> None:
     now_str = datetime.datetime.now().strftime("%H:%M | %d %b %Y")
     st.markdown(
-        f"""
+        dedent(f"""
         <div class="navbar">
             <div>
                 <div class="navbar-title">🎓 EDUSPHERE AI PLATFORM</div>
@@ -608,7 +609,7 @@ def render_navbar() -> None:
                 </span>
             </div>
         </div>
-        """,
+        """),
         unsafe_allow_html=True,
     )
 

@@ -1,4 +1,4 @@
-"""
+﻿"""
 modules.py
 ==========
 All 12 feature-module UI implementations for EduSphere AI.
@@ -6,12 +6,11 @@ All 12 feature-module UI implementations for EduSphere AI.
 Each module is a standalone function. All modules use the refactored
 utility helpers (guardrails, GROQ client, RAG pipeline, etc.).
 
-Module 12 (Resume Builder) is new — generates professional resumes
+Module 12 (Resume Builder) is new ΓÇö generates professional resumes
 via LLM and exports them as downloadable PDFs.
 """
 
 from __future__ import annotations
-from textwrap import dedent
 
 import datetime
 import io
@@ -62,13 +61,13 @@ def _render_chat_history() -> None:
     if not history:
         st.markdown(
             '<div style="text-align:center;color:#475569;margin-top:80px;font-size:0.95rem;">'
-            '🎓 Ask me anything — type below or use the mic</div>',
+            '≡ƒÄô Ask me anything ΓÇö type below or use the mic</div>',
             unsafe_allow_html=True,
         )
         return
     for msg in history:
         role = "user" if msg["role"] == "user" else "assistant"
-        avatar = "👤" if role == "user" else "🎓"
+        avatar = "≡ƒæñ" if role == "user" else "≡ƒÄô"
         with st.chat_message(role, avatar=avatar):
             st.markdown(msg["msg"])
 
@@ -76,7 +75,7 @@ def _render_chat_history() -> None:
 def _render_export_buttons(content: str, base_name: str = "output") -> None:
     """Render a file type dropdown and download button for exporting content."""
     _card_open("margin-top: 10px;")
-    st.markdown("**💾 Export Output**")
+    st.markdown("**≡ƒÆ╛ Export Output**")
     col_sel, col_btn = st.columns([2, 1], vertical_alignment="bottom")
     with col_sel:
         import hashlib
@@ -89,7 +88,7 @@ def _render_export_buttons(content: str, base_name: str = "output") -> None:
     with col_btn:
         if format_choice == "Plain Text (.txt)":
             st.download_button(
-                label="⬇️ Download",
+                label="Γ¼ç∩╕Å Download",
                 data=content,
                 file_name=f"{base_name}.txt",
                 mime="text/plain",
@@ -100,7 +99,7 @@ def _render_export_buttons(content: str, base_name: str = "output") -> None:
             from .utils import generate_pdf_bytes
             pdf_bytes = generate_pdf_bytes(content)
             st.download_button(
-                label="⬇️ Download",
+                label="Γ¼ç∩╕Å Download",
                 data=pdf_bytes,
                 file_name=f"{base_name}.pdf",
                 mime="application/pdf",
@@ -112,7 +111,7 @@ def _render_export_buttons(content: str, base_name: str = "output") -> None:
             audio_bytes = generate_audio_bytes(content[:2000])
             if audio_bytes:
                 st.download_button(
-                    label="⬇️ Download",
+                    label="Γ¼ç∩╕Å Download",
                     data=audio_bytes,
                     file_name=f"{base_name}.mp3",
                     mime="audio/mpeg",
@@ -120,18 +119,18 @@ def _render_export_buttons(content: str, base_name: str = "output") -> None:
                     use_container_width=True
                 )
             else:
-                st.info("🔇 MP3 requires gTTS", icon="🔇")
+                st.info("≡ƒöç MP3 requires gTTS", icon="≡ƒöç")
     _card_close()
 
 
 
 
 # ==============================================================================
-# MODULE 0 — Dashboard (Lucy-AI style workspace with EduSphere cards)
+# MODULE 0 ΓÇö Dashboard (Lucy-AI style workspace with EduSphere cards)
 # ==============================================================================
 
 def render_dashboard() -> None:
-    """🏠 EduSphere AI Dashboard — Lucy-AI style workspace home."""
+    """≡ƒÅá EduSphere AI Dashboard ΓÇö Lucy-AI style workspace home."""
     user = st.session_state.user_info or {}
     name = user.get("name", "User")
     role = user.get("role", "Student")
@@ -143,11 +142,55 @@ def render_dashboard() -> None:
     chat_len = len(st.session_state.get("chat_history", []))
     session_mins = int((now - st.session_state.get("session_start", now)).total_seconds() / 60)
 
-    # ── Main area + right panel ──
+    # ΓöÇΓöÇ Stat Row ΓöÇΓöÇ
+    st.markdown(
+        f"""
+        <div style="margin-bottom:20px;">
+            <div style="font-family:'Space Grotesk',sans-serif; font-size:1.35rem; font-weight:700;
+                        color:var(--text); margin-bottom:18px;">
+                Your AI Agent Workspace
+                <span style="font-size:0.95rem; color:var(--accent); margin-left:8px;">+</span>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px;">
+                <div style="background:var(--card); border:1px solid rgba(255,255,255,0.07);
+                            border-radius:14px; padding:18px 20px;">
+                    <div style="font-size:0.68rem; color:var(--sub); letter-spacing:1px; text-transform:uppercase;
+                                margin-bottom:8px;">Total Queries</div>
+                    <div style="font-size:2rem; font-weight:800; color:var(--text); font-family:'Orbitron',monospace;">{total_q}</div>
+                    <div style="font-size:0.72rem; color:#4ade80; margin-top:6px;">Γû▓ Active session</div>
+                </div>
+                <div style="background:var(--card); border:1px solid rgba(255,255,255,0.07);
+                            border-radius:14px; padding:18px 20px;">
+                    <div style="font-size:0.68rem; color:var(--sub); letter-spacing:1px; text-transform:uppercase;
+                                margin-bottom:8px;">Chat Messages</div>
+                    <div style="font-size:2rem; font-weight:800; color:var(--text); font-family:'Orbitron',monospace;">{chat_len}</div>
+                    <div style="font-size:0.72rem; color:var(--accent); margin-top:6px;">Γû▓ This session</div>
+                </div>
+                <div style="background:var(--card); border:1px solid rgba(255,255,255,0.07);
+                            border-radius:14px; padding:18px 20px;">
+                    <div style="font-size:0.68rem; color:var(--sub); letter-spacing:1px; text-transform:uppercase;
+                                margin-bottom:8px;">Session Duration</div>
+                    <div style="font-size:2rem; font-weight:800; color:var(--text); font-family:'Orbitron',monospace;">{session_mins}m</div>
+                    <div style="font-size:0.72rem; color:var(--accent2); margin-top:6px;">Since login</div>
+                </div>
+                <div style="background:var(--card); border:1px solid rgba(255,255,255,0.07);
+                            border-radius:14px; padding:18px 20px;">
+                    <div style="font-size:0.68rem; color:var(--sub); letter-spacing:1px; text-transform:uppercase;
+                                margin-bottom:8px;">Role Access</div>
+                    <div style="font-size:1.4rem; font-weight:800; color:var(--text); font-family:'Orbitron',monospace;">{role[:5].upper()}</div>
+                    <div style="font-size:0.72rem; color:#fb923c; margin-top:6px;">ΓùÅ Authenticated</div>
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    # ΓöÇΓöÇ Main area + right panel ΓöÇΓöÇ
     left_col, right_col = st.columns([2.2, 1], gap="medium")
 
     with left_col:
-        # Greeting card — UIverse lava-lamp orb (rendered inside streamlit component iframe to prevent sanitization)
+        # Greeting card ΓÇö UIverse lava-lamp orb (rendered inside streamlit component iframe to prevent sanitization)
         _card_open()
 
         import streamlit.components.v1 as _stc_orb
@@ -374,9 +417,9 @@ def render_dashboard() -> None:
       </svg>
       <div class="box"></div>
     </div>
-    <div class="emoji-overlay">🎓</div>
+    <div class="emoji-overlay">≡ƒÄô</div>
   </div>
-  <div class="greeting-text">GREETING_VAL, <span style="color:#60a5fa;">NAME_VAL</span>! 👋</div>
+  <div class="greeting-text">GREETING_VAL, <span style="color:#60a5fa;">NAME_VAL</span>! ≡ƒæï</div>
   <div class="subtitle-text">How can EduSphere AI help you today?</div>
 </body>
 </html>"""
@@ -387,78 +430,42 @@ def render_dashboard() -> None:
 
 
         # Quick ask
-        st.markdown("<div style='margin-top:40px;'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='margin-top:14px;'></div>", unsafe_allow_html=True)
         _card_open()
-        st.markdown("#### 💬 Quick Ask EduSphere AI")
-
-        if "dashboard_chat" not in st.session_state:
-            st.session_state.dashboard_chat = []
-
-        def _clear_quick_ask():
-            val = st.session_state.dashboard_quick_ask
-            if val.strip():
-                st.session_state.dashboard_chat.append({"role": "user", "content": val.strip()})
-                st.session_state._pending_dashboard_ask = True
-            st.session_state.dashboard_quick_ask = ""
-
-        chat_container = st.container(height=160, border=False)
-        with chat_container:
-            if not st.session_state.dashboard_chat:
-                st.info("Ask a quick question to get started! History is scrollable.")
-            for msg in st.session_state.dashboard_chat:
-                with st.chat_message(msg["role"]):
-                    st.markdown(msg["content"])
-
-        st.markdown("<hr style='margin: 10px 0; border-top: 1px solid rgba(255,255,255,0.08); border-bottom:none;'>", unsafe_allow_html=True)
-
+        st.markdown("#### ≡ƒÆ¼ Quick Ask EduSphere AI")
         quick_q = st.text_area(
             "Ask me anything...",
-            placeholder="Ask me anything — e.g. 'Explain Newton's 3rd law'...",
-            height=68,
+            placeholder="Ask me anything ΓÇö e.g. 'Explain Newton's 3rd law', 'Write a Python function...'",
+            height=80,
             key="dashboard_quick_ask",
             label_visibility="collapsed"
         )
         qcol1, qcol2 = st.columns([1, 4])
         with qcol1:
-            ask_btn = st.button("▶ Ask", key="dashboard_ask_btn", on_click=_clear_quick_ask, use_container_width=True)
+            ask_btn = st.button("Γû╢ Ask", key="dashboard_ask_btn", use_container_width=True)
         with qcol2:
-            st.caption("Powered by Groq LLaMA 3.1 · RAG Studio")
+            st.caption("Powered by Groq LLaMA 3.1 ┬╖ RAG Studio")
 
-        if getattr(st.session_state, "_pending_dashboard_ask", False):
-            st.session_state._pending_dashboard_ask = False
-            last_msg = st.session_state.dashboard_chat[-1]["content"]
+        if ask_btn and quick_q.strip():
             with logo_spinner("Thinking..."):
-                guards = evaluate_guardrails(last_msg)
-                if guards.blocked:
-                    if guards.crisis:
-                        answer = "⚠️ **Safety Alert:** It seems you might be in distress. Please reach out to emergency services or a trusted helpline immediately."
-                    else:
-                        answer = "⚠️ **Safety Alert:** Your query triggered our content safety guardrails and cannot be processed."
-                else:
-                    system_prompt = (
-                        "You are EduSphere AI, a highly advanced educational assistant. You seamlessly understand and respond fluently in English, standard Nepali, and Romanized/conversational Nepali (e.g., 'k xa', 'kbr', 'k ho'). "
-                        "If the user asks 'k xa', 'kbr' or similar, respond naturally with 'thik xa, tapailai kasto cha?' (I am fine, how are you?) or similar natural conversational Nepali responses. "
-                        "Always provide helpful, well-formatted, polite responses, and pay close attention to the provided conversation history to maintain context."
-                    )
-                    from .utils import groq_chat_with_history
-                    answer = groq_chat_with_history(st.session_state.dashboard_chat, system=system_prompt)
-                
+                answer = groq_chat(
+                    quick_q.strip(),
+                    system="You are EduSphere AI, a helpful educational assistant. Give a concise but thorough answer."
+                )
                 st.session_state.total_queries = total_q + 1
-            st.session_state.dashboard_chat.append({"role": "assistant", "content": answer})
-            st.rerun()
-
+            st.markdown(f"**≡ƒñû EduSphere AI:**\n\n{answer}")
         _card_close()
 
         # Quick-access module cards
         st.markdown("<div style='margin-top:14px;'></div>", unsafe_allow_html=True)
-        st.markdown("#### 🚀 Quick Module Access")
+        st.markdown("#### ≡ƒÜÇ Quick Module Access")
         modules_grid = [
-            ("📝", "Summarise PDF", "📝 Executive Summariser", "#00f0ff"),
-            ("🎨", "Generate Image", "🎨 AI Image Generator", "#8b5cf6"),
-            ("💻", "Write Code", "💻 Code Lab & Explainer", "#4ade80"),
-            ("🌍", "Translate Text", "🌍 Academic Translator", "#fb923c"),
-            ("📊", "Analyse Data", "📊 System Analytics", "#f472b6"),
-            ("🧪", "Take Quiz", "🧪 Quiz & Assessment Generator", "#38bdf8"),
+            ("≡ƒô¥", "Summarise PDF", "≡ƒô¥ Executive Summariser", "#00f0ff"),
+            ("≡ƒÄ¿", "Generate Image", "≡ƒÄ¿ AI Image Generator", "#8b5cf6"),
+            ("≡ƒÆ╗", "Write Code", "≡ƒÆ╗ Code Lab & Explainer", "#4ade80"),
+            ("≡ƒîì", "Translate Text", "≡ƒîì Academic Translator", "#fb923c"),
+            ("≡ƒôè", "Analyse Data", "≡ƒôè System Analytics", "#f472b6"),
+            ("≡ƒº¬", "Take Quiz", "≡ƒº¬ Quiz & Assessment Generator", "#38bdf8"),
         ]
         mcols = st.columns(3)
         for idx, (icon, label, nav_key, color) in enumerate(modules_grid):
@@ -466,7 +473,7 @@ def render_dashboard() -> None:
                 # Render beautiful custom cards with a real Streamlit overlay button
                 with st.container():
                     st.markdown(
-                        dedent(f"""
+                        f"""
                         <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08);
                                     border-radius:12px; padding:14px 12px; text-align:center; position:relative;
                                     transition:all 0.2s; min-height: 125px;">
@@ -474,69 +481,24 @@ def render_dashboard() -> None:
                             <div style="font-size:0.78rem; font-weight:600; color:var(--text); margin-bottom:4px;">{label}</div>
                             <div style="font-size:0.65rem; color:{color}; font-weight:700;">{nav_key.split(' ', 1)[1]}</div>
                         </div>
-                        """),
+                        """,
                         unsafe_allow_html=True
                     )
                     # Overlay button to make the card clickable and trigger a sidebar state change
-                    if st.button(f"🚀 Open {label}", key=f"quick_btn_{idx}", use_container_width=True):
+                    if st.button(f"≡ƒÜÇ Open {label}", key=f"quick_btn_{idx}", use_container_width=True):
                         st.session_state.selected_menu = nav_key
                         st.rerun()
                     st.markdown("<div style='margin-bottom:10px;'></div>", unsafe_allow_html=True)
 
     with right_col:
-        # ── Stat Row ──
-        st.markdown(
-            dedent(f"""
-            <div style="margin-bottom:20px;">
-                <div style="font-family:'Space Grotesk',sans-serif; font-size:1.35rem; font-weight:700;
-                            color:var(--text); margin-bottom:18px;">
-                    Your AI Agent Workspace
-                    <span style="font-size:0.95rem; color:var(--accent); margin-left:8px;">+</span>
-                </div>
-                <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:14px;">
-                    <div style="background:var(--card); border:1px solid rgba(255,255,255,0.07);
-                                border-radius:14px; padding:18px 20px;">
-                        <div style="font-size:0.68rem; color:var(--sub); letter-spacing:1px; text-transform:uppercase;
-                                    margin-bottom:8px;">Total Queries</div>
-                        <div style="font-size:2rem; font-weight:800; color:var(--text); font-family:'Orbitron',monospace;">{total_q}</div>
-                        <div style="font-size:0.72rem; color:#4ade80; margin-top:6px;">▲ Active session</div>
-                    </div>
-                    <div style="background:var(--card); border:1px solid rgba(255,255,255,0.07);
-                                border-radius:14px; padding:18px 20px;">
-                        <div style="font-size:0.68rem; color:var(--sub); letter-spacing:1px; text-transform:uppercase;
-                                    margin-bottom:8px;">Chat Messages</div>
-                        <div style="font-size:2rem; font-weight:800; color:var(--text); font-family:'Orbitron',monospace;">{chat_len}</div>
-                        <div style="font-size:0.72rem; color:var(--accent); margin-top:6px;">▲ This session</div>
-                    </div>
-                    <div style="background:var(--card); border:1px solid rgba(255,255,255,0.07);
-                                border-radius:14px; padding:18px 20px;">
-                        <div style="font-size:0.68rem; color:var(--sub); letter-spacing:1px; text-transform:uppercase;
-                                    margin-bottom:8px;">Session Duration</div>
-                        <div style="font-size:2rem; font-weight:800; color:var(--text); font-family:'Orbitron',monospace;">{session_mins}m</div>
-                        <div style="font-size:0.72rem; color:var(--accent2); margin-top:6px;">Since login</div>
-                    </div>
-                    <div style="background:var(--card); border:1px solid rgba(255,255,255,0.07);
-                                border-radius:14px; padding:18px 20px;">
-                        <div style="font-size:0.68rem; color:var(--sub); letter-spacing:1px; text-transform:uppercase;
-                                    margin-bottom:8px;">Role Access</div>
-                        <div style="font-size:1.4rem; font-weight:800; color:var(--text); font-family:'Orbitron',monospace;">{role[:5].upper()}</div>
-                        <div style="font-size:0.72rem; color:#fb923c; margin-top:6px;">● Authenticated</div>
-                    </div>
-                </div>
-            </div>
-            """),
-            unsafe_allow_html=True
-        )
-
-
         # Memory / Vector Index Status
         _card_open()
-        st.markdown("#### 🗃️ Memory Status")
+        st.markdown("#### ≡ƒùâ∩╕Å Memory Status")
         vi = st.session_state.get("vector_index")
         doc_count = len(vi.texts) if vi else 0
         mem_pct = min(int(doc_count / 2), 100)
         st.markdown(
-            dedent(f"""
+            f"""
             <div style="margin-bottom:10px;">
                 <div style="display:flex; justify-content:space-between; font-size:0.78rem;
                             color:var(--sub); margin-bottom:6px;">
@@ -551,7 +513,7 @@ def render_dashboard() -> None:
                 </div>
                 <div style="font-size:0.7rem; color:var(--sub); margin-top:5px;">{doc_count} / 200 items</div>
             </div>
-            """),
+            """,
             unsafe_allow_html=True
         )
         _card_close()
@@ -559,30 +521,30 @@ def render_dashboard() -> None:
         # Recent chat activity
         st.markdown("<div style='margin-top:12px;'></div>", unsafe_allow_html=True)
         _card_open()
-        st.markdown("#### 💬 Recent Chats")
+        st.markdown("#### ≡ƒÆ¼ Recent Chats")
         history = st.session_state.get("chat_history", [])
         if history:
             recents = [m for m in history if m["role"] == "user"][-4:][::-1]
             for msg in recents:
                 preview = msg["msg"][:42] + "..." if len(msg["msg"]) > 42 else msg["msg"]
                 st.markdown(
-                    dedent(f"""
+                    f"""
                     <div style="padding:7px 0; border-bottom:1px solid rgba(255,255,255,0.05);
                                 font-size:0.78rem; color:var(--sub); display:flex; justify-content:space-between;">
-                        <span style="color:var(--text);">💬 {preview}</span>
+                        <span style="color:var(--text);">≡ƒÆ¼ {preview}</span>
                         <span style="font-size:0.68rem; flex-shrink:0; margin-left:8px;">now</span>
                     </div>
-                    """),
+                    """,
                     unsafe_allow_html=True
                 )
         else:
-            st.caption("No chat history yet — start a conversation in EduChat!")
+            st.caption("No chat history yet ΓÇö start a conversation in EduChat!")
         _card_close()
 
         # Model selector (display only)
         st.markdown("<div style='margin-top:12px;'></div>", unsafe_allow_html=True)
         _card_open()
-        st.markdown("#### 🤖 Active Model")
+        st.markdown("#### ≡ƒñû Active Model")
         from .config import AVAILABLE_MODELS
         model_options = list(AVAILABLE_MODELS.keys()) if isinstance(AVAILABLE_MODELS, dict) else AVAILABLE_MODELS
         if "dashboard_model" not in st.session_state:
@@ -596,7 +558,7 @@ def render_dashboard() -> None:
         )
         st.session_state.dashboard_model = chosen
         st.markdown(
-            f'<div style="font-size:0.72rem; color:#4ade80; margin-top:4px;">● Online · Groq Accelerated</div>',
+            f'<div style="font-size:0.72rem; color:#4ade80; margin-top:4px;">ΓùÅ Online ┬╖ Groq Accelerated</div>',
             unsafe_allow_html=True
         )
         _card_close()
@@ -604,34 +566,34 @@ def render_dashboard() -> None:
         # EduSphere info card (kept!)
         st.markdown("<div style='margin-top:12px;'></div>", unsafe_allow_html=True)
         _card_open()
-        st.markdown("#### 🎓 EduSphere AI")
+        st.markdown("#### ≡ƒÄô EduSphere AI")
         st.markdown(
-            dedent("""
+            """
             <div style="font-size:0.78rem; color:var(--sub); line-height:1.7;">
                 <div style="color:var(--accent); font-weight:600; margin-bottom:6px;">
                     Enterprise Educational Ecosystem
                 </div>
-                <div>● 14 AI-powered modules</div>
-                <div>● FAISS RAG document search</div>
-                <div>● 7 premium UI themes</div>
-                <div>● Groq LLaMA 3.1 inference</div>
-                <div>● 3D CesiumJS globe</div>
+                <div>ΓùÅ 14 AI-powered modules</div>
+                <div>ΓùÅ FAISS RAG document search</div>
+                <div>ΓùÅ 7 premium UI themes</div>
+                <div>ΓùÅ Groq LLaMA 3.1 inference</div>
+                <div>ΓùÅ 3D CesiumJS globe</div>
                 <div style="margin-top:8px; color:var(--accent2); font-size:0.7rem;">
-                    Powered by Groq · FAISS · Streamlit
+                    Powered by Groq ┬╖ FAISS ┬╖ Streamlit
                 </div>
             </div>
-            """),
+            """,
             unsafe_allow_html=True
         )
         _card_close()
 
 
 # ==============================================================================
-# MODULE 1 — RAG Chatbot (with LICT Knowledge Integration)
+# MODULE 1 ΓÇö RAG Chatbot (with LICT Knowledge Integration)
 # ==============================================================================
 
 def render_educhat() -> None:
-    """🧠 EduChat & RAG Studio — document-aware conversational AI with LICT campus knowledge."""
+    """≡ƒºá EduChat & RAG Studio ΓÇö document-aware conversational AI with LICT campus knowledge."""
     # Inject JavaScript listener in the parent window to handle voice prompts from the iframe
     st.markdown(
         """
@@ -661,14 +623,14 @@ def render_educhat() -> None:
         unsafe_allow_html=True
     )
 
-    st.markdown("### 🧠 EduChat & RAG Search Engine")
+    st.markdown("### ≡ƒºá EduChat & RAG Search Engine")
 
     col_chat, col_panel = st.columns([2, 1])
 
-    # ── Right panel: document management ──────────────────────────────────────
+    # ΓöÇΓöÇ Right panel: document management ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     with col_panel:
         _card_open()
-        st.markdown("**📄 Document Vectorisation Hub**")
+        st.markdown("**≡ƒôä Document Vectorisation Hub**")
 
         uploaded_pdf = st.file_uploader(
             "Upload Academic PDF",
@@ -678,29 +640,29 @@ def render_educhat() -> None:
         )
 
         if uploaded_pdf:
-            if st.button("⚡ Index Document", key="btn_index_doc"):
-                with logo_spinner("Extracting & Embedding PDF chunks…"):
+            if st.button("ΓÜí Index Document", key="btn_index_doc"):
+                with logo_spinner("Extracting & Embedding PDF chunksΓÇª"):
                     try:
                         chunks = extract_pdf_chunks(uploaded_pdf)
                         vi = _rag_manager.build_index(chunks)
                         st.session_state.vector_index = vi
-                        st.success(f"✅ Indexed **{vi.size}** chunks into FAISS!")
+                        st.success(f"Γ£à Indexed **{vi.size}** chunks into FAISS!")
                         log.info("Document indexed: %d chunks.", vi.size)
                     except Exception as exc:
-                        st.error(f"❌ Indexing failed: {exc}")
+                        st.error(f"Γ¥î Indexing failed: {exc}")
                         log.error("Indexing error: %s", exc)
 
         vi: Optional[VectorIndex] = st.session_state.get("vector_index")
         if vi and vi.size > 0:
-            st.info(f"📚 FAISS Active — **{vi.size}** chunks loaded.")
+            st.info(f"≡ƒôÜ FAISS Active ΓÇö **{vi.size}** chunks loaded.")
 
-        if st.button("🗑️ Clear Chat History", key="btn_clear_history"):
+        if st.button("≡ƒùæ∩╕Å Clear Chat History", key="btn_clear_history"):
             st.session_state.chat_history = []
             st.rerun()
 
         _card_close()
 
-    # ── Left panel: chat interface ─────────────────────────────────────────────
+    # ΓöÇΓöÇ Left panel: chat interface ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     with col_chat:
         # Unified chat box container (outer card style)
         with st.container(border=True):
@@ -716,9 +678,9 @@ def render_educhat() -> None:
             
             # Display transcribed audio notification if received
             if voice_param:
-                st.info(f"🎙️ **Transcribed Audio:** {voice_param}")
+                st.info(f"≡ƒÄÖ∩╕Å **Transcribed Audio:** {voice_param}")
                 
-            prompt = st.chat_input("💬 Ask EduSphere anything…", key="edu_chat_input")
+            prompt = st.chat_input("≡ƒÆ¼ Ask EduSphere anythingΓÇª", key="edu_chat_input")
             
             st.components.v1.html(
                 """
@@ -759,7 +721,7 @@ def render_educhat() -> None:
                     <div style="display:flex; flex-direction:row; align-items:center; gap:0.5rem;">
                         <button type="button" id="mic-btn"
                             style="background:transparent;border:none;font-size:1.15rem;color:#ececf1;
-                                   cursor:pointer;outline:none;padding:0;transition:all .2s;display:flex;align-items:center;">🎙️</button>
+                                   cursor:pointer;outline:none;padding:0;transition:all .2s;display:flex;align-items:center;">≡ƒÄÖ∩╕Å</button>
                         <select id="lang-select"
                             style="background:transparent;color:#ececf1;border:none;
                                    font-size:0.8rem;outline:none;cursor:pointer;padding:1px 2px; width:45px;">
@@ -770,7 +732,7 @@ def render_educhat() -> None:
                             <option value="fr-FR" style="background:#262730;color:#ececf1;">FR</option>
                         </select>
                         <span id="listening-indicator" style="color: #ef4444; font-size: 0.75rem; font-style: italic; display: none; align-items:center; gap:4px;">
-                            🔴 Listening
+                            ≡ƒö┤ Listening
                             <span class="voice-wave">
                                 <span class="voice-bar"></span>
                                 <span class="voice-bar"></span>
@@ -784,8 +746,8 @@ def render_educhat() -> None:
                     <textarea id="live-transcription-box" placeholder="Transcribed text will appear here..." style="width: 100%; height: 32px; background: rgba(0,0,0,0.25); color: #ececf1; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 4px 6px; font-size: 0.85rem; outline: none; resize: none; margin-top: 4px; box-sizing: border-box; font-family: inherit;"></textarea>
                     
                     <div style="display: flex; gap: 8px; margin-top: 4px; justify-content: flex-end;">
-                        <button type="button" id="copy-btn" style="background: rgba(255,255,255,0.06); color: #ececf1; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 2px 6px; font-size: 0.72rem; cursor: pointer; outline: none;">📋 Copy</button>
-                        <button type="button" id="ask-btn" style="background: #00f0ff; color: #0f172a; border: none; border-radius: 4px; padding: 2px 8px; font-size: 0.72rem; font-weight: bold; cursor: pointer; outline: none;">💬 Ask Bot</button>
+                        <button type="button" id="copy-btn" style="background: rgba(255,255,255,0.06); color: #ececf1; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 2px 6px; font-size: 0.72rem; cursor: pointer; outline: none;">≡ƒôï Copy</button>
+                        <button type="button" id="ask-btn" style="background: #00f0ff; color: #0f172a; border: none; border-radius: 4px; padding: 2px 8px; font-size: 0.72rem; font-weight: bold; cursor: pointer; outline: none;">≡ƒÆ¼ Ask Bot</button>
                     </div>
                 </div>
                 <script>
@@ -838,13 +800,13 @@ def render_educhat() -> None:
                     copyBtn.addEventListener('click', () => {
                         textBox.select();
                         navigator.clipboard.writeText(textBox.value).then(() => {
-                            copyBtn.textContent = '✅ Copied!';
-                            setTimeout(() => { copyBtn.textContent = '📋 Copy'; }, 2000);
+                            copyBtn.textContent = 'Γ£à Copied!';
+                            setTimeout(() => { copyBtn.textContent = '≡ƒôï Copy'; }, 2000);
                         }).catch(() => {
                             // Fallback
                             document.execCommand('copy');
-                            copyBtn.textContent = '✅ Copied!';
-                            setTimeout(() => { copyBtn.textContent = '📋 Copy'; }, 2000);
+                            copyBtn.textContent = 'Γ£à Copied!';
+                            setTimeout(() => { copyBtn.textContent = '≡ƒôï Copy'; }, 2000);
                         });
                     });
 
@@ -907,7 +869,7 @@ def render_educhat() -> None:
         st.session_state.total_queries = st.session_state.get("total_queries", 0) + 1
         now_time = datetime.datetime.now().strftime("%H:%M")
 
-        # ── Smart greeting detection (LICT Campus greetings) ─────────────────
+        # ΓöÇΓöÇ Smart greeting detection (LICT Campus greetings) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
         greeting_key = detect_greeting(prompt)
         if greeting_key:
             greeting_resp = get_greeting_response(greeting_key)
@@ -938,7 +900,7 @@ def render_educhat() -> None:
             st.rerun()
         if guards.harmful or guards.private:
             st.session_state.blocked_count = st.session_state.get("blocked_count", 0) + 1
-            st.error("🚫 Prompt blocked: Violates System Security or Data Privacy Policy.")
+            st.error("≡ƒÜ½ Prompt blocked: Violates System Security or Data Privacy Policy.")
             if "voice_prompt" in st.query_params:
                 st.query_params.clear()
             st.rerun()
@@ -948,7 +910,7 @@ def render_educhat() -> None:
             {"role": "user", "msg": prompt, "time": now_time}
         )
 
-        # ── LICT Knowledge Base context injection ────────────────────────────
+        # ΓöÇΓöÇ LICT Knowledge Base context injection ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
         context = ""
         used_web_search = False
         lict_context = search_lict_knowledge(prompt)
@@ -958,18 +920,18 @@ def render_educhat() -> None:
             try:
                 context = _rag_manager.similarity_search(prompt, vi)
             except Exception as exc:
-                st.warning(f"⚠️ RAG retrieval failed, answering without context: {exc}")
+                st.warning(f"ΓÜá∩╕Å RAG retrieval failed, answering without context: {exc}")
                 log.warning("RAG search error: %s", exc)
 
         # Prepend College knowledge if relevant
         if lict_context:
-            context = f"\n\n🏫 **College Knowledge Base:**\n{lict_context}\n\n{context}"
+            context = f"\n\n≡ƒÅ½ **College Knowledge Base:**\n{lict_context}\n\n{context}"
 
         is_personal_query = any(phrase in prompt.lower() for phrase in ["my name", "who am i", "do you know me", "who i am"])
 
         if not context and not is_personal_query:
             # Fallback to web search
-            with logo_spinner("🔍 Context not found in local documents. Searching the web..."):
+            with logo_spinner("≡ƒöì Context not found in local documents. Searching the web..."):
                 web_results = duckduckgo_search(prompt)
                 if web_results:
                     used_web_search = True
@@ -980,7 +942,7 @@ def render_educhat() -> None:
                             f"URL: {res['link']}\n"
                             f"Snippet: {res['snippet']}"
                         )
-                    context = "\n\n📄 **Live Web Search Results:**\n" + "\n\n".join(web_context_pieces) + "\n"
+                    context = "\n\n≡ƒôä **Live Web Search Results:**\n" + "\n\n".join(web_context_pieces) + "\n"
 
         full_prompt = f"{context}\n\nUser Question: {prompt}" if context else prompt
 
@@ -1001,25 +963,25 @@ def render_educhat() -> None:
             "password hash, or user ID."
         )
 
-        # ── Detect intent for specialized handling ─────────────────────────────
+        # ΓöÇΓöÇ Detect intent for specialized handling ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
         prompt_lower = prompt.lower()
         is_poetry_request = any(w in prompt_lower for w in [
             "poem", "poetry", "rhyme", "rhyming", "verse", "sonnet", "haiku",
-            "kavita", "कविता", "شعر", "poème", "gedicht", "poema", "poesia"
+            "kavita", "αñòαñ╡αñ┐αññαñ╛", "╪┤╪╣╪▒", "po├¿me", "gedicht", "poema", "poesia"
         ])
         is_song_request = any(w in prompt_lower for w in [
             "song", "lyrics", "chorus", "verse", "bridge", "anthem",
-            "गीत", "chanson", "canção", "lied", "cancion"
+            "αñùαÑÇαññ", "chanson", "can├º├úo", "lied", "cancion"
         ])
         is_literature_request = any(w in prompt_lower for w in [
             "story", "novel", "essay", "narrative", "prose", "fiction",
-            "short story", "write a", "कथा", "निबंध", "histoire", "cuento"
+            "short story", "write a", "αñòαñÑαñ╛", "αñ¿αñ┐αñ¼αñéαñº", "histoire", "cuento"
         ])
         is_medical_request = any(w in prompt_lower for w in [
             "medicine", "drug", "medication", "symptom", "disease", "treatment",
             "dose", "tablet", "pill", "prescription", "diagnos", "health",
             "illness", "fever", "pain", "headache", "infection", "antibiotic",
-            "doctor", "hospital", "patient", "cure", "remedy", "दवाई", "औषधि"
+            "doctor", "hospital", "patient", "cure", "remedy", "αñªαñ╡αñ╛αñê", "αñöαñ╖αñºαñ┐"
         ])
         is_code_request = any(w in prompt_lower for w in [
             "code", "program", "function", "algorithm", "script", "debug",
@@ -1027,9 +989,9 @@ def render_educhat() -> None:
             "sql", "rust", "go", "kotlin", "swift", "php", "ruby"
         ])
 
-        # ── Build specialized system role ───────────────────────────────────────
+        # ΓöÇΓöÇ Build specialized system role ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
         universal_base = (
-            "You are EduSphere AI — a supremely knowledgeable, world-class AI assistant. "
+            "You are EduSphere AI ΓÇö a supremely knowledgeable, world-class AI assistant. "
             "You can expertly answer questions from ANY field: science, math, history, geography, "
             "law, economics, philosophy, psychology, art, music, sports, technology, and more. "
             "Always give accurate, thorough, well-structured responses. "
@@ -1066,9 +1028,9 @@ def render_educhat() -> None:
                 "MEDICAL ADVISORY MODE: You are a knowledgeable medical information assistant. "
                 "Provide general information about symptoms, conditions, common medications, dosages, and treatments "
                 "based on established medical knowledge. "
-                "ALWAYS include this disclaimer at the end: '⚠️ MEDICAL DISCLAIMER: This information is for educational purposes only. "
+                "ALWAYS include this disclaimer at the end: 'ΓÜá∩╕Å MEDICAL DISCLAIMER: This information is for educational purposes only. "
                 "Always consult a qualified doctor or healthcare professional before taking any medication or making health decisions.' "
-                "Do NOT diagnose definitively — say 'This may indicate...' or 'Common causes include...'. "
+                "Do NOT diagnose definitively ΓÇö say 'This may indicate...' or 'Common causes include...'. "
                 "Mention both generic and brand names of medicines where applicable. "
             )
         elif is_code_request:
@@ -1111,7 +1073,7 @@ def render_educhat() -> None:
                 f"{identity_context}"
             )
 
-        # ── Build conversation history for memory-aware response ─────────────
+        # ΓöÇΓöÇ Build conversation history for memory-aware response ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
         # Include up to last 20 turns (40 messages) so the AI remembers context
         MAX_HISTORY_TURNS = 20
         prior_history = st.session_state.get("chat_history", [])[:-1]  # exclude the just-added user msg
@@ -1126,7 +1088,7 @@ def render_educhat() -> None:
         messages_for_llm.append({"role": "user", "content": full_prompt})
 
         # Collect response using memory-aware history call
-        with logo_spinner("🤖 EduSphere is thinking…"):
+        with logo_spinner("≡ƒñû EduSphere is thinkingΓÇª"):
             response_text = groq_chat_with_history(messages_for_llm, system=system_role)
 
         # Parse custom name request from response if present
@@ -1156,12 +1118,12 @@ def render_educhat() -> None:
 
 
 # ==============================================================================
-# MODULE 2 — Study Planner
+# MODULE 2 ΓÇö Study Planner
 # ==============================================================================
 
 def render_study_planner() -> None:
-    """📚 Automated Study Plan Generator."""
-    st.markdown("### 📚 Automated Study Plan Generator")
+    """≡ƒôÜ Automated Study Plan Generator."""
+    st.markdown("### ≡ƒôÜ Automated Study Plan Generator")
     col1, col2 = st.columns([1, 1])
 
     with col1:
@@ -1173,7 +1135,7 @@ def render_study_planner() -> None:
         _card_close()
 
     with col2:
-        if st.button("🚀 Generate Study Roadmap", key="btn_study_plan"):
+        if st.button("≡ƒÜÇ Generate Study Roadmap", key="btn_study_plan"):
             if not topic.strip():
                 st.warning("Please enter a topic.")
                 return
@@ -1183,7 +1145,7 @@ def render_study_planner() -> None:
                 "Break into daily topics, key resources, and revision checkpoints. "
                 "Use clear headings and bullet points."
             )
-            with logo_spinner("Synthesising optimal study plan…"):
+            with logo_spinner("Synthesising optimal study planΓÇª"):
                 result = groq_chat(prompt, system="You are an expert curriculum designer.")
 
             _card_open()
@@ -1193,12 +1155,12 @@ def render_study_planner() -> None:
 
 
 # ==============================================================================
-# MODULE 3 — Socratic Clarifier
+# MODULE 3 ΓÇö Socratic Clarifier
 # ==============================================================================
 
 def render_socratic_clarifier() -> None:
-    """🔬 Socratic Concept Deconstructor."""
-    st.markdown("### 🔬 Socratic Concept Deconstructor")
+    """≡ƒö¼ Socratic Concept Deconstructor."""
+    st.markdown("### ≡ƒö¼ Socratic Concept Deconstructor")
     st.write("Deconstruct complex theories through guided Socratic questioning.")
 
     concept = st.text_input("Enter Concept to Master", "Fourier Transforms")
@@ -1209,12 +1171,12 @@ def render_socratic_clarifier() -> None:
             return
         prompt = (
             f"Explain '{concept}' using the Socratic method:\n"
-            "1. **Core Intuition** – provide a real-world analogy.\n"
-            "2. **Mathematical / Logical Breakdown** – step-by-step derivation.\n"
-            "3. **Three Socratic Probing Questions** – to test deep comprehension.\n"
-            "4. **Common Misconceptions** – pitfalls learners should avoid."
+            "1. **Core Intuition** ΓÇô provide a real-world analogy.\n"
+            "2. **Mathematical / Logical Breakdown** ΓÇô step-by-step derivation.\n"
+            "3. **Three Socratic Probing Questions** ΓÇô to test deep comprehension.\n"
+            "4. **Common Misconceptions** ΓÇô pitfalls learners should avoid."
         )
-        with logo_spinner("Deconstructing concept…"):
+        with logo_spinner("Deconstructing conceptΓÇª"):
             result = groq_chat(prompt, system="You are a Socratic Academic Mentor.")
         _card_open()
         st.markdown(result)
@@ -1223,12 +1185,12 @@ def render_socratic_clarifier() -> None:
 
 
 # ==============================================================================
-# MODULE 4 — Quiz Generator
+# MODULE 4 ΓÇö Quiz Generator
 # ==============================================================================
 
 def render_quiz_generator() -> None:
-    """🧪 Automated Quiz & University Exam Paper Generator."""
-    st.markdown("### 🧪 Automated Quiz & University Exam Generator")
+    """≡ƒº¬ Automated Quiz & University Exam Paper Generator."""
+    st.markdown("### ≡ƒº¬ Automated Quiz & University Exam Generator")
     st.markdown(
         '<div style="color:var(--sub); font-size:0.88rem; margin-bottom:16px;">'
         "Generate formal University Examination Question Papers, Class Practice Papers, or Quick Quizzes. "
@@ -1241,21 +1203,21 @@ def render_quiz_generator() -> None:
 
     with col1:
         _card_open()
-        st.markdown("#### 🎓 Exam Configuration")
+        st.markdown("#### ≡ƒÄô Exam Configuration")
         
         exam_mode = st.selectbox(
-            "📝 Assessment Mode",
+            "≡ƒô¥ Assessment Mode",
             [
-                "🏫 Formal University Exam Paper",
-                "📖 Classroom Practice Paper",
-                "⚡ Quick Self-Assessment Quiz"
+                "≡ƒÅ½ Formal University Exam Paper",
+                "≡ƒôû Classroom Practice Paper",
+                "ΓÜí Quick Self-Assessment Quiz"
             ]
         )
         
         quiz_topic = st.text_input("Course Subject / Specific Topics", "Quantum Computing & Cryptography")
         
         difficulty = st.selectbox(
-            "🎓 Academic Standard / Target Grade",
+            "≡ƒÄô Academic Standard / Target Grade",
             options=[
                 "Primary School (Grade 1-5)",
                 "Middle School (Grade 6-8)",
@@ -1268,7 +1230,7 @@ def render_quiz_generator() -> None:
         )
 
         nepal_faculty = st.selectbox(
-            "🏛️ Nepal Faculty / Board Affiliation",
+            "≡ƒÅ¢∩╕Å Nepal Faculty / Board Affiliation",
             options=[
                 "None / General Assessment",
                 "Tribhuvan University (TU - IOE/IOM/FOHSS/FMS)",
@@ -1284,7 +1246,7 @@ def render_quiz_generator() -> None:
 
     with col2:
         _card_open()
-        st.markdown("#### ⚙️ Structural Details")
+        st.markdown("#### ΓÜÖ∩╕Å Structural Details")
         
         col_sub1, col_sub2 = st.columns(2)
         with col_sub1:
@@ -1298,28 +1260,28 @@ def render_quiz_generator() -> None:
                     "Long Questions (10 Marks each)", 
                     "Short Questions (5 Marks each)",
                     "Long Subjective / Analytical Only", 
-                    "Multiple Choice (A–D) Only", 
+                    "Multiple Choice (AΓÇôD) Only", 
                     "Short Answers Only"
                 ]
             )
             hardness = st.select_slider(
-                "🔥 Difficulty Rating",
+                "≡ƒöÑ Difficulty Rating",
                 options=["Easy", "Medium", "Hard", "Expert / Analytical"],
                 value="Hard"
             )
-            include_keys = st.checkbox("🔑 Include Answer Key & Details", value=True)
+            include_keys = st.checkbox("≡ƒöæ Include Answer Key & Details", value=True)
 
         univ_name = st.text_input("University / Institutional Title", "EDUSPHERE ACADEMIC BOARD")
         _card_close()
 
     st.markdown("<div style='margin-top:14px;'></div>", unsafe_allow_html=True)
 
-    if st.button("🎯 Generate University Exam Paper", key="btn_quiz", use_container_width=True, type="primary"):
+    if st.button("≡ƒÄ» Generate University Exam Paper", key="btn_quiz", use_container_width=True, type="primary"):
         if not quiz_topic.strip():
-            st.warning("⚠️ Please specify a course subject or syllabus topic first.")
+            st.warning("ΓÜá∩╕Å Please specify a course subject or syllabus topic first.")
             return
 
-        with logo_spinner("✍️ Formulating exam paper structure and answers..."):
+        with logo_spinner("Γ£ì∩╕Å Formulating exam paper structure and answers..."):
             # Structure prompt specifically for high-standard university tests
             prompt = f"""
 Create a formal academic {exam_mode} on the subject/topic: '{quiz_topic}'.
@@ -1347,14 +1309,14 @@ Ensure appropriate complexity, clarity, and precise scientific terminology match
 
     # Show generated quiz if it exists in session state
     if "current_quiz_text" in st.session_state:
-        st.markdown("### 📝 Generated Question Paper Preview")
+        st.markdown("### ≡ƒô¥ Generated Question Paper Preview")
         _card_open()
         st.markdown(st.session_state.current_quiz_text)
         _card_close()
 
         # Render custom export selector for University PDFs
         _card_open("margin-top: 14px;")
-        st.markdown("#### 💾 Download Exam Paper")
+        st.markdown("#### ≡ƒÆ╛ Download Exam Paper")
         
         col_sel, col_btn = st.columns([2, 1], vertical_alignment="bottom")
         with col_sel:
@@ -1366,7 +1328,7 @@ Ensure appropriate complexity, clarity, and precise scientific terminology match
         with col_btn:
             if export_format == "Plain Text Document (.txt)":
                 st.download_button(
-                    label="⬇️ Download Document",
+                    label="Γ¼ç∩╕Å Download Document",
                     data=st.session_state.current_quiz_text,
                     file_name=f"{st.session_state.current_quiz_title}.txt",
                     mime="text/plain",
@@ -1394,7 +1356,7 @@ Ensure appropriate complexity, clarity, and precise scientific terminology match
                 pdf_bytes = generate_pdf_bytes(full_content_for_pdf)
                 
                 st.download_button(
-                    label="⬇️ Download Print-Ready PDF",
+                    label="Γ¼ç∩╕Å Download Print-Ready PDF",
                     data=pdf_bytes,
                     file_name=f"{st.session_state.current_quiz_title}.pdf",
                     mime="application/pdf",
@@ -1403,9 +1365,9 @@ Ensure appropriate complexity, clarity, and precise scientific terminology match
                 )
         _card_close()
 
-    # ── NEW: .txt to PDF Document Converter Workspace ───────────────────────
+    # ΓöÇΓöÇ NEW: .txt to PDF Document Converter Workspace ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     st.markdown("<hr style='margin: 20px 0; border: none; border-top: 1px solid rgba(255,255,255,0.08);'>", unsafe_allow_html=True)
-    st.markdown("### 📄 Document Converter (.txt ➔ .pdf)")
+    st.markdown("### ≡ƒôä Document Converter (.txt Γ₧ö .pdf)")
     st.markdown(
         '<div style="color:var(--sub); font-size:0.85rem; margin-bottom:12px;">'
         "Upload any plain text file or syllabus paper to compile and transform it into a formatted, Latin1-sanitized PDF document."
@@ -1416,19 +1378,19 @@ Ensure appropriate complexity, clarity, and precise scientific terminology match
     conv_col1, conv_col2 = st.columns([1, 1], gap="medium")
     with conv_col1:
         _card_open()
-        st.markdown("##### 📥 Upload Text File")
+        st.markdown("##### ≡ƒôÑ Upload Text File")
         uploaded_txt = st.file_uploader("Choose a plain text file (.txt)", type=["txt"], key="txt_to_pdf_uploader")
         _card_close()
         
     with conv_col2:
         if uploaded_txt is not None:
             _card_open()
-            st.markdown("##### ⚙️ Compilation Options")
+            st.markdown("##### ΓÜÖ∩╕Å Compilation Options")
             # Read uploaded file content
             txt_string = uploaded_txt.read().decode("utf-8", errors="replace")
             
             # Show premium styled scrollable document preview
-            st.markdown("##### 📝 Document Content Preview")
+            st.markdown("##### ≡ƒô¥ Document Content Preview")
             st.markdown(
                 f'<div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 12px; height: 180px; overflow-y: auto; font-family: \'Space Grotesk\', sans-serif; font-size: 0.85rem; color: var(--text-color); margin-bottom: 12px; white-space: pre-wrap; line-height: 1.5;">'
                 f'{txt_string}'
@@ -1443,7 +1405,7 @@ Ensure appropriate complexity, clarity, and precise scientific terminology match
             
             st.markdown("<div style='margin-top:10px;'></div>", unsafe_allow_html=True)
             st.download_button(
-                label="📥 Convert & Download PDF",
+                label="≡ƒôÑ Convert & Download PDF",
                 data=converted_pdf,
                 file_name=f"{orig_name}_converted.pdf",
                 mime="application/pdf",
@@ -1462,12 +1424,12 @@ Ensure appropriate complexity, clarity, and precise scientific terminology match
             _card_close()
 
 # ==============================================================================
-# MODULE 5 — Code Lab
+# MODULE 5 ΓÇö Code Lab
 # ==============================================================================
 
 def render_code_lab() -> None:
-    """💻 Intelligent Code Debugger & Explainer."""
-    st.markdown("### 💻 Intelligent Code Debugger & Explainer")
+    """≡ƒÆ╗ Intelligent Code Debugger & Explainer."""
+    st.markdown("### ≡ƒÆ╗ Intelligent Code Debugger & Explainer")
 
     code_snippet = st.text_area(
         "Paste Code Snippet",
@@ -1498,7 +1460,7 @@ def render_code_lab() -> None:
         ],
     )
 
-    if st.button("⚡ Execute Analysis", key="btn_code_lab"):
+    if st.button("ΓÜí Execute Analysis", key="btn_code_lab"):
         if not code_snippet.strip():
             st.warning("Please paste a code snippet.")
             return
@@ -1508,7 +1470,7 @@ def render_code_lab() -> None:
             f"Code:\n```{lang.lower()}\n{code_snippet}\n```\n\n"
             "Provide a thorough, structured analysis with corrected code where applicable."
         )
-        with logo_spinner("Analysing code structure…"):
+        with logo_spinner("Analysing code structureΓÇª"):
             result = groq_chat(prompt, system="You are an expert Software Engineer & CS Professor.")
         _card_open()
         st.markdown(result)
@@ -1517,14 +1479,14 @@ def render_code_lab() -> None:
 
 
 # ==============================================================================
-# MODULE 6 — Academic Translator
+# MODULE 6 ΓÇö Academic Translator
 # ==============================================================================
 
 def render_translator() -> None:
-    """🌍 Multi-Lingual Academic Translator."""
-    st.markdown("### 🌍 Multi-Lingual Academic Translator")
+    """≡ƒîì Multi-Lingual Academic Translator."""
+    st.markdown("### ≡ƒîì Multi-Lingual Academic Translator")
 
-    # ── Voice Input handling for Translator ──
+    # ΓöÇΓöÇ Voice Input handling for Translator ΓöÇΓöÇ
     translate_voice = st.query_params.get("translate_voice_prompt", "")
     default_text = "Neural networks utilise backpropagation to update weights based on gradient loss."
     should_auto_translate = False
@@ -1537,7 +1499,7 @@ def render_translator() -> None:
         should_auto_translate = True
         st.query_params.clear()
 
-    # ── Translator Voice Input component ──
+    # ΓöÇΓöÇ Translator Voice Input component ΓöÇΓöÇ
     st.components.v1.html(
         """
         <style>
@@ -1577,7 +1539,7 @@ def render_translator() -> None:
             <div style="display:flex; flex-direction:row; align-items:center; gap:0.5rem;">
                 <button type="button" id="trans-mic-btn"
                     style="background:transparent;border:none;font-size:1.15rem;color:#ececf1;
-                           cursor:pointer;outline:none;padding:0;transition:all .2s;display:flex;align-items:center;gap:6px;">🎙️ Speak to Translate</button>
+                           cursor:pointer;outline:none;padding:0;transition:all .2s;display:flex;align-items:center;gap:6px;">≡ƒÄÖ∩╕Å Speak to Translate</button>
                 <select id="trans-lang-select"
                     style="background:transparent;color:#ececf1;border:none;
                            font-size:0.8rem;outline:none;cursor:pointer;padding:1px 2px; width:45px;">
@@ -1588,7 +1550,7 @@ def render_translator() -> None:
                     <option value="fr-FR" style="background:#262730;color:#ececf1;">FR</option>
                 </select>
                 <span id="trans-indicator" style="color: #ef4444; font-size: 0.75rem; font-style: italic; display: none; align-items:center; gap:4px;">
-                    🔴 Listening
+                    ≡ƒö┤ Listening
                     <span class="voice-wave">
                         <span class="voice-bar"></span>
                         <span class="voice-bar"></span>
@@ -1602,8 +1564,8 @@ def render_translator() -> None:
             <textarea id="trans-transcription-box" placeholder="Transcribed text will appear here..." style="width: 100%; height: 32px; background: rgba(0,0,0,0.25); color: #ececf1; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; padding: 4px 6px; font-size: 0.85rem; outline: none; resize: none; margin-top: 4px; box-sizing: border-box; font-family: inherit;"></textarea>
             
             <div style="display: flex; gap: 8px; margin-top: 4px; justify-content: flex-end;">
-                <button type="button" id="trans-copy-btn" style="background: rgba(255,255,255,0.06); color: #ececf1; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 2px 6px; font-size: 0.72rem; cursor: pointer; outline: none;">📋 Copy</button>
-                <button type="button" id="trans-submit-btn" style="background: #00f0ff; color: #0f172a; border: none; border-radius: 4px; padding: 2px 8px; font-size: 0.72rem; font-weight: bold; cursor: pointer; outline: none;">🌐 Translate</button>
+                <button type="button" id="trans-copy-btn" style="background: rgba(255,255,255,0.06); color: #ececf1; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 2px 6px; font-size: 0.72rem; cursor: pointer; outline: none;">≡ƒôï Copy</button>
+                <button type="button" id="trans-submit-btn" style="background: #00f0ff; color: #0f172a; border: none; border-radius: 4px; padding: 2px 8px; font-size: 0.72rem; font-weight: bold; cursor: pointer; outline: none;">≡ƒîÉ Translate</button>
             </div>
         </div>
         <script>
@@ -1653,12 +1615,12 @@ def render_translator() -> None:
             copyBtn.addEventListener('click', () => {
                 textBox.select();
                 navigator.clipboard.writeText(textBox.value).then(() => {
-                    copyBtn.textContent = '✅ Copied!';
-                    setTimeout(() => { copyBtn.textContent = '📋 Copy'; }, 2000);
+                    copyBtn.textContent = 'Γ£à Copied!';
+                    setTimeout(() => { copyBtn.textContent = '≡ƒôï Copy'; }, 2000);
                 }).catch(() => {
                     document.execCommand('copy');
-                    copyBtn.textContent = '✅ Copied!';
-                    setTimeout(() => { copyBtn.textContent = '📋 Copy'; }, 2000);
+                    copyBtn.textContent = 'Γ£à Copied!';
+                    setTimeout(() => { copyBtn.textContent = '≡ƒôï Copy'; }, 2000);
                 });
             });
 
@@ -1727,7 +1689,7 @@ def render_translator() -> None:
     with col2:
         formality = st.selectbox("Formality Level", ["Academic / Formal", "Conversational", "Technical"])
 
-    if st.button("🌐 Translate Text", key="btn_translate") or should_auto_translate:
+    if st.button("≡ƒîÉ Translate Text", key="btn_translate") or should_auto_translate:
         if not input_text.strip():
             st.warning("Please provide source text.")
             return
@@ -1737,288 +1699,112 @@ def render_translator() -> None:
             "If any terms have no direct equivalent, provide a footnote explanation.\n\n"
             f"Text:\n{input_text}"
         )
-        with logo_spinner("Translating…"):
+        with logo_spinner("TranslatingΓÇª"):
             result = groq_chat(prompt)
         _card_open()
-        st.subheader(f"Translation → {target_lang}")
+        st.subheader(f"Translation ΓåÆ {target_lang}")
         st.write(result)
         _card_close()
         _render_export_buttons(result, "translation")
 
 
 # ==============================================================================
-# MODULE 7 — Executive Summariser
+# MODULE 7 ΓÇö Executive Summariser
 # ==============================================================================
 
 def render_summariser() -> None:
-    """📝 Academic Text & Paper Summariser."""
-    st.markdown("### 📝 Executive Summariser & Data Analyst")
+    """≡ƒô¥ Academic Text & Paper Summariser."""
+    st.markdown("### ≡ƒô¥ Academic Text & Paper Summariser")
 
-    tab1, tab2 = st.tabs(["📝 Text Summariser", "📊 Data Analyst"])
+    long_text = st.text_area("Input Academic Passage", height=220)
+    col1, col2 = st.columns([1, 1])
+    with col1:
+        format_type = st.selectbox(
+            "Summary Format",
+            ["Bullet Core Takeaways", "Executive One-Pager", "Abstract Style", "ELI5 (Simple Explanation)"],
+        )
+    with col2:
+        word_limit = st.slider("Target Word Count", 50, 500, 150)
 
-    with tab1:
-        long_text = st.text_area("Input Academic Passage", height=220)
-        col1, col2 = st.columns([1, 1])
-        with col1:
-            format_type = st.selectbox(
-                "Summary Format",
-                ["Bullet Core Takeaways", "Executive One-Pager", "Abstract Style", "ELI5 (Simple Explanation)"],
-            )
-        with col2:
-            word_limit = st.slider("Target Word Count", 50, 500, 150)
-
-        if st.button("📑 Summarise", key="btn_summarise"):
-            if not long_text.strip():
-                st.warning("Please provide input text.")
-                return
-            prompt = (
-                f"Summarise the following text using the '{format_type}' format. "
-                f"Target approximately {word_limit} words. "
-                "Be precise and preserve key academic insights.\n\n"
-                f"Text:\n{long_text}"
-            )
-            with logo_spinner("Summarising…"):
-                result = groq_chat(prompt)
-            _card_open()
-            st.markdown(result)
-            _card_close()
-            _render_export_buttons(result, "summary")
-
-    with tab2:
-        st.markdown("Upload a dataset for automated comprehensive AI analysis and visualization.")
-        uploaded_file = st.file_uploader("Upload Data (CSV, JSON, XLSX, TXT, MD)", type=["csv", "json", "xlsx", "xls", "txt", "md"])
-        
-        if uploaded_file is not None:
-            try:
-                import pandas as pd
-                import matplotlib.pyplot as plt
-                import io
-                
-                # Load the dataset
-                file_extension = uploaded_file.name.split(".")[-1].lower()
-                
-                with logo_spinner("Parsing dataset..."):
-                    if file_extension == "csv":
-                        df = pd.read_csv(uploaded_file)
-                    elif file_extension in ["xls", "xlsx"]:
-                        df = pd.read_excel(uploaded_file)
-                    elif file_extension == "json":
-                        df = pd.read_json(uploaded_file)
-                    elif file_extension in ["txt", "md"]:
-                        df = pd.read_csv(uploaded_file, sep="\t") # Assume tab-separated for text files as fallback
-                    else:
-                        st.error("Unsupported file format.")
-                        return
-
-                st.success("✅ Dataset loaded successfully!")
-                
-                with st.expander("🔍 Dataset Preview"):
-                    st.dataframe(df.head(10), use_container_width=True)
-                    st.caption(f"Rows: {df.shape[0]} | Columns: {df.shape[1]}")
-                
-                if st.button("🚀 Generate Comprehensive Analysis", key="btn_data_analyst"):
-                    # 1. Prepare statistical summary for the LLM (Security: don't send raw data)
-                    desc = df.describe(include='all').to_string()
-                    missing_info = df.isnull().sum().to_string()
-                    types_info = df.dtypes.to_string()
-                    
-                    data_context = (
-                        f"Dataset Shape: {df.shape[0]} rows, {df.shape[1]} columns.\n\n"
-                        f"Data Types:\n{types_info}\n\n"
-                        f"Missing Values:\n{missing_info}\n\n"
-                        f"Statistical Summary:\n{desc}"
-                    )
-                    
-                    # 2. Get AI Analysis
-                    prompt = (
-                        "You are an expert Data Analyst AI. I am providing you with the statistical summary and schema of a dataset (not the raw data). "
-                        "Please provide a comprehensive, structured data analysis report. "
-                        "Include: \n"
-                        "- High-level overview of the data\n"
-                        "- Key statistical insights and anomalies\n"
-                        "- Potential implications or trends based on the statistics\n"
-                        "- Recommendations for further investigation\n\n"
-                        f"Data Summary Context:\n{data_context}"
-                    )
-                    
-                    with logo_spinner("AI is analyzing the data..."):
-                        analysis_result = groq_chat(prompt)
-                    
-                    # 3. Generate Charts (Matplotlib)
-                    with logo_spinner("Generating charts..."):
-                        image_bytes_list = []
-                        num_cols = df.select_dtypes(include=['number']).columns.tolist()
-                        cat_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
-                        
-                        _card_open()
-                        st.markdown(analysis_result)
-                        _card_close()
-                        
-                        st.markdown("### 📈 Visualizations")
-                        col1, col2 = st.columns(2)
-                        
-                        plots_generated = 0
-                        # Try to set a modern style if available
-                        try:
-                            plt.style.use("dark_background")
-                        except:
-                            pass
-                        
-                        # Plot 1: Correlation Matrix (if > 1 numeric col)
-                        if len(num_cols) > 1:
-                            fig1, ax1 = plt.subplots(figsize=(6, 4))
-                            corr = df[num_cols].corr()
-                            cax = ax1.matshow(corr, cmap='coolwarm')
-                            fig1.colorbar(cax)
-                            ax1.set_xticks(range(len(num_cols)))
-                            ax1.set_yticks(range(len(num_cols)))
-                            ax1.set_xticklabels(num_cols, rotation=45, ha='left')
-                            ax1.set_yticklabels(num_cols)
-                            ax1.set_title("Correlation Heatmap", pad=20)
-                            fig1.tight_layout()
-                            
-                            buf1 = io.BytesIO()
-                            fig1.savefig(buf1, format="png", dpi=150)
-                            buf1.seek(0)
-                            image_bytes_list.append(buf1.read())
-                            col1.image(buf1, caption="Correlation Heatmap")
-                            plt.close(fig1)
-                            plots_generated += 1
-                            
-                        # Plot 2: Distribution of first numeric col
-                        if len(num_cols) > 0:
-                            fig2, ax2 = plt.subplots(figsize=(6, 4))
-                            col_name = num_cols[0]
-                            ax2.hist(df[col_name].dropna(), bins=20, color='skyblue', edgecolor='black')
-                            ax2.set_title(f"Distribution of {col_name}")
-                            fig2.tight_layout()
-                            
-                            buf2 = io.BytesIO()
-                            fig2.savefig(buf2, format="png", dpi=150)
-                            buf2.seek(0)
-                            image_bytes_list.append(buf2.read())
-                            
-                            target_col = col1 if plots_generated % 2 == 0 else col2
-                            target_col.image(buf2, caption=f"Distribution of {col_name}")
-                            plt.close(fig2)
-                            plots_generated += 1
-                            
-                        # Plot 3: Distribution of second numeric col OR first categorical
-                        if len(num_cols) > 1:
-                            fig3, ax3 = plt.subplots(figsize=(6, 4))
-                            col_name = num_cols[1]
-                            ax3.boxplot(df[col_name].dropna())
-                            ax3.set_title(f"Boxplot of {col_name}")
-                            fig3.tight_layout()
-                            
-                            buf3 = io.BytesIO()
-                            fig3.savefig(buf3, format="png", dpi=150)
-                            buf3.seek(0)
-                            image_bytes_list.append(buf3.read())
-                            
-                            target_col = col1 if plots_generated % 2 == 0 else col2
-                            target_col.image(buf3, caption=f"Boxplot of {col_name}")
-                            plt.close(fig3)
-                            plots_generated += 1
-                        elif len(cat_cols) > 0:
-                            fig3, ax3 = plt.subplots(figsize=(6, 4))
-                            col_name = cat_cols[0]
-                            counts = df[col_name].value_counts().head(10)
-                            counts.plot(kind='bar', ax=ax3, color='lightgreen')
-                            ax3.set_title(f"Top 10 categories in {col_name}")
-                            fig3.tight_layout()
-                            
-                            buf3 = io.BytesIO()
-                            fig3.savefig(buf3, format="png", dpi=150)
-                            buf3.seek(0)
-                            image_bytes_list.append(buf3.read())
-                            
-                            target_col = col1 if plots_generated % 2 == 0 else col2
-                            target_col.image(buf3, caption=f"Bar chart of {col_name}")
-                            plt.close(fig3)
-                            plots_generated += 1
-                        
-                        if plots_generated == 0:
-                            st.info("Dataset doesn't have sufficient numeric/categorical variation for automatic plotting.")
-                        
-                        # 4. Provide PDF Export
-                        st.markdown("---")
-                        from .utils import get_analytical_pdf_download_link
-                        
-                        download_html = get_analytical_pdf_download_link(
-                            content=analysis_result,
-                            image_bytes_list=image_bytes_list,
-                            filename="data_analysis_report.pdf",
-                            label="Download Data Analyst PDF Report"
-                        )
-                        st.markdown(download_html, unsafe_allow_html=True)
-
-            except Exception as e:
-                log.error("Data Analyst error: %s", e)
-                st.error(f"❌ Error processing dataset: {e}")
+    if st.button("≡ƒôæ Summarise", key="btn_summarise"):
+        if not long_text.strip():
+            st.warning("Please provide input text.")
+            return
+        prompt = (
+            f"Summarise the following text using the '{format_type}' format. "
+            f"Target approximately {word_limit} words. "
+            "Be precise and preserve key academic insights.\n\n"
+            f"Text:\n{long_text}"
+        )
+        with logo_spinner("SummarisingΓÇª"):
+            result = groq_chat(prompt)
+        _card_open()
+        st.markdown(result)
+        _card_close()
+        _render_export_buttons(result, "summary")
 
 
 # ==============================================================================
-# MODULE 8 — URL & Visual Intelligence
+# MODULE 8 ΓÇö URL & Visual Intelligence
 # ==============================================================================
 
 def render_url_intelligence() -> None:
-    """🖼️ Web & Image Scraping Engine."""
-    st.markdown("### 🖼️ Web Content Intelligence Engine")
+    """≡ƒû╝∩╕Å Web & Image Scraping Engine."""
+    st.markdown("### ≡ƒû╝∩╕Å Web Content Intelligence Engine")
 
     target_url = st.text_input(
         "Web URL to Analyse",
         "https://en.wikipedia.org/wiki/Artificial_intelligence",
     )
 
-    if st.button("🔍 Analyse URL", key="btn_analyse_url"):
+    if st.button("≡ƒöì Analyse URL", key="btn_analyse_url"):
         if not target_url.strip():
             st.warning("Please enter a URL.")
             return
-        with logo_spinner("Scraping webpage structure…"):
+        with logo_spinner("Scraping webpage structureΓÇª"):
             data = fetch_website_content(target_url)
 
         if "error" in data:
-            st.error(f"❌ Failed to extract content: {data['error']}")
+            st.error(f"Γ¥î Failed to extract content: {data['error']}")
             return
 
         _card_open()
-        st.markdown(f"**🌐 Title:** {data['title']}")
-        st.markdown(f"**🔗 URL:** {data['url']}")
+        st.markdown(f"**≡ƒîÉ Title:** {data['title']}")
+        st.markdown(f"**≡ƒöù URL:** {data['url']}")
 
         if data["headings"]:
-            st.markdown("**📌 Headings Discovered:**")
+            st.markdown("**≡ƒôî Headings Discovered:**")
             for h in data["headings"]:
                 st.markdown(f"- {h}")
 
         if data["paragraphs"]:
-            st.markdown("**📄 Key Paragraphs:**")
+            st.markdown("**≡ƒôä Key Paragraphs:**")
             for p in data["paragraphs"]:
-                st.caption(f"• {p}")
+                st.caption(f"ΓÇó {p}")
         _card_close()
 
         combined_text = "\n".join(data["headings"] + data["paragraphs"])
         _render_export_buttons(combined_text, "url_analysis")
 
-        if st.button("🤖 AI-Summarise This Page", key="btn_ai_summarise_url"):
+        if st.button("≡ƒñû AI-Summarise This Page", key="btn_ai_summarise_url"):
             combined = "\n".join(data["paragraphs"])
             prompt = f"Summarise the key academic insights from this web content:\n\n{combined}"
-            with logo_spinner("Generating AI summary…"):
+            with logo_spinner("Generating AI summaryΓÇª"):
                 summary = groq_chat(prompt)
             _card_open()
-            st.markdown("**🤖 AI Summary:**")
+            st.markdown("**≡ƒñû AI Summary:**")
             st.markdown(summary)
             _card_close()
             _render_export_buttons(summary, "url_summary")
 
 
 # ==============================================================================
-# MODULE 9 — Background Remover
+# MODULE 9 ΓÇö Background Remover
 # ==============================================================================
 
 def render_bg_remover() -> None:
-    """🧹 Image Background Eraser."""
-    st.markdown("### 🧹 AI-Powered Background Eraser")
+    """≡ƒº╣ Image Background Eraser."""
+    st.markdown("### ≡ƒº╣ AI-Powered Background Eraser")
     st.caption("Upload a JPG or PNG image to remove its background instantly.")
 
     img_file = st.file_uploader("Upload Image", type=["jpg", "png", "jpeg"], key="bg_uploader")
@@ -2029,20 +1815,20 @@ def render_bg_remover() -> None:
     try:
         img = Image.open(img_file).convert("RGBA")
     except Exception as exc:
-        st.error(f"❌ Could not open image: {exc}")
+        st.error(f"Γ¥î Could not open image: {exc}")
         return
 
     col1, col2 = st.columns(2)
     with col1:
         st.image(img, caption="Original Image", use_container_width=True)
 
-    if st.button("✂️ Remove Background", key="btn_remove_bg"):
-        with logo_spinner("Processing image tensors…"):
+    if st.button("Γ£é∩╕Å Remove Background", key="btn_remove_bg"):
+        with logo_spinner("Processing image tensorsΓÇª"):
             try:
                 from rembg import remove
                 output_img = remove(img)
             except Exception as exc:
-                st.error(f"❌ Background removal failed: {exc}")
+                st.error(f"Γ¥î Background removal failed: {exc}")
                 log.error("rembg error: %s", exc)
                 return
 
@@ -2053,7 +1839,7 @@ def render_bg_remover() -> None:
         buf_png = io.BytesIO()
         output_img.save(buf_png, format="PNG")
         st.download_button(
-            "⬇️ Download PNG",
+            "Γ¼ç∩╕Å Download PNG",
             data=buf_png.getvalue(),
             file_name="bg_removed.png",
             mime="image/png",
@@ -2064,30 +1850,30 @@ def render_bg_remover() -> None:
         buf_jpg = io.BytesIO()
         jpg_img.save(buf_jpg, format="JPEG", quality=95)
         st.download_button(
-            "⬇️ Download JPEG",
+            "Γ¼ç∩╕Å Download JPEG",
             data=buf_jpg.getvalue(),
             file_name="bg_removed.jpg",
             mime="image/jpeg",
         )
 
-        st.toast("✅ Background removed successfully!", icon="✂️")
+        st.toast("Γ£à Background removed successfully!", icon="Γ£é∩╕Å")
 
 
 # ==============================================================================
-# MODULE 10 — Analytics
+# MODULE 10 ΓÇö Analytics
 # ==============================================================================
 
 def render_analytics() -> None:
-    """📊 Platform Usage & Telemetry."""
-    st.markdown("### 📊 Platform Usage & Telemetry Dashboard")
+    """≡ƒôè Platform Usage & Telemetry."""
+    st.markdown("### ≡ƒôè Platform Usage & Telemetry Dashboard")
 
     vi = st.session_state.get("vector_index")
     faiss_size = vi.size if vi else 0
 
     col_a, col_b, col_c = st.columns(3)
-    col_a.metric("🔢 Total Queries", st.session_state.get("total_queries", 0))
-    col_b.metric("🚫 Security Blocks", st.session_state.get("blocked_count", 0))
-    col_c.metric("📚 FAISS Chunk Count", faiss_size)
+    col_a.metric("≡ƒöó Total Queries", st.session_state.get("total_queries", 0))
+    col_b.metric("≡ƒÜ½ Security Blocks", st.session_state.get("blocked_count", 0))
+    col_c.metric("≡ƒôÜ FAISS Chunk Count", faiss_size)
 
     _card_open()
     st.markdown("**Session Metadata:**")
@@ -2101,9 +1887,9 @@ def render_analytics() -> None:
         {
             "session_start": str(session_start),
             "session_duration": f"{hours:02d}:{minutes:02d}:{seconds:02d}",
-            "user_name": user_info.get("name", "—"),
-            "user_role": user_info.get("role", "—"),
-            "theme": st.session_state.get("theme", "—"),
+            "user_name": user_info.get("name", "ΓÇö"),
+            "user_role": user_info.get("role", "ΓÇö"),
+            "theme": st.session_state.get("theme", "ΓÇö"),
             "rag_active": faiss_size > 0,
             "chat_messages": len(st.session_state.get("chat_history", [])),
         }
@@ -2112,71 +1898,71 @@ def render_analytics() -> None:
 
 
 # ==============================================================================
-# MODULE 11 — Architecture Blueprint
+# MODULE 11 ΓÇö Architecture Blueprint
 # ==============================================================================
 
 def render_architecture() -> None:
-    """🏛️ Executive Vision & System Architecture Documentation."""
-    st.markdown("## 🏛️ Executive Vision & System Architecture")
+    """≡ƒÅ¢∩╕Å Executive Vision & System Architecture Documentation."""
+    st.markdown("## ≡ƒÅ¢∩╕Å Executive Vision & System Architecture")
 
     st.markdown("""
 ---
 ### Executive Vision & Core Goals
 
 **EduSphere AI** is an enterprise-grade, privacy-first educational ecosystem capable of:
-- **Adaptive Learning Paths** — personalised study plans and Socratic dialogue.
-- **Real-Time RAG** — FAISS-backed context extraction from uploaded documents.
-- **Multi-Modal Problem Solving** — code analysis, translation, summarisation, and image processing.
-- **College AI Assistant Integration** — built-in knowledge base for college queries.
-- **Professional Resume Builder** — AI-powered resume generation with PDF export.
+- **Adaptive Learning Paths** ΓÇö personalised study plans and Socratic dialogue.
+- **Real-Time RAG** ΓÇö FAISS-backed context extraction from uploaded documents.
+- **Multi-Modal Problem Solving** ΓÇö code analysis, translation, summarisation, and image processing.
+- **College AI Assistant Integration** ΓÇö built-in knowledge base for college queries.
+- **Professional Resume Builder** ΓÇö AI-powered resume generation with PDF export.
 
 ---
 ### System Architecture
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                    USER INTERFACE                   │
-│            (Streamlit — Multi-Module SPA)           │
-└─────────────────────────┬───────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────┐
-│         INPUT EVALUATION & GUARDRAIL ENGINE         │
-│   (Regex Safety · Privacy · Crisis Classifier)      │
-└──────────┬──────────────────────────────┬───────────┘
-           │ BLOCKED                      │ SAFE
-           ▼                              ▼
-┌──────────────────┐           ┌──────────────────────┐
-│  BLOCK & REPORT  │           │   ROUTING ENGINE     │
-│ Crisis Resources │           │  (12 Feature Modules)│
-└──────────────────┘           └────────┬─────────────┘
-                                        │
-                          ┌─────────────┴──────────────┐
-                          │                            │
+ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ
+Γöé                    USER INTERFACE                   Γöé
+Γöé            (Streamlit ΓÇö Multi-Module SPA)           Γöé
+ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ
+                          Γöé
+                          Γû╝
+ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ
+Γöé         INPUT EVALUATION & GUARDRAIL ENGINE         Γöé
+Γöé   (Regex Safety ┬╖ Privacy ┬╖ Crisis Classifier)      Γöé
+ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ
+           Γöé BLOCKED                      Γöé SAFE
+           Γû╝                              Γû╝
+ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ           ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ
+Γöé  BLOCK & REPORT  Γöé           Γöé   ROUTING ENGINE     Γöé
+Γöé Crisis Resources Γöé           Γöé  (12 Feature Modules)Γöé
+ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ           ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ
+                                        Γöé
+                          ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ
+                          Γöé                            Γöé
                     DIRECT LLM                    RAG MODE
-                          │                            │
-                          │               ┌────────────▼────────────┐
-                          │               │  FAISS VECTOR INDEX     │
-                          │               │  (SentenceTransformers) │
-                          │               └────────────┬────────────┘
-                          │                            │ Top-K Chunks
-                          │               ┌────────────▼────────────┐
-                          │               │  COLLEGE KNOWLEDGE BASE │
-                          │               │  + CONTEXT AUGMENTER    │
-                          │               └────────────┬────────────┘
-                          │                            │
-                          └──────────────┬─────────────┘
-                                         │
-                          ┌──────────────▼──────────────┐
-                          │  GROQ LLaMA-3.1 INFERENCE   │
-                          │   (8B / 70B Instant API)    │
-                          └──────────────┬──────────────┘
-                                         │
-                          ┌──────────────▼──────────────┐
-                          │   STREAMING RESPONSE UI     │
-                          │  + MULTI-FORMAT EXPORT       │
-                          │  (TXT · PDF · MP3 · PNG)    │
-                          └─────────────────────────────┘
+                          Γöé                            Γöé
+                          Γöé               ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓû╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ
+                          Γöé               Γöé  FAISS VECTOR INDEX     Γöé
+                          Γöé               Γöé  (SentenceTransformers) Γöé
+                          Γöé               ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ
+                          Γöé                            Γöé Top-K Chunks
+                          Γöé               ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓû╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ
+                          Γöé               Γöé  COLLEGE KNOWLEDGE BASE Γöé
+                          Γöé               Γöé  + CONTEXT AUGMENTER    Γöé
+                          Γöé               ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ
+                          Γöé                            Γöé
+                          ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ
+                                         Γöé
+                          ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓû╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ
+                          Γöé  GROQ LLaMA-3.1 INFERENCE   Γöé
+                          Γöé   (8B / 70B Instant API)    Γöé
+                          ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ
+                                         Γöé
+                          ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓû╝ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ
+                          Γöé   STREAMING RESPONSE UI     Γöé
+                          Γöé  + MULTI-FORMAT EXPORT       Γöé
+                          Γöé  (TXT ┬╖ PDF ┬╖ MP3 ┬╖ PNG)    Γöé
+                          ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ
 ```
 
 ---
@@ -2188,7 +1974,7 @@ def render_architecture() -> None:
 | **Input Safety** | Multi-pattern regex guardrails |
 | **Privacy** | PII / credential pattern detection |
 | **API Keys** | `.env` file, never logged or exposed |
-| **Logging** | Structured — no sensitive data written |
+| **Logging** | Structured ΓÇö no sensitive data written |
 | **Chat History** | SQLite with per-user session isolation |
 
 ---
@@ -2239,47 +2025,47 @@ CREATE TABLE document_embeddings (
 
 ```text
 edusphere-ai/
-├── .env                  # API keys (never commit)
-├── DasaAI.py             # Streamlit entry point
-├── data.json             # College knowledge base + greetings + interaction log
-├── users.db              # SQLite user/session/chat store (auto-created)
-├── src/
-│   ├── __init__.py
-│   ├── auth.py           # bcrypt authentication
-│   ├── config.py         # constants & env loading (6 themes)
-│   ├── database.py       # SQLite CRUD layer
-│   ├── exceptions.py     # custom exception hierarchy
-│   ├── main.py           # Streamlit entrypoint
-│   ├── modules.py        # all 12 feature modules
-│   ├── rag.py            # FAISS RAG pipeline
-│   └── utils.py          # GROQ client, guardrails, exports & helpers
-├── assets/
-│   ├── styles.css        # premium CSS stylesheet
-│   └── nepal_map.png     # login background
-├── tests/
-│   ├── test_auth.py
-│   ├── test_rag.py
-│   └── test_utils.py
-├── logs/
-│   └── app.log
-└── requirements.txt
+Γö£ΓöÇΓöÇ .env                  # API keys (never commit)
+Γö£ΓöÇΓöÇ DasaAI.py             # Streamlit entry point
+Γö£ΓöÇΓöÇ data.json             # College knowledge base + greetings + interaction log
+Γö£ΓöÇΓöÇ users.db              # SQLite user/session/chat store (auto-created)
+Γö£ΓöÇΓöÇ src/
+Γöé   Γö£ΓöÇΓöÇ __init__.py
+Γöé   Γö£ΓöÇΓöÇ auth.py           # bcrypt authentication
+Γöé   Γö£ΓöÇΓöÇ config.py         # constants & env loading (6 themes)
+Γöé   Γö£ΓöÇΓöÇ database.py       # SQLite CRUD layer
+Γöé   Γö£ΓöÇΓöÇ exceptions.py     # custom exception hierarchy
+Γöé   Γö£ΓöÇΓöÇ main.py           # Streamlit entrypoint
+Γöé   Γö£ΓöÇΓöÇ modules.py        # all 12 feature modules
+Γöé   Γö£ΓöÇΓöÇ rag.py            # FAISS RAG pipeline
+Γöé   ΓööΓöÇΓöÇ utils.py          # GROQ client, guardrails, exports & helpers
+Γö£ΓöÇΓöÇ assets/
+Γöé   Γö£ΓöÇΓöÇ styles.css        # premium CSS stylesheet
+Γöé   ΓööΓöÇΓöÇ nepal_map.png     # login background
+Γö£ΓöÇΓöÇ tests/
+Γöé   Γö£ΓöÇΓöÇ test_auth.py
+Γöé   Γö£ΓöÇΓöÇ test_rag.py
+Γöé   ΓööΓöÇΓöÇ test_utils.py
+Γö£ΓöÇΓöÇ logs/
+Γöé   ΓööΓöÇΓöÇ app.log
+ΓööΓöÇΓöÇ requirements.txt
 ```
     """)
 
 
 # ==============================================================================
-# MODULE 12 — Resume Builder + Portfolio Website Builder
+# MODULE 12 ΓÇö Resume Builder + Portfolio Website Builder
 # ==============================================================================
 
-# ──────────────────────────────────────────────────────────────────────────────
+# ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 # PORTFOLIO HTML TEMPLATE ENGINE
-# ──────────────────────────────────────────────────────────────────────────────
+# ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 def _generate_portfolio_html(data: dict, theme: str) -> str:
     """Generate a complete single-file animated HTML portfolio website."""
 
     themes = {
-        "🌌 Nebula Dark": {
+        "≡ƒîî Nebula Dark": {
             "bg": "#050a14",
             "card": "rgba(15,25,50,0.7)",
             "accent": "#00f0ff",
@@ -2296,7 +2082,7 @@ def _generate_portfolio_html(data: dict, theme: str) -> str:
             "aurora2": "rgba(124,58,237,0.08)",
             "aurora3": "rgba(255,0,127,0.06)",
         },
-        "🔥 Crimson Forge": {
+        "≡ƒöÑ Crimson Forge": {
             "bg": "#0d0500",
             "card": "rgba(30,10,5,0.75)",
             "accent": "#ff4500",
@@ -2313,7 +2099,7 @@ def _generate_portfolio_html(data: dict, theme: str) -> str:
             "aurora2": "rgba(255,140,0,0.07)",
             "aurora3": "rgba(255,215,0,0.05)",
         },
-        "🌊 Ocean Pulse": {
+        "≡ƒîè Ocean Pulse": {
             "bg": "#020d1a",
             "card": "rgba(5,25,50,0.72)",
             "accent": "#00d4ff",
@@ -2330,7 +2116,7 @@ def _generate_portfolio_html(data: dict, theme: str) -> str:
             "aurora2": "rgba(0,119,255,0.07)",
             "aurora3": "rgba(0,255,179,0.05)",
         },
-        "🌿 Emerald Matrix": {
+        "≡ƒî┐ Emerald Matrix": {
             "bg": "#010d05",
             "card": "rgba(5,25,12,0.72)",
             "accent": "#00ff41",
@@ -2349,7 +2135,7 @@ def _generate_portfolio_html(data: dict, theme: str) -> str:
         },
     }
 
-    t = themes.get(theme, themes["🌌 Nebula Dark"])
+    t = themes.get(theme, themes["≡ƒîî Nebula Dark"])
 
     name       = data.get("name", "Your Name")
     title      = data.get("title", "Full-Stack Developer & AI Enthusiast")
@@ -2388,8 +2174,8 @@ def _generate_portfolio_html(data: dict, theme: str) -> str:
     project_cards_html = ""
     if projects.strip():
         for i, line in enumerate(projects.strip().split("\n")):
-            if line.strip() and not line.startswith("•"):
-                parts = line.split("—") if "—" in line else line.split("-")
+            if line.strip() and not line.startswith("ΓÇó"):
+                parts = line.split("ΓÇö") if "ΓÇö" in line else line.split("-")
                 proj_name = parts[0].strip()
                 proj_desc = parts[1].strip() if len(parts) > 1 else "A remarkable project."
                 project_cards_html += f"""
@@ -2412,7 +2198,7 @@ def _generate_portfolio_html(data: dict, theme: str) -> str:
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="{name} — portfolio website">
+<meta name="description" content="{name} ΓÇö portfolio website">
 <title>{name} | Portfolio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2428,7 +2214,7 @@ def _generate_portfolio_html(data: dict, theme: str) -> str:
 html{{scroll-behavior:smooth}}
 body{{background:var(--bg);color:var(--text);font-family:var(--font-body);overflow-x:hidden;line-height:1.6}}
 
-/* ── LOADER ── */
+/* ΓöÇΓöÇ LOADER ΓöÇΓöÇ */
 #loader{{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity 0.5s ease}}
 #loader.done{{opacity:0;pointer-events:none}}
 .ld-title{{font-family:var(--font-title);font-size:2.5rem;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}}
@@ -2444,20 +2230,20 @@ body{{background:var(--bg);color:var(--text);font-family:var(--font-body);overfl
 .ld-ring:nth-child(4){{animation-delay:.6s}}
 @keyframes ldPulse{{0%,100%{{transform:scale(1);opacity:1}}50%{{transform:scale(1.4);opacity:.5}}}}
 
-/* ── CANVAS BG ── */
+/* ΓöÇΓöÇ CANVAS BG ΓöÇΓöÇ */
 #bgCanvas{{position:fixed;inset:0;z-index:0;pointer-events:none}}
 
-/* ── AURORA ── */
+/* ΓöÇΓöÇ AURORA ΓöÇΓöÇ */
 .aurora{{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0;animation:auroraFloat 8s ease-in-out infinite}}
 .aurora-1{{width:600px;height:600px;background:{t['aurora1']};top:-200px;left:-150px;animation-delay:0s}}
 .aurora-2{{width:500px;height:500px;background:{t['aurora2']};top:30%;right:-200px;animation-delay:3s}}
 .aurora-3{{width:400px;height:400px;background:{t['aurora3']};bottom:-100px;left:40%;animation-delay:5s}}
 @keyframes auroraFloat{{0%,100%{{transform:translate(0,0) scale(1)}}50%{{transform:translate(30px,20px) scale(1.08)}}}}
 
-/* ── SCROLL PROGRESS ── */
+/* ΓöÇΓöÇ SCROLL PROGRESS ΓöÇΓöÇ */
 #progress{{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2),var(--accent3));z-index:9998;width:0%;transition:width .1s}}
 
-/* ── NAVBAR ── */
+/* ΓöÇΓöÇ NAVBAR ΓöÇΓöÇ */
 .nav{{position:fixed;top:20px;left:50%;transform:translateX(-50%);z-index:999;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;background:rgba(5,10,20,0.65);backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.1);border-radius:50px;width:90%;max-width:800px;box-shadow:0 10px 30px rgba(0,0,0,0.3);transition:all .3s}}
 .nav:hover{{background:rgba(5,10,20,0.8);border-color:var(--accent);box-shadow:0 10px 40px var(--glow)}}
 .nav-brand{{font-family:var(--font-title);font-weight:800;font-size:1.3rem;color:var(--text);text-decoration:none;letter-spacing:1px;display:flex;align-items:center;gap:6px}}
@@ -2466,11 +2252,11 @@ body{{background:var(--bg);color:var(--text);font-family:var(--font-body);overfl
 .nav-links a{{color:var(--text);text-decoration:none;font-size:0.95rem;font-weight:600;transition:all .3s;position:relative;padding:8px 12px;border-radius:20px}}
 .nav-links a:hover{{color:var(--bg);background:var(--accent);box-shadow:0 0 15px var(--glow)}}
 
-/* ── FULLSCREEN BTN ── */
+/* ΓöÇΓöÇ FULLSCREEN BTN ΓöÇΓöÇ */
 .fs-btn{{position:fixed;bottom:30px;right:30px;width:55px;height:55px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#000;border:none;box-shadow:0 4px 25px var(--glow);cursor:pointer;z-index:9999;display:flex;align-items:center;justify-content:center;font-size:1.5rem;transition:all .3s}}
 .fs-btn:hover{{transform:scale(1.1);box-shadow:0 6px 35px var(--glow);color:#fff}}
 
-/* ── HERO ── */
+/* ΓöÇΓöÇ HERO ΓöÇΓöÇ */
 .hero{{min-height:100vh;display:flex;align-items:center;padding:120px 5% 60px;position:relative;z-index:1;gap:60px}}
 .hero-copy{{flex:1;max-width:600px}}
 .hero-eyebrow{{font-family:var(--font-mono);font-size:0.78rem;color:var(--accent);letter-spacing:3px;text-transform:uppercase;margin-bottom:16px}}
@@ -2505,20 +2291,20 @@ body{{background:var(--bg);color:var(--text);font-family:var(--font-body);overfl
 .tag-br{{bottom:20px;right:-40px;animation-delay:3s}}
 @keyframes tagFloat{{0%,100%{{transform:translateY(0)}}50%{{transform:translateY(-8px)}}}}
 
-/* ── SECTIONS ── */
+/* ΓöÇΓöÇ SECTIONS ΓöÇΓöÇ */
 .section{{padding:90px 5%;position:relative;z-index:1}}
 .section-head{{text-align:center;margin-bottom:60px}}
 .eyebrow{{font-family:var(--font-mono);font-size:0.78rem;color:var(--accent);letter-spacing:3px;text-transform:uppercase;margin-bottom:12px;display:block}}
 .section-head h2{{font-family:var(--font-title);font-size:clamp(1.8rem,4vw,2.8rem);font-weight:700;margin-bottom:14px}}
 .section-head p{{color:var(--muted);max-width:500px;margin:0 auto}}
 
-/* ── GLASS CARD ── */
+/* ΓöÇΓöÇ GLASS CARD ΓöÇΓöÇ */
 .glass{{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:32px;backdrop-filter:blur(20px);transition:all .3s;position:relative;overflow:hidden}}
 .glass::before{{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,0.03),transparent);pointer-events:none}}
 .glass:hover{{border-color:var(--accent);box-shadow:0 0 30px var(--glow);transform:translateY(-4px)}}
 .grid-2{{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px}}
 
-/* ── SKILLS ── */
+/* ΓöÇΓöÇ SKILLS ΓöÇΓöÇ */
 .skill-pill{{display:inline-block;padding:6px 16px;border-radius:30px;background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--accent);font-size:0.85rem;margin:5px;transition:all .3s;animation:pillPop .4s ease both}}
 .skill-pill:hover{{background:var(--accent);color:#000;border-color:var(--accent);transform:scale(1.05)}}
 @keyframes pillPop{{from{{opacity:0;transform:scale(0.8)}}to{{opacity:1;transform:scale(1)}}}}
@@ -2527,7 +2313,7 @@ body{{background:var(--bg);color:var(--text);font-family:var(--font-body);overfl
 .skill-bar-track{{height:6px;background:rgba(255,255,255,0.07);border-radius:99px;overflow:hidden}}
 .skill-bar-fill{{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:99px;width:0%;transition:width 1.2s cubic-bezier(.25,.46,.45,.94);box-shadow:0 0 10px var(--glow)}}
 
-/* ── PROJECTS ── */
+/* ΓöÇΓöÇ PROJECTS ΓöÇΓöÇ */
 .proj-grid{{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:24px}}
 .proj-card{{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px;position:relative;overflow:hidden;transition:all .3s;animation:fadeUp .6s ease both}}
 .proj-card:hover{{border-color:var(--accent);transform:translateY(-6px);box-shadow:0 0 40px var(--glow)}}
@@ -2539,7 +2325,7 @@ body{{background:var(--bg);color:var(--text);font-family:var(--font-body);overfl
 .proj-tags span{{padding:3px 12px;border-radius:20px;font-size:0.72rem;font-weight:600;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--accent2)}}
 @keyframes fadeUp{{from{{opacity:0;transform:translateY(20px)}}to{{opacity:1;transform:translateY(0)}}}}
 
-/* ── CONTACT ── */
+/* ΓöÇΓöÇ CONTACT ΓöÇΓöÇ */
 .contact-info{{display:flex;flex-direction:column;gap:16px}}
 .contact-row{{display:flex;align-items:center;gap:12px;padding:14px 18px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;transition:all .3s}}
 .contact-row:hover{{border-color:var(--accent);background:rgba(255,255,255,0.05)}}
@@ -2547,7 +2333,7 @@ body{{background:var(--bg);color:var(--text);font-family:var(--font-body);overfl
 .contact-row a{{color:var(--text);text-decoration:none;font-size:0.9rem;transition:color .2s}}
 .contact-row:hover a{{color:var(--accent)}}
 
-/* ── FOOTER ── */
+/* ΓöÇΓöÇ FOOTER ΓöÇΓöÇ */
 footer{{position:relative;z-index:1;border-top:1px solid var(--border);padding:40px 5%;text-align:center}}
 .ribbon{{overflow:hidden;white-space:nowrap;background:linear-gradient(90deg,var(--accent),var(--accent2),var(--accent3),var(--accent));background-size:200%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-family:var(--font-mono);font-size:0.8rem;letter-spacing:3px;padding:12px 0;margin-bottom:24px;animation:ribbonMove 10s linear infinite}}
 @keyframes ribbonMove{{to{{background-position:200%}}}}
@@ -2555,7 +2341,7 @@ footer{{position:relative;z-index:1;border-top:1px solid var(--border);padding:4
 @keyframes scrollRibbon{{from{{transform:translateX(0)}}to{{transform:translateX(-50%)}}}}
 .footer-copy{{color:var(--muted);font-size:0.82rem}}
 
-/* ── REVEAL ANIMATION ── */
+/* ΓöÇΓöÇ REVEAL ANIMATION ΓöÇΓöÇ */
 .reveal{{opacity:0;transform:translateY(30px);transition:all .7s cubic-bezier(.25,.46,.45,.94)}}
 .reveal.visible{{opacity:1;transform:translateY(0)}}
 
@@ -2607,7 +2393,7 @@ footer{{position:relative;z-index:1;border-top:1px solid var(--border);padding:4
 <!-- HERO -->
 <section class="hero" id="home">
   <div class="hero-copy reveal">
-    <p class="hero-eyebrow">✨ Welcome to my portfolio</p>
+    <p class="hero-eyebrow">Γ£¿ Welcome to my portfolio</p>
     <h1 class="hero-name">Hi, I'm {name}.</h1>
     <p class="hero-role">I am <span id="typeText">{title}</span><span class="type-caret"></span></p>
     <p class="hero-desc">{about}</p>
@@ -2617,7 +2403,7 @@ footer{{position:relative;z-index:1;border-top:1px solid var(--border);padding:4
     </div>
     <div class="hero-stats">
       <div class="stat"><span class="stat-val">{len(skills_list)}+</span><span class="stat-lbl">Skills</span></div>
-      <div class="stat"><span class="stat-val">∞</span><span class="stat-lbl">Passion</span></div>
+      <div class="stat"><span class="stat-val">Γê₧</span><span class="stat-lbl">Passion</span></div>
       <div class="stat"><span class="stat-val">24/7</span><span class="stat-lbl">Online</span></div>
     </div>
   </div>
@@ -2625,7 +2411,7 @@ footer{{position:relative;z-index:1;border-top:1px solid var(--border);padding:4
     <div class="portrait-frame">
       <div class="portrait-orb portrait-orb-1"></div>
       <div class="portrait-orb portrait-orb-2"></div>
-      <div class="portrait-glass">👤</div>
+      <div class="portrait-glass">≡ƒæñ</div>
       <div class="float-tag tag-tl">{skills_list[0] if skills_list else 'Developer'}</div>
       <div class="float-tag tag-tr">{skills_list[1] if len(skills_list)>1 else 'Designer'}</div>
       <div class="float-tag tag-bl">{skills_list[2] if len(skills_list)>2 else 'Creator'}</div>
@@ -2687,11 +2473,11 @@ footer{{position:relative;z-index:1;border-top:1px solid var(--border);padding:4
   <div style="max-width:500px;margin:0 auto">
     <div class="glass reveal">
       <div class="contact-info">
-        {f'<div class="contact-row"><span class="ci-icon">📧</span><a href="mailto:{email}">{email}</a></div>' if email else ''}
-        {f'<div class="contact-row"><span class="ci-icon">📱</span><span>{phone}</span></div>' if phone else ''}
-        {f'<div class="contact-row"><span class="ci-icon">📍</span><span>{location}</span></div>' if location else ''}
-        {f'<div class="contact-row"><span class="ci-icon">💼</span><a href="{linkedin}" target="_blank">LinkedIn</a></div>' if linkedin else ''}
-        {f'<div class="contact-row"><span class="ci-icon">🐙</span><a href="{github}" target="_blank">GitHub</a></div>' if github else ''}
+        {f'<div class="contact-row"><span class="ci-icon">≡ƒôº</span><a href="mailto:{email}">{email}</a></div>' if email else ''}
+        {f'<div class="contact-row"><span class="ci-icon">≡ƒô▒</span><span>{phone}</span></div>' if phone else ''}
+        {f'<div class="contact-row"><span class="ci-icon">≡ƒôì</span><span>{location}</span></div>' if location else ''}
+        {f'<div class="contact-row"><span class="ci-icon">≡ƒÆ╝</span><a href="{linkedin}" target="_blank">LinkedIn</a></div>' if linkedin else ''}
+        {f'<div class="contact-row"><span class="ci-icon">≡ƒÉÖ</span><a href="{github}" target="_blank">GitHub</a></div>' if github else ''}
       </div>
     </div>
   </div>
@@ -2701,18 +2487,18 @@ footer{{position:relative;z-index:1;border-top:1px solid var(--border);padding:4
 <!-- FOOTER -->
 <footer>
   <div class="ribbon"><div class="ribbon-track">
-    ✦ {name.upper()} &nbsp; ✦ {title.upper()} &nbsp; ✦ {location.upper() or 'WORLD'} &nbsp;
-    ✦ {name.upper()} &nbsp; ✦ {title.upper()} &nbsp; ✦ {location.upper() or 'WORLD'} &nbsp;
-    ✦ {name.upper()} &nbsp; ✦ {title.upper()} &nbsp; ✦ {location.upper() or 'WORLD'} &nbsp;
+    Γ£ª {name.upper()} &nbsp; Γ£ª {title.upper()} &nbsp; Γ£ª {location.upper() or 'WORLD'} &nbsp;
+    Γ£ª {name.upper()} &nbsp; Γ£ª {title.upper()} &nbsp; Γ£ª {location.upper() or 'WORLD'} &nbsp;
+    Γ£ª {name.upper()} &nbsp; Γ£ª {title.upper()} &nbsp; Γ£ª {location.upper() or 'WORLD'} &nbsp;
   </div></div>
   <p class="footer-copy">&copy; 2026 {name}. All Rights Reserved. Built with EduSphere AI.</p>
 </footer>
 <!-- FULLSCREEN BTN -->
-<button class="fs-btn" id="fsBtn" title="Toggle Fullscreen">⛶</button>
+<button class="fs-btn" id="fsBtn" title="Toggle Fullscreen">Γ¢╢</button>
 <script>
 document.addEventListener('DOMContentLoaded', function() {{
 
-// ── Loader: robust step-based counter, no CSS animation conflict
+// ΓöÇΓöÇ Loader: robust step-based counter, no CSS animation conflict
 var _loaderEl  = document.getElementById('loader');
 var _barFill   = document.querySelector('.ld-bar-fill');
 var _pctTxt    = document.getElementById('ldPct');
@@ -2735,7 +2521,7 @@ function _loaderStep() {{
 }}
 setTimeout(_loaderStep, 80);
 
-// ── Typewriter
+// ΓöÇΓöÇ Typewriter
 (function () {{
   var roles = {roles_js};
   var roleIndex = 0;
@@ -2769,7 +2555,7 @@ setTimeout(_loaderStep, 80);
   type();
 }})();
 
-// ── Particle canvas
+// ΓöÇΓöÇ Particle canvas
 (function() {{
   var cv  = document.getElementById('bgCanvas');
   if (!cv) return;
@@ -2807,7 +2593,7 @@ setTimeout(_loaderStep, 80);
   draw();
 }})();
 
-// ── Scroll progress
+// ΓöÇΓöÇ Scroll progress
 var _progBar = document.getElementById('progress');
 window.addEventListener('scroll', function() {{
   var sc = document.documentElement;
@@ -2815,7 +2601,7 @@ window.addEventListener('scroll', function() {{
   if (_progBar) _progBar.style.width = pct + '%';
 }});
 
-// ── Reveal on scroll
+// ΓöÇΓöÇ Reveal on scroll
 var revealEls = document.querySelectorAll('.reveal');
 if (window.IntersectionObserver) {{
   var io = new IntersectionObserver(function(ents) {{
@@ -2826,7 +2612,7 @@ if (window.IntersectionObserver) {{
   revealEls.forEach(function(el) {{ el.classList.add('visible'); }});
 }}
 
-// ── Skill bars animate on scroll
+// ΓöÇΓöÇ Skill bars animate on scroll
 var bars = document.querySelectorAll('.skill-bar-fill');
 bars.forEach(function(b) {{ b.dataset.w = b.style.width; b.style.width = '0%'; }});
 if (window.IntersectionObserver) {{
@@ -2854,10 +2640,10 @@ if (fsb) {{
   }});
   document.addEventListener('fullscreenchange', function() {{
     if (document.fullscreenElement) {{
-      fsb.textContent = '✕';
+      fsb.textContent = 'Γ£ò';
       fsb.style.background = 'rgba(255,50,50,0.8)';
     }} else {{
-      fsb.textContent = '⛶';
+      fsb.textContent = 'Γ¢╢';
       fsb.style.background = 'linear-gradient(135deg,var(--accent),var(--accent2))';
     }}
   }});
@@ -2871,13 +2657,13 @@ if (fsb) {{
 
 
 def render_portfolio_builder() -> None:
-    """🌐 Real-Time Portfolio Website Builder."""
+    """≡ƒîÉ Real-Time Portfolio Website Builder."""
     st.markdown(
         """
         <div style="text-align:center;margin-bottom:6px;">
           <span style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;letter-spacing:3px;
                        color:var(--accent);text-transform:uppercase;">Portfolio Builder</span>
-          <h3 style="margin:6px 0 4px;font-size:1.4rem;">🌐 Build Your Personal Website — Instantly</h3>
+          <h3 style="margin:6px 0 4px;font-size:1.4rem;">≡ƒîÉ Build Your Personal Website ΓÇö Instantly</h3>
           <p style="color:var(--sub);font-size:0.88rem;">Fill your info, pick a theme, and get a full animated HTML site in seconds.</p>
         </div>
         """,
@@ -2888,43 +2674,43 @@ def render_portfolio_builder() -> None:
     col1, col2 = st.columns(2)
 
     with col1:
-        p_name     = st.text_input("👤 Full Name",          placeholder="Sanjaya Kandel",          key="pf_name",     value=st.session_state.get("resume_name", ""))
-        p_title    = st.text_input("🏷️ Professional Title", placeholder="Full-Stack Developer & AI Enthusiast", key="pf_title")
-        p_email    = st.text_input("📧 Email",              placeholder="you@example.com",          key="pf_email",    value=st.session_state.get("resume_email", ""))
-        p_phone    = st.text_input("📱 Phone",              placeholder="+977-9800000000",          key="pf_phone",    value=st.session_state.get("resume_phone", ""))
-        p_location = st.text_input("📍 Location",           placeholder="Kathmandu, Nepal",         key="pf_location", value=st.session_state.get("resume_location", ""))
+        p_name     = st.text_input("≡ƒæñ Full Name",          placeholder="Sanjaya Kandel",          key="pf_name",     value=st.session_state.get("resume_name", ""))
+        p_title    = st.text_input("≡ƒÅ╖∩╕Å Professional Title", placeholder="Full-Stack Developer & AI Enthusiast", key="pf_title")
+        p_email    = st.text_input("≡ƒôº Email",              placeholder="you@example.com",          key="pf_email",    value=st.session_state.get("resume_email", ""))
+        p_phone    = st.text_input("≡ƒô▒ Phone",              placeholder="+977-9800000000",          key="pf_phone",    value=st.session_state.get("resume_phone", ""))
+        p_location = st.text_input("≡ƒôì Location",           placeholder="Kathmandu, Nepal",         key="pf_location", value=st.session_state.get("resume_location", ""))
 
     with col2:
         p_about    = st.text_area(
-            "💬 About / Bio",
+            "≡ƒÆ¼ About / Bio",
             placeholder="I build thoughtful digital products and experiences that feel clear from the first interaction.",
             height=100,
             key="pf_about",
         )
-        p_github   = st.text_input("🐙 GitHub URL",   placeholder="https://github.com/yourname",    key="pf_github")
-        p_linkedin = st.text_input("💼 LinkedIn URL",  placeholder="https://linkedin.com/in/yourname", key="pf_linkedin", value=st.session_state.get("resume_linkedin", ""))
-        p_skills   = st.text_input("💡 Skills (comma-separated)", placeholder="Python, React, AI, UI/UX, Node.js", key="pf_skills", value=st.session_state.get("resume_skills", ""))
+        p_github   = st.text_input("≡ƒÉÖ GitHub URL",   placeholder="https://github.com/yourname",    key="pf_github")
+        p_linkedin = st.text_input("≡ƒÆ╝ LinkedIn URL",  placeholder="https://linkedin.com/in/yourname", key="pf_linkedin", value=st.session_state.get("resume_linkedin", ""))
+        p_skills   = st.text_input("≡ƒÆí Skills (comma-separated)", placeholder="Python, React, AI, UI/UX, Node.js", key="pf_skills", value=st.session_state.get("resume_skills", ""))
 
     p_projects = st.text_area(
-        "🚀 Projects (one per line, format: Name — Description)",
-        placeholder="EduSphere AI — AI-powered learning platform built with Streamlit & GROQ\nPortfolio Site — Personal animated website with particle effects",
+        "≡ƒÜÇ Projects (one per line, format: Name ΓÇö Description)",
+        placeholder="EduSphere AI ΓÇö AI-powered learning platform built with Streamlit & GROQ\nPortfolio Site ΓÇö Personal animated website with particle effects",
         height=100,
         key="pf_projects",
         value=st.session_state.get("resume_projects", ""),
     )
-    p_education = st.text_input("🎓 Education", placeholder="BSc. CSIT — Lumbini ICT Campus (2020-2024)", key="pf_education", value=st.session_state.get("resume_education", ""))
-    p_certs     = st.text_input("🏆 Certifications", placeholder="AWS Cloud Practitioner, Google IT Support", key="pf_certs", value=st.session_state.get("resume_certs", ""))
+    p_education = st.text_input("≡ƒÄô Education", placeholder="BSc. CSIT ΓÇö Lumbini ICT Campus (2020-2024)", key="pf_education", value=st.session_state.get("resume_education", ""))
+    p_certs     = st.text_input("≡ƒÅå Certifications", placeholder="AWS Cloud Practitioner, Google IT Support", key="pf_certs", value=st.session_state.get("resume_certs", ""))
 
     _card_close()
 
-    # Theme selector — visually styled
-    st.markdown("#### 🎨 Choose Your Theme")
+    # Theme selector ΓÇö visually styled
+    st.markdown("#### ≡ƒÄ¿ Choose Your Theme")
     theme_cols = st.columns(4)
     theme_options = [
-        ("🌌", "Nebula Dark",    "#050a14", "#00f0ff", "#7c3aed"),
-        ("🔥", "Crimson Forge",  "#0d0500", "#ff4500", "#ff8c00"),
-        ("🌊", "Ocean Pulse",    "#020d1a", "#00d4ff", "#0077ff"),
-        ("🌿", "Emerald Matrix", "#010d05", "#00ff41", "#39d353"),
+        ("≡ƒîî", "Nebula Dark",    "#050a14", "#00f0ff", "#7c3aed"),
+        ("≡ƒöÑ", "Crimson Forge",  "#0d0500", "#ff4500", "#ff8c00"),
+        ("≡ƒîè", "Ocean Pulse",    "#020d1a", "#00d4ff", "#0077ff"),
+        ("≡ƒî┐", "Emerald Matrix", "#010d05", "#00ff41", "#39d353"),
     ]
     for i, (emoji, label, bg, acc, acc2) in enumerate(theme_options):
         with theme_cols[i]:
@@ -2942,12 +2728,12 @@ def render_portfolio_builder() -> None:
             )
 
     p_theme = st.selectbox(
-        "🖌️ Select Theme",
-        ["🌌 Nebula Dark", "🔥 Crimson Forge", "🌊 Ocean Pulse", "🌿 Emerald Matrix"],
+        "≡ƒûî∩╕Å Select Theme",
+        ["≡ƒîî Nebula Dark", "≡ƒöÑ Crimson Forge", "≡ƒîè Ocean Pulse", "≡ƒî┐ Emerald Matrix"],
         key="pf_theme",
     )
 
-    build_btn = st.button("⚡ Build My Website — Instantly!", key="btn_build_portfolio", use_container_width=True)
+    build_btn = st.button("ΓÜí Build My Website ΓÇö Instantly!", key="btn_build_portfolio", use_container_width=True)
 
     if build_btn:
         if not p_name.strip():
@@ -2969,22 +2755,22 @@ def render_portfolio_builder() -> None:
             "certs":     p_certs.strip(),
         }
 
-        with logo_spinner("⚡ Compiling your portfolio website…"):
+        with logo_spinner("ΓÜí Compiling your portfolio websiteΓÇª"):
             import time as _time
             _time.sleep(0.3)
             html_output = _generate_portfolio_html(data, p_theme)
 
         st.session_state.portfolio_html   = html_output
         st.session_state.portfolio_name   = p_name
-        st.success("✅ Your portfolio is ready! Scroll down to preview and download.", icon="🎉")
+        st.success("Γ£à Your portfolio is ready! Scroll down to preview and download.", icon="≡ƒÄë")
 
-    # ── Display if built ──────────────────────────────────────────────────────
+    # ΓöÇΓöÇ Display if built ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     if st.session_state.get("portfolio_html"):
         html_output = st.session_state.portfolio_html
         p_name_saved = st.session_state.get("portfolio_name", "portfolio")
 
         st.markdown("---")
-        st.markdown("### 🖥️ Live Preview")
+        st.markdown("### ≡ƒûÑ∩╕Å Live Preview")
         st.caption("This is your actual website rendered live. Scroll inside the preview to explore all sections.")
 
         # Live preview iframe (custom iframe with allowfullscreen)
@@ -2995,39 +2781,39 @@ def render_portfolio_builder() -> None:
 
         st.markdown("---")
 
-        # ── Export row ────────────────────────────────────────────────────────
-        st.markdown("### 📦 Export Your Website")
+        # ΓöÇΓöÇ Export row ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+        st.markdown("### ≡ƒôª Export Your Website")
         col_dl, col_copy = st.columns(2)
 
         with col_dl:
             fname = f"{p_name_saved.replace(' ', '_').lower()}_portfolio.html"
             st.download_button(
-                label="⬇️ Download HTML File",
+                label="Γ¼ç∩╕Å Download HTML File",
                 data=html_output.encode("utf-8"),
                 file_name=fname,
                 mime="text/html",
                 key="dl_portfolio_html",
                 use_container_width=True,
             )
-            st.caption(f"Downloads as `{fname}` — open in any browser, no server needed!")
+            st.caption(f"Downloads as `{fname}` ΓÇö open in any browser, no server needed!")
 
         with col_copy:
             # Claude-style copy: show the full HTML in a code area
-            if st.button("📋 Show Full HTML to Copy", key="btn_show_html", use_container_width=True):
+            if st.button("≡ƒôï Show Full HTML to Copy", key="btn_show_html", use_container_width=True):
                 st.session_state.show_portfolio_code = not st.session_state.get("show_portfolio_code", False)
 
         if st.session_state.get("show_portfolio_code", False):
-            st.markdown("**📄 Your complete HTML file** — Select All (`Ctrl+A`) and Copy (`Ctrl+C`):")
+            st.markdown("**≡ƒôä Your complete HTML file** ΓÇö Select All (`Ctrl+A`) and Copy (`Ctrl+C`):")
             st.code(html_output, language="html")
-            st.info("💡 Copy the code above and paste it into a `.html` file. Open in any browser to see your portfolio!", icon="💡")
+            st.info("≡ƒÆí Copy the code above and paste it into a `.html` file. Open in any browser to see your portfolio!", icon="≡ƒÆí")
 
 
 def render_resume_builder() -> None:
-    """📋 AI-Powered Resume & Portfolio Builder."""
-    st.markdown("### 📋 Resume & Portfolio Builder")
+    """≡ƒôï AI-Powered Resume & Portfolio Builder."""
+    st.markdown("### ≡ƒôï Resume & Portfolio Builder")
     st.caption("Build your professional resume and generate an animated personal portfolio website.")
 
-    tab_resume, tab_portfolio = st.tabs(["📋 Resume Builder", "🌐 Portfolio Website Builder"])
+    tab_resume, tab_portfolio = st.tabs(["≡ƒôï Resume Builder", "≡ƒîÉ Portfolio Website Builder"])
 
     with tab_resume:
         _render_resume_tab()
@@ -3038,64 +2824,64 @@ def render_resume_builder() -> None:
 
 def _render_resume_tab() -> None:
     """Inner resume builder content (Tab 1)."""
-    st.markdown("##### 📋 AI-Powered Professional Resume")
+    st.markdown("##### ≡ƒôï AI-Powered Professional Resume")
     st.caption("Fill in your details and let AI craft a professional resume for you.")
 
     _card_open()
     col1, col2 = st.columns(2)
 
     with col1:
-        full_name = st.text_input("👤 Full Name", placeholder="Sanjaya Kandel", key="resume_name")
-        email = st.text_input("📧 Email", placeholder="your@email.com", key="resume_email")
-        phone = st.text_input("📱 Phone", placeholder="+977-9800000000", key="resume_phone")
-        location = st.text_input("📍 Location", placeholder="Kathmandu, Nepal", key="resume_location")
-        linkedin = st.text_input("🔗 LinkedIn / Portfolio URL", placeholder="https://linkedin.com/in/yourname", key="resume_linkedin")
+        full_name = st.text_input("≡ƒæñ Full Name", placeholder="Sanjaya Kandel", key="resume_name")
+        email = st.text_input("≡ƒôº Email", placeholder="your@email.com", key="resume_email")
+        phone = st.text_input("≡ƒô▒ Phone", placeholder="+977-9800000000", key="resume_phone")
+        location = st.text_input("≡ƒôì Location", placeholder="Kathmandu, Nepal", key="resume_location")
+        linkedin = st.text_input("≡ƒöù LinkedIn / Portfolio URL", placeholder="https://linkedin.com/in/yourname", key="resume_linkedin")
 
     with col2:
         objective = st.text_area(
-            "🎯 Career Objective / Summary",
-            placeholder="Brief summary of your career goals and key strengths…",
+            "≡ƒÄ» Career Objective / Summary",
+            placeholder="Brief summary of your career goals and key strengthsΓÇª",
             height=100,
             key="resume_objective",
         )
         education = st.text_area(
-            "🎓 Education",
-            placeholder="BSc. CSIT — Lumbini ICT Campus (2020-2024)\nGPA: 3.5/4.0",
+            "≡ƒÄô Education",
+            placeholder="BSc. CSIT ΓÇö Lumbini ICT Campus (2020-2024)\nGPA: 3.5/4.0",
             height=100,
             key="resume_education",
         )
         skills = st.text_input(
-            "💡 Key Skills",
+            "≡ƒÆí Key Skills",
             placeholder="Python, JavaScript, React, Machine Learning, SQL",
             key="resume_skills",
         )
 
     experience = st.text_area(
-        "💼 Work Experience",
-        placeholder="Software Developer — TechCorp Nepal (2024-Present)\n"
-        "• Built REST APIs using Django and PostgreSQL\n"
-        "• Led a team of 3 junior developers",
+        "≡ƒÆ╝ Work Experience",
+        placeholder="Software Developer ΓÇö TechCorp Nepal (2024-Present)\n"
+        "ΓÇó Built REST APIs using Django and PostgreSQL\n"
+        "ΓÇó Led a team of 3 junior developers",
         height=120,
         key="resume_experience",
     )
 
     projects = st.text_area(
-        "🚀 Projects",
-        placeholder="EduSphere AI — AI-powered educational platform\n"
-        "• Built with Streamlit, GROQ API, FAISS\n"
-        "• Features: RAG chatbot, quiz generator, resume builder",
+        "≡ƒÜÇ Projects",
+        placeholder="EduSphere AI ΓÇö AI-powered educational platform\n"
+        "ΓÇó Built with Streamlit, GROQ API, FAISS\n"
+        "ΓÇó Features: RAG chatbot, quiz generator, resume builder",
         height=100,
         key="resume_projects",
     )
 
     certifications = st.text_input(
-        "🏆 Certifications / Awards",
+        "≡ƒÅå Certifications / Awards",
         placeholder="AWS Cloud Practitioner, Google IT Support Certificate",
         key="resume_certs",
     )
 
     resume_style = st.selectbox(
-        "📐 Resume Style",
+        "≡ƒôÉ Resume Style",
         ["Professional Modern", "Academic / Research", "Creative Tech", "Minimal Clean"],
         key="resume_style",
     )
@@ -3105,7 +2891,7 @@ def _render_resume_tab() -> None:
     col_gen, col_preview = st.columns([1, 2])
 
     with col_gen:
-        generate_btn = st.button("✨ Generate Resume", key="btn_generate_resume", use_container_width=True)
+        generate_btn = st.button("Γ£¿ Generate Resume", key="btn_generate_resume", use_container_width=True)
 
     if generate_btn:
         if not full_name.strip():
@@ -3147,7 +2933,7 @@ Please create a well-structured, professional resume with:
 
 Output in clean, well-formatted markdown."""
 
-        with logo_spinner("✨ AI is crafting your resume…"):
+        with logo_spinner("Γ£¿ AI is crafting your resumeΓÇª"):
             resume_text = groq_chat(
                 prompt,
                 system="You are a professional resume writer and career advisor. "
@@ -3164,7 +2950,7 @@ Output in clean, well-formatted markdown."""
 
         with col_preview:
             _card_open()
-            st.markdown("#### 📄 Your Generated Resume")
+            st.markdown("#### ≡ƒôä Your Generated Resume")
             st.markdown("---")
             st.markdown(resume_text)
             _card_close()
@@ -3173,18 +2959,18 @@ Output in clean, well-formatted markdown."""
 
 
 # ==============================================================================
-# MODULE 13 — AI Image Generator
+# MODULE 13 ΓÇö AI Image Generator
 # ==============================================================================
 
 def render_image_generator() -> None:
-    """🎨 AI Image Generator — Rewrites prompt via Groq and pulls image from Pollinations."""
-    st.markdown("### 🎨 AI Image Generator")
+    """≡ƒÄ¿ AI Image Generator ΓÇö Rewrites prompt via Groq and pulls image from Pollinations."""
+    st.markdown("### ≡ƒÄ¿ AI Image Generator")
     
     col1, col2 = st.columns([1, 1])
     
     with col1:
         _card_open()
-        st.markdown("#### 📝 Describe Your Image Concept")
+        st.markdown("#### ≡ƒô¥ Describe Your Image Concept")
         
         user_prompt = st.text_area(
             "Enter image concept / description",
@@ -3193,47 +2979,47 @@ def render_image_generator() -> None:
             key="img_gen_prompt_input"
         )
         
-        enhance_prompt = st.checkbox("✨ Enhance prompt with Groq AI (Recommended)", value=True)
+        enhance_prompt = st.checkbox("Γ£¿ Enhance prompt with Groq AI (Recommended)", value=True)
         
         style_preset = st.selectbox(
-            "🎨 Render Style Preset",
+            "≡ƒÄ¿ Render Style Preset",
             [
-                "📸 Realistic Photorealistic / Cinematic",
-                "🎨 Digital Concept Art",
-                "✏️ Anime & Illustration",
-                "🖌️ Classical Oil Painting"
+                "≡ƒô╕ Realistic Photorealistic / Cinematic",
+                "≡ƒÄ¿ Digital Concept Art",
+                "Γ£Å∩╕Å Anime & Illustration",
+                "≡ƒûî∩╕Å Classical Oil Painting"
             ],
             index=0
         )
         
         aspect_ratio = st.selectbox(
-            "📐 Aspect Ratio",
+            "≡ƒôÉ Aspect Ratio",
             ["1:1 (Square)", "16:9 (Widescreen)", "9:16 (Portrait)", "4:3 (Classic)"],
             index=1
         )
         
-        gen_clicked = st.button("🎨 Generate Image", use_container_width=True)
+        gen_clicked = st.button("≡ƒÄ¿ Generate Image", use_container_width=True)
         _card_close()
         
     with col2:
         _card_open()
-        st.markdown("#### 🖼️ Image Output")
+        st.markdown("#### ≡ƒû╝∩╕Å Image Output")
         
         if gen_clicked:
             if not user_prompt.strip():
-                st.warning("⚠️ Please provide a description first.")
+                st.warning("ΓÜá∩╕Å Please provide a description first.")
             else:
                 enhanced = user_prompt
                 if enhance_prompt:
                     with logo_spinner("Expanding and refining prompt via Groq..."):
                         style_instructions = {
-                            "📸 Realistic Photorealistic / Cinematic": (
+                            "≡ƒô╕ Realistic Photorealistic / Cinematic": (
                                 "Make the output a highly detailed photorealistic masterpiece. "
                                 "Specify camera parameters like 'shot on 35mm lens, f/1.8, cinematic volumetric lighting, 8k resolution, sharp focus, realistic textures'."
                             ),
-                            "🎨 Digital Concept Art": "Make the output a gorgeous digital concept art piece, with vibrant colors, dramatic lighting, and creative detailing.",
-                            "✏️ Anime & Illustration": "Make the output a beautiful anime style illustration, clean line art, and soft cel shading.",
-                            "🖌️ Classical Oil Painting": "Make the output look like a classical oil painting masterpiece, with detailed brush strokes and canvas texture."
+                            "≡ƒÄ¿ Digital Concept Art": "Make the output a gorgeous digital concept art piece, with vibrant colors, dramatic lighting, and creative detailing.",
+                            "Γ£Å∩╕Å Anime & Illustration": "Make the output a beautiful anime style illustration, clean line art, and soft cel shading.",
+                            "≡ƒûî∩╕Å Classical Oil Painting": "Make the output look like a classical oil painting masterpiece, with detailed brush strokes and canvas texture."
                         }[style_preset]
                         
                         enhance_instructions = (
@@ -3246,10 +3032,10 @@ def render_image_generator() -> None:
                 else:
                     # Append default style suffix
                     style_suffix = {
-                        "📸 Realistic Photorealistic / Cinematic": ", photorealistic, cinematic lighting, 8k resolution, shot on 35mm lens, highly detailed, sharp focus, masterpiece",
-                        "🎨 Digital Concept Art": ", digital concept art, trending on artstation, detailed, vibrant colors",
-                        "✏️ Anime & Illustration": ", anime illustration, clean lines, detailed graphic style",
-                        "🖌️ Classical Oil Painting": ", classical oil painting, fine art, visible brush strokes, canvas texture"
+                        "≡ƒô╕ Realistic Photorealistic / Cinematic": ", photorealistic, cinematic lighting, 8k resolution, shot on 35mm lens, highly detailed, sharp focus, masterpiece",
+                        "≡ƒÄ¿ Digital Concept Art": ", digital concept art, trending on artstation, detailed, vibrant colors",
+                        "Γ£Å∩╕Å Anime & Illustration": ", anime illustration, clean lines, detailed graphic style",
+                        "≡ƒûî∩╕Å Classical Oil Painting": ", classical oil painting, fine art, visible brush strokes, canvas texture"
                     }[style_preset]
                     enhanced = user_prompt + style_suffix
                 
@@ -3296,30 +3082,30 @@ def render_image_generator() -> None:
                             img.save(webp_io, format="WEBP")
                             webp_bytes = webp_io.getvalue()
                             
-                            st.markdown("##### 📥 Download in Different Formats:")
+                            st.markdown("##### ≡ƒôÑ Download in Different Formats:")
                             col_d1, col_d2, col_d3 = st.columns(3)
                             with col_d1:
-                                st.download_button("💾 Download .png", png_bytes, file_name="generated_image.png", mime="image/png", use_container_width=True)
+                                st.download_button("≡ƒÆ╛ Download .png", png_bytes, file_name="generated_image.png", mime="image/png", use_container_width=True)
                             with col_d2:
-                                st.download_button("💾 Download .jpg", jpg_bytes, file_name="generated_image.jpg", mime="image/jpeg", use_container_width=True)
+                                st.download_button("≡ƒÆ╛ Download .jpg", jpg_bytes, file_name="generated_image.jpg", mime="image/jpeg", use_container_width=True)
                             with col_d3:
-                                st.download_button("💾 Download .webp", webp_bytes, file_name="generated_image.webp", mime="image/webp", use_container_width=True)
+                                st.download_button("≡ƒÆ╛ Download .webp", webp_bytes, file_name="generated_image.webp", mime="image/webp", use_container_width=True)
                         else:
                             st.error("Failed to download image bytes for format conversion.")
                     except Exception as e:
                         st.error(f"Error converting image formats: {e}")
         else:
-            st.info("ℹ️ Enter a description and click Generate to see the image output here.")
+            st.info("Γä╣∩╕Å Enter a description and click Generate to see the image output here.")
         _card_close()
 
 
 # ==============================================================================
-# MODULE 14 — Interactive 3D Globe
+# MODULE 14 ΓÇö Interactive 3D Globe
 # ==============================================================================
 
 def render_globe_map() -> None:
-    """🌍 Interactive 3D Globe Map for Academic Learning."""
-    st.markdown("### 🌍 Interactive 3D Globe & Weather Intelligence")
+    """≡ƒîì Interactive 3D Globe Map for Academic Learning."""
+    st.markdown("### ≡ƒîì Interactive 3D Globe & Weather Intelligence")
 
     col1, col2 = st.columns([2, 1])
 
@@ -3334,7 +3120,7 @@ def render_globe_map() -> None:
 
     with col1:
         _card_open()
-        st.markdown("#### 🗺️ 3D Globe Viewer (Drag to rotate, scroll to zoom)")
+        st.markdown("#### ≡ƒù║∩╕Å 3D Globe Viewer (Drag to rotate, scroll to zoom)")
 
         import json
         points_data = [
@@ -3435,7 +3221,7 @@ def render_globe_map() -> None:
                  <button id="mapSearchBtn">Search</button>
             </div>
             <div id="detailsPanel">
-                🌍 <b>Interactive 3D Globe</b><br/>
+                ≡ƒîì <b>Interactive 3D Globe</b><br/>
                 Click any marker or any place on the sphere to fly to it and view historical/geographical details here.
             </div>
         </div>
@@ -3501,7 +3287,7 @@ def render_globe_map() -> None:
                             "CERN (Hadron Collider)": "World's largest particle physics laboratory near Geneva. Famous for the Large Hadron Collider (LHC) and discovering the Higgs Boson."
                         }};
                         const desc = descMap[name] || "Famous academic and geographic site.";
-                        document.getElementById('detailsPanel').innerHTML = "📍 <b>" + name + "</b><br/>" + desc;
+                        document.getElementById('detailsPanel').innerHTML = "≡ƒôì <b>" + name + "</b><br/>" + desc;
 
                         const cartographic = Cesium.Ellipsoid.WGS84.cartesianToCartographic(entity.position.getValue(viewer.clock.currentTime));
                         const lat = Cesium.Math.toDegrees(cartographic.latitude);
@@ -3525,7 +3311,7 @@ def render_globe_map() -> None:
                         const lng = Cesium.Math.toDegrees(cartographic.longitude);
                         const coordStr = lat.toFixed(4) + ', ' + lng.toFixed(4);
 
-                        document.getElementById('detailsPanel').innerHTML = "📍 <b>Coordinates: " + coordStr + "</b><br/>Click 'Analyze Location' in the sidebar to search detailed historical and geographical knowledge via Groq & Tavily AI.";
+                        document.getElementById('detailsPanel').innerHTML = "≡ƒôì <b>Coordinates: " + coordStr + "</b><br/>Click 'Analyze Location' in the sidebar to search detailed historical and geographical knowledge via Groq & Tavily AI.";
 
                         window.parent.postMessage({{
                             type: 'globe_click',
@@ -3544,7 +3330,7 @@ def render_globe_map() -> None:
                     const query = searchInput.value.trim();
                     if (!query) return;
 
-                    document.getElementById('detailsPanel').innerHTML = "🔍 <b>Searching: " + query + "...</b><br/>Fetching summary details and flying to target location...";
+                    document.getElementById('detailsPanel').innerHTML = "≡ƒöì <b>Searching: " + query + "...</b><br/>Fetching summary details and flying to target location...";
 
                     const wikiUrl = 'https://en.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(query);
                     fetch(wikiUrl)
@@ -3563,7 +3349,7 @@ def render_globe_map() -> None:
                                         const lat = parseFloat(geoData[0].lat);
                                         const lon = parseFloat(geoData[0].lon);
 
-                                        document.getElementById('detailsPanel').innerHTML = "📍 <b>" + (wikiData.title || query) + "</b><br/>" + desc;
+                                        document.getElementById('detailsPanel').innerHTML = "≡ƒôì <b>" + (wikiData.title || query) + "</b><br/>" + desc;
 
                                         viewer.camera.flyTo({{
                                             destination: Cesium.Cartesian3.fromDegrees(lon, lat, 25000.0),
@@ -3577,15 +3363,15 @@ def render_globe_map() -> None:
                                             lng: lon
                                         }}, '*');
                                     }} else {{
-                                        document.getElementById('detailsPanel').innerHTML = "📍 <b>" + (wikiData.title || query) + "</b><br/>" + desc + "<br/><span style='color:#ef4444;'>Failed to geocode location coordinates on map.</span>";
+                                        document.getElementById('detailsPanel').innerHTML = "≡ƒôì <b>" + (wikiData.title || query) + "</b><br/>" + desc + "<br/><span style='color:#ef4444;'>Failed to geocode location coordinates on map.</span>";
                                     }}
                                 }})
                                 .catch(err => {{
-                                    document.getElementById('detailsPanel').innerHTML = "📍 <b>" + (wikiData.title || query) + "</b><br/>" + desc;
+                                    document.getElementById('detailsPanel').innerHTML = "≡ƒôì <b>" + (wikiData.title || query) + "</b><br/>" + desc;
                                 }});
                         }})
                         .catch(err => {{
-                            document.getElementById('detailsPanel').innerHTML = "❌ <b>Error</b><br/>Failed to fetch search results.";
+                            document.getElementById('detailsPanel').innerHTML = "Γ¥î <b>Error</b><br/>Failed to fetch search results.";
                         }});
                 }}
 
@@ -3633,9 +3419,9 @@ def render_globe_map() -> None:
         )
 
     with col2:
-        # ── Location Analyzer ──
+        # ΓöÇΓöÇ Location Analyzer ΓöÇΓöÇ
         _card_open()
-        st.markdown("#### 🔬 Location Analyzer")
+        st.markdown("#### ≡ƒö¼ Location Analyzer")
 
         selected_place = st.text_input(
             "Location Name or Custom Coordinates",
@@ -3643,12 +3429,12 @@ def render_globe_map() -> None:
             help="Click a red label on the globe or type a custom place name/coordinates."
         )
 
-        analyze_clicked = st.button("🔍 Analyze Location", use_container_width=True)
+        analyze_clicked = st.button("≡ƒöì Analyze Location", use_container_width=True)
         _card_close()
 
         if analyze_clicked or selected_place:
             _card_open()
-            st.markdown(f"##### 📚 Academic Report: **{selected_place}**")
+            st.markdown(f"##### ≡ƒôÜ Academic Report: **{selected_place}**")
 
             with logo_spinner(f"Retrieving research details for {selected_place}..."):
                 search_query = f"{selected_place} geographical scientific historical facts summary"
@@ -3675,29 +3461,29 @@ def render_globe_map() -> None:
 
 
 # ==============================================================================
-# MODULE 14b — Standalone Weather Forecast (branch of 3D Globe)
+# MODULE 14b ΓÇö Standalone Weather Forecast (branch of 3D Globe)
 # ==============================================================================
 
 def render_weather_forecast() -> None:
-    """⛅ Weather Forecast — live weather and 3-day forecast for any city, with AI insight."""
-    st.markdown("### ⛅ Weather Forecast")
-    st.caption("🌍 Branch of the Interactive 3D Globe · Powered by Open-Meteo (free, no API key required)")
+    """Γ¢à Weather Forecast ΓÇö live weather and 3-day forecast for any city, with AI insight."""
+    st.markdown("### Γ¢à Weather Forecast")
+    st.caption("≡ƒîì Branch of the Interactive 3D Globe ┬╖ Powered by Open-Meteo (free, no API key required)")
 
     import urllib.request
     import urllib.parse
     import json as _json
     import datetime as _dt
 
-    # ── WMO code → emoji + label ──
+    # ΓöÇΓöÇ WMO code ΓåÆ emoji + label ΓöÇΓöÇ
     def wx_icon(code: int) -> str:
-        if code == 0:          return "☀️"
-        if code in (1, 2, 3):  return "⛅"
-        if code in (45, 48):   return "🌫️"
-        if code in (51, 53, 55, 61, 63, 65): return "🌧️"
-        if code in (71, 73, 75): return "❄️"
-        if code in (80, 81, 82): return "🌦️"
-        if code in (95, 96, 99): return "⛈️"
-        return "🌡️"
+        if code == 0:          return "ΓÿÇ∩╕Å"
+        if code in (1, 2, 3):  return "Γ¢à"
+        if code in (45, 48):   return "≡ƒî½∩╕Å"
+        if code in (51, 53, 55, 61, 63, 65): return "≡ƒîº∩╕Å"
+        if code in (71, 73, 75): return "Γ¥ä∩╕Å"
+        if code in (80, 81, 82): return "≡ƒîª∩╕Å"
+        if code in (95, 96, 99): return "Γ¢ê∩╕Å"
+        return "≡ƒîí∩╕Å"
 
     def wx_label(code: int) -> str:
         labels = {0:"Clear sky", 1:"Mainly clear", 2:"Partly cloudy", 3:"Overcast",
@@ -3708,24 +3494,24 @@ def render_weather_forecast() -> None:
                   95:"Thunderstorm", 96:"Thunderstorm w/ hail", 99:"Heavy thunderstorm"}
         return labels.get(code, "Unknown")
 
-    # ── Search bar ──
+    # ΓöÇΓöÇ Search bar ΓöÇΓöÇ
     col_search, col_btn = st.columns([4, 1], gap="small")
     with col_search:
         weather_city = st.text_input(
-            "🏙️ Enter City Name",
+            "≡ƒÅÖ∩╕Å Enter City Name",
             value=st.session_state.get("wx_city", "Kathmandu"),
             key="wf_city_input",
             placeholder="e.g. London, Tokyo, New York, Kathmandu...",
             label_visibility="collapsed"
         )
     with col_btn:
-        get_btn = st.button("🌡️ Get Weather", use_container_width=True, key="wf_get_btn")
+        get_btn = st.button("≡ƒîí∩╕Å Get Weather", use_container_width=True, key="wf_get_btn")
 
     if not (get_btn and weather_city.strip()):
         st.markdown(
             """
             <div style="text-align:center; padding:40px; color:var(--sub); font-size:0.9rem;">
-                🌍 Enter a city name above and click <b>Get Weather</b> to see live conditions
+                ≡ƒîì Enter a city name above and click <b>Get Weather</b> to see live conditions
             </div>
             """,
             unsafe_allow_html=True
@@ -3745,7 +3531,7 @@ def render_weather_forecast() -> None:
                 geo_data = _json.loads(resp.read())
 
             if not geo_data.get("results"):
-                st.error(f"❌ City '{weather_city}' not found. Try a different spelling.")
+                st.error(f"Γ¥î City '{weather_city}' not found. Try a different spelling.")
                 return
 
             r = geo_data["results"][0]
@@ -3778,13 +3564,13 @@ def render_weather_forecast() -> None:
             wind   = cur["wind_speed_10m"]
             wdir   = cur.get("wind_direction_10m", 0)
             precip = cur["precipitation"]
-            press  = cur.get("surface_pressure", "—")
-            vis    = cur.get("visibility", "—")
+            press  = cur.get("surface_pressure", "ΓÇö")
+            vis    = cur.get("visibility", "ΓÇö")
             code   = cur["weather_code"]
             icon   = wx_icon(code)
             label  = wx_label(code)
 
-            # ── Main hero card ──
+            # ΓöÇΓöÇ Main hero card ΓöÇΓöÇ
             st.markdown(
                 f"""
                 <div style="background:linear-gradient(135deg,rgba(0,180,255,0.12),rgba(100,60,255,0.08));
@@ -3793,39 +3579,39 @@ def render_weather_forecast() -> None:
                     <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
                         <div>
                             <div style="font-size:0.78rem; color:var(--sub); letter-spacing:1px; text-transform:uppercase; margin-bottom:4px;">
-                                Live Conditions · {_dt.datetime.now().strftime('%H:%M, %d %b %Y')}
+                                Live Conditions ┬╖ {_dt.datetime.now().strftime('%H:%M, %d %b %Y')}
                             </div>
                             <div style="font-size:1.3rem; font-weight:700; color:var(--accent); margin-bottom:2px;">
-                                📍 {city_name}, {admin}, {country}
+                                ≡ƒôì {city_name}, {admin}, {country}
                             </div>
                             <div style="font-size:0.8rem; color:var(--sub);">
-                                {lat_w:.4f}°N · {lon_w:.4f}°E · {label}
+                                {lat_w:.4f}┬░N ┬╖ {lon_w:.4f}┬░E ┬╖ {label}
                             </div>
                         </div>
                         <div style="text-align:right;">
                             <div style="font-size:4rem; line-height:1;">{icon}</div>
-                            <div style="font-size:2.6rem; font-weight:900; color:var(--text); font-family:'Orbitron',monospace;">{temp}°C</div>
-                            <div style="font-size:0.85rem; color:var(--sub);">Feels like {feels}°C</div>
+                            <div style="font-size:2.6rem; font-weight:900; color:var(--text); font-family:'Orbitron',monospace;">{temp}┬░C</div>
+                            <div style="font-size:0.85rem; color:var(--sub);">Feels like {feels}┬░C</div>
                         </div>
                     </div>
                     <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:22px;">
                         <div style="background:rgba(255,255,255,0.05); border-radius:12px; padding:12px; text-align:center;">
-                            <div style="font-size:1.3rem;">💧</div>
+                            <div style="font-size:1.3rem;">≡ƒÆº</div>
                             <div style="font-size:1rem; font-weight:700; color:var(--text);">{hum}%</div>
                             <div style="font-size:0.68rem; color:var(--sub);">Humidity</div>
                         </div>
                         <div style="background:rgba(255,255,255,0.05); border-radius:12px; padding:12px; text-align:center;">
-                            <div style="font-size:1.3rem;">💨</div>
+                            <div style="font-size:1.3rem;">≡ƒÆ¿</div>
                             <div style="font-size:1rem; font-weight:700; color:var(--text);">{wind} km/h</div>
-                            <div style="font-size:0.68rem; color:var(--sub);">Wind ({wdir}°)</div>
+                            <div style="font-size:0.68rem; color:var(--sub);">Wind ({wdir}┬░)</div>
                         </div>
                         <div style="background:rgba(255,255,255,0.05); border-radius:12px; padding:12px; text-align:center;">
-                            <div style="font-size:1.3rem;">🌧️</div>
+                            <div style="font-size:1.3rem;">≡ƒîº∩╕Å</div>
                             <div style="font-size:1rem; font-weight:700; color:var(--text);">{precip} mm</div>
                             <div style="font-size:0.68rem; color:var(--sub);">Precipitation</div>
                         </div>
                         <div style="background:rgba(255,255,255,0.05); border-radius:12px; padding:12px; text-align:center;">
-                            <div style="font-size:1.3rem;">🔵</div>
+                            <div style="font-size:1.3rem;">≡ƒö╡</div>
                             <div style="font-size:1rem; font-weight:700; color:var(--text);">{press} hPa</div>
                             <div style="font-size:0.68rem; color:var(--sub);">Pressure</div>
                         </div>
@@ -3835,15 +3621,15 @@ def render_weather_forecast() -> None:
                 unsafe_allow_html=True
             )
 
-            # ── 7-Day Forecast ──
-            st.markdown("#### 📅 7-Day Forecast")
+            # ΓöÇΓöÇ 7-Day Forecast ΓöÇΓöÇ
+            st.markdown("#### ≡ƒôà 7-Day Forecast")
             days_count = min(7, len(daily["time"]))
             day_cols = st.columns(days_count)
             for i in range(days_count):
                 day_label = _dt.date.fromisoformat(daily["time"][i]).strftime("%a\n%d %b")
                 dc = daily["weather_code"][i]
-                sunrise = daily.get("sunrise", ["—"])[i].split("T")[-1][:5] if "sunrise" in daily else "—"
-                sunset  = daily.get("sunset", ["—"])[i].split("T")[-1][:5] if "sunset" in daily else "—"
+                sunrise = daily.get("sunrise", ["ΓÇö"])[i].split("T")[-1][:5] if "sunrise" in daily else "ΓÇö"
+                sunset  = daily.get("sunset", ["ΓÇö"])[i].split("T")[-1][:5] if "sunset" in daily else "ΓÇö"
                 uv = daily.get("uv_index_max", [0])[i] if "uv_index_max" in daily else 0
                 with day_cols[i]:
                     is_today = i == 0
@@ -3856,24 +3642,24 @@ def render_weather_forecast() -> None:
                                 {day_label}{'\\n(Today)' if is_today else ''}
                             </div>
                             <div style="font-size:1.8rem; margin:4px 0;">{wx_icon(dc)}</div>
-                            <div style="color:var(--accent); font-weight:700; font-size:0.88rem;">{daily['temperature_2m_max'][i]}°</div>
-                            <div style="color:var(--sub); font-size:0.78rem;">{daily['temperature_2m_min'][i]}°</div>
+                            <div style="color:var(--accent); font-weight:700; font-size:0.88rem;">{daily['temperature_2m_max'][i]}┬░</div>
+                            <div style="color:var(--sub); font-size:0.78rem;">{daily['temperature_2m_min'][i]}┬░</div>
                             <div style="font-size:0.65rem; color:var(--sub); margin-top:6px; line-height:1.6;">
-                                💧{daily['precipitation_sum'][i]}mm<br>
-                                ☀{sunrise}<br>
-                                🌙{sunset}
+                                ≡ƒÆº{daily['precipitation_sum'][i]}mm<br>
+                                ΓÿÇ{sunrise}<br>
+                                ≡ƒîÖ{sunset}
                             </div>
                         </div>
                         """,
                         unsafe_allow_html=True
                     )
 
-            # ── Hourly temperature chart (simple HTML sparkline) ──
+            # ΓöÇΓöÇ Hourly temperature chart (simple HTML sparkline) ΓöÇΓöÇ
             st.markdown("<div style='margin-top:20px;'></div>", unsafe_allow_html=True)
-            st.markdown("#### 📈 Hourly Temperature (Next 24h)")
+            st.markdown("#### ≡ƒôê Hourly Temperature (Next 24h)")
             hourly_temps = wx["hourly"]["temperature_2m"][:24]
             hourly_times = [t.split("T")[1][:5] for t in wx["hourly"]["time"][:24]]
-            chart_data = {"Time": hourly_times, "Temp (°C)": hourly_temps}
+            chart_data = {"Time": hourly_times, "Temp (┬░C)": hourly_temps}
             try:
                 import pandas as pd
                 df = pd.DataFrame(chart_data).set_index("Time")
@@ -3881,14 +3667,14 @@ def render_weather_forecast() -> None:
             except Exception:
                 st.caption("Chart unavailable (pandas not installed).")
 
-            # ── AI Weather Commentary ──
+            # ΓöÇΓöÇ AI Weather Commentary ΓöÇΓöÇ
             st.markdown("<div style='margin-top:20px;'></div>", unsafe_allow_html=True)
             _card_open()
-            st.markdown("#### 🤖 AI Weather Insight")
+            st.markdown("#### ≡ƒñû AI Weather Insight")
             with logo_spinner("Generating AI weather report..."):
                 wx_prompt = (
-                    f"Current weather in {city_name}, {country}: {temp}°C (feels {feels}°C), "
-                    f"humidity {hum}%, wind {wind} km/h ({wdir}°), precipitation {precip}mm, "
+                    f"Current weather in {city_name}, {country}: {temp}┬░C (feels {feels}┬░C), "
+                    f"humidity {hum}%, wind {wind} km/h ({wdir}┬░), precipitation {precip}mm, "
                     f"pressure {press} hPa. Condition: {label}. "
                     f"7-day max temps: {daily['temperature_2m_max'][:7]}. "
                     f"Write a friendly 3-sentence weather summary, mention any notable conditions, "
@@ -3898,24 +3684,24 @@ def render_weather_forecast() -> None:
                 st.markdown(insight)
             _card_close()
 
-            # ── Other cities (if multiple results) ──
+            # ΓöÇΓöÇ Other cities (if multiple results) ΓöÇΓöÇ
             if len(geo_data["results"]) > 1:
                 st.markdown("<div style='margin-top:12px;'></div>", unsafe_allow_html=True)
-                with st.expander("📍 Other matching cities"):
+                with st.expander("≡ƒôì Other matching cities"):
                     for alt in geo_data["results"][1:]:
                         st.markdown(
-                            f"**{alt['name']}** — {alt.get('admin1','')}, {alt.get('country','')} "
-                            f"({alt['latitude']:.3f}°, {alt['longitude']:.3f}°)"
+                            f"**{alt['name']}** ΓÇö {alt.get('admin1','')}, {alt.get('country','')} "
+                            f"({alt['latitude']:.3f}┬░, {alt['longitude']:.3f}┬░)"
                         )
 
         except Exception as err:
-            st.error(f"❌ Weather fetch failed: {err}")
+            st.error(f"Γ¥î Weather fetch failed: {err}")
 
 
 
 
 
-        get_weather = st.button("🌡️ Get Weather", use_container_width=True, key="get_weather_btn")
+        get_weather = st.button("≡ƒîí∩╕Å Get Weather", use_container_width=True, key="get_weather_btn")
 
         if get_weather and weather_city.strip():
             with st.spinner(f"Fetching weather for {weather_city}..."):
@@ -3933,7 +3719,7 @@ def render_weather_forecast() -> None:
                         geo_data = _json.loads(resp.read())
 
                     if not geo_data.get("results"):
-                        st.error(f"❌ City '{weather_city}' not found.")
+                        st.error(f"Γ¥î City '{weather_city}' not found.")
                     else:
                         r = geo_data["results"][0]
                         lat_w, lon_w = r["latitude"], r["longitude"]
@@ -3956,16 +3742,16 @@ def render_weather_forecast() -> None:
                         cur = wx["current"]
                         daily = wx["daily"]
 
-                        # WMO weather code → emoji
+                        # WMO weather code ΓåÆ emoji
                         def wx_icon(code):
-                            if code == 0: return "☀️"
-                            if code in (1, 2, 3): return "⛅"
-                            if code in (45, 48): return "🌫️"
-                            if code in (51, 53, 55, 61, 63, 65): return "🌧️"
-                            if code in (71, 73, 75): return "❄️"
-                            if code in (80, 81, 82): return "🌦️"
-                            if code in (95, 96, 99): return "⛈️"
-                            return "🌡️"
+                            if code == 0: return "ΓÿÇ∩╕Å"
+                            if code in (1, 2, 3): return "Γ¢à"
+                            if code in (45, 48): return "≡ƒî½∩╕Å"
+                            if code in (51, 53, 55, 61, 63, 65): return "≡ƒîº∩╕Å"
+                            if code in (71, 73, 75): return "Γ¥ä∩╕Å"
+                            if code in (80, 81, 82): return "≡ƒîª∩╕Å"
+                            if code in (95, 96, 99): return "Γ¢ê∩╕Å"
+                            return "≡ƒîí∩╕Å"
 
                         temp = cur["temperature_2m"]
                         feels = cur["apparent_temperature"]
@@ -3984,12 +3770,12 @@ def render_weather_forecast() -> None:
                                     {r['name']}, {admin}, {country}
                                 </div>
                                 <div style="text-align:center; font-size:2rem; font-weight:900;
-                                            color:var(--text); margin-bottom:8px;">{temp}°C</div>
+                                            color:var(--text); margin-bottom:8px;">{temp}┬░C</div>
                                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:0.78rem; color:var(--sub);">
-                                    <div>🌡️ Feels like: <b style="color:var(--text);">{feels}°C</b></div>
-                                    <div>💧 Humidity: <b style="color:var(--text);">{hum}%</b></div>
-                                    <div>💨 Wind: <b style="color:var(--text);">{wind} km/h</b></div>
-                                    <div>🌧️ Precip: <b style="color:var(--text);">{precip} mm</b></div>
+                                    <div>≡ƒîí∩╕Å Feels like: <b style="color:var(--text);">{feels}┬░C</b></div>
+                                    <div>≡ƒÆº Humidity: <b style="color:var(--text);">{hum}%</b></div>
+                                    <div>≡ƒÆ¿ Wind: <b style="color:var(--text);">{wind} km/h</b></div>
+                                    <div>≡ƒîº∩╕Å Precip: <b style="color:var(--text);">{precip} mm</b></div>
                                 </div>
                             </div>
                             """,
@@ -3997,7 +3783,7 @@ def render_weather_forecast() -> None:
                         )
 
                         # 3-day forecast
-                        st.markdown("**📅 3-Day Forecast**")
+                        st.markdown("**≡ƒôà 3-Day Forecast**")
                         import datetime as _dt
                         days = daily["time"][1:4]
                         max_t = daily["temperature_2m_max"][1:4]
@@ -4014,10 +3800,10 @@ def render_weather_forecast() -> None:
                                         border-radius:10px; padding:10px 8px; text-align:center; font-size:0.78rem;">
                                 <div style="font-size:0.7rem; color:var(--sub); margin-bottom:4px;">{day_label}</div>
                                 <div style="font-size:1.6rem;">{wx_icon(codes[i])}</div>
-                                <div style="color:var(--accent); font-weight:700;">{max_t[i]}°C</div>
-                                <div style="color:var(--sub);">{min_t[i]}°C</div>
+                                <div style="color:var(--accent); font-weight:700;">{max_t[i]}┬░C</div>
+                                <div style="color:var(--sub);">{min_t[i]}┬░C</div>
                                 <div style="color:var(--sub); font-size:0.68rem; margin-top:4px;">
-                                    💧{precips[i]}mm 💨{winds[i]}km/h
+                                    ≡ƒÆº{precips[i]}mm ≡ƒÆ¿{winds[i]}km/h
                                 </div>
                             </div>
                             """
@@ -4027,21 +3813,21 @@ def render_weather_forecast() -> None:
                         # AI weather commentary
                         with logo_spinner("Generating AI weather insight..."):
                             wx_prompt = (
-                                f"The current weather in {r['name']}, {country} is {temp}°C (feels like {feels}°C), "
+                                f"The current weather in {r['name']}, {country} is {temp}┬░C (feels like {feels}┬░C), "
                                 f"humidity {hum}%, wind {wind} km/h, precipitation {precip}mm. "
                                 f"Give a 2-sentence friendly weather summary and one practical tip for students."
                             )
                             wx_insight = groq_chat(wx_prompt, system="You are a helpful meteorology assistant.")
-                            st.info(f"🤖 **AI Insight:** {wx_insight}")
+                            st.info(f"≡ƒñû **AI Insight:** {wx_insight}")
 
                 except Exception as wx_err:
-                    st.error(f"❌ Weather fetch failed: {wx_err}")
+                    st.error(f"Γ¥î Weather fetch failed: {wx_err}")
 
         _card_close()
 
 
         _card_open()
-        st.markdown("#### 🗺️ 3D Globe Viewer (Drag to rotate, scroll to zoom)")
+        st.markdown("#### ≡ƒù║∩╕Å 3D Globe Viewer (Drag to rotate, scroll to zoom)")
         
         # Predefined places of academic/scientific interest
         PREDEFINED_PLACES = {
@@ -4150,7 +3936,7 @@ def render_weather_forecast() -> None:
                  <button id="mapSearchBtn">Search</button>
             </div>
             <div id="detailsPanel">
-                🌍 <b>Interactive 3D Globe</b><br/>
+                ≡ƒîì <b>Interactive 3D Globe</b><br/>
                 Click any marker or any place on the sphere to fly to it and view historical/geographical details here.
             </div>
         </div>
@@ -4216,7 +4002,7 @@ def render_weather_forecast() -> None:
                             "CERN (Hadron Collider)": "World's largest particle physics laboratory near Geneva. Famous for the Large Hadron Collider (LHC) and discovering the Higgs Boson."
                         }};
                         const desc = descMap[name] || "Famous academic and geographic site.";
-                        document.getElementById('detailsPanel').innerHTML = "📍 <b>" + name + "</b><br/>" + desc;
+                        document.getElementById('detailsPanel').innerHTML = "≡ƒôì <b>" + name + "</b><br/>" + desc;
                         
                         const cartographic = Cesium.Ellipsoid.WGS84.cartesianToCartographic(entity.position.getValue(viewer.clock.currentTime));
                         const lat = Cesium.Math.toDegrees(cartographic.latitude);
@@ -4240,7 +4026,7 @@ def render_weather_forecast() -> None:
                         const lng = Cesium.Math.toDegrees(cartographic.longitude);
                         const coordStr = lat.toFixed(4) + ', ' + lng.toFixed(4);
                         
-                        document.getElementById('detailsPanel').innerHTML = "📍 <b>Coordinates: " + coordStr + "</b><br/>Click 'Analyze Location' in the sidebar to search detailed historical and geographical knowledge via Groq & Tavily AI.";
+                        document.getElementById('detailsPanel').innerHTML = "≡ƒôì <b>Coordinates: " + coordStr + "</b><br/>Click 'Analyze Location' in the sidebar to search detailed historical and geographical knowledge via Groq & Tavily AI.";
                         
                         window.parent.postMessage({{
                             type: 'globe_click',
@@ -4259,7 +4045,7 @@ def render_weather_forecast() -> None:
                     const query = searchInput.value.trim();
                     if (!query) return;
                     
-                    document.getElementById('detailsPanel').innerHTML = "🔍 <b>Searching: " + query + "...</b><br/>Fetching summary details and flying to target location...";
+                    document.getElementById('detailsPanel').innerHTML = "≡ƒöì <b>Searching: " + query + "...</b><br/>Fetching summary details and flying to target location...";
                     
                     const wikiUrl = 'https://en.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(query);
                     fetch(wikiUrl)
@@ -4278,7 +4064,7 @@ def render_weather_forecast() -> None:
                                         const lat = parseFloat(geoData[0].lat);
                                         const lon = parseFloat(geoData[0].lon);
                                         
-                                        document.getElementById('detailsPanel').innerHTML = "📍 <b>" + (wikiData.title || query) + "</b><br/>" + desc;
+                                        document.getElementById('detailsPanel').innerHTML = "≡ƒôì <b>" + (wikiData.title || query) + "</b><br/>" + desc;
                                         
                                         viewer.camera.flyTo({{
                                             destination: Cesium.Cartesian3.fromDegrees(lon, lat, 25000.0),
@@ -4292,15 +4078,15 @@ def render_weather_forecast() -> None:
                                             lng: lon
                                         }}, '*');
                                     }} else {{
-                                        document.getElementById('detailsPanel').innerHTML = "📍 <b>" + (wikiData.title || query) + "</b><br/>" + desc + "<br/><span style='color:#ef4444;'>Failed to geocode location coordinates on map.</span>";
+                                        document.getElementById('detailsPanel').innerHTML = "≡ƒôì <b>" + (wikiData.title || query) + "</b><br/>" + desc + "<br/><span style='color:#ef4444;'>Failed to geocode location coordinates on map.</span>";
                                     }}
                                 }})
                                 .catch(err => {{
-                                    document.getElementById('detailsPanel').innerHTML = "📍 <b>" + (wikiData.title || query) + "</b><br/>" + desc;
+                                    document.getElementById('detailsPanel').innerHTML = "≡ƒôì <b>" + (wikiData.title || query) + "</b><br/>" + desc;
                                 }});
                         }})
                         .catch(err => {{
-                            document.getElementById('detailsPanel').innerHTML = "❌ <b>Error</b><br/>Failed to fetch search results.";
+                            document.getElementById('detailsPanel').innerHTML = "Γ¥î <b>Error</b><br/>Failed to fetch search results.";
                         }});
                 }}
 
@@ -4320,22 +4106,22 @@ def render_weather_forecast() -> None:
         _card_close()
 
 # ==============================================================================
-# MODULE 15 — Cyber Security Panel
+# MODULE 15 ΓÇö Cyber Security Panel
 # ==============================================================================
 
 def render_cyber_panel() -> None:
     """Cyber Security Panel - Analyze Spam, Phishing, Malware headers, and Threat Feeds."""
-    st.markdown("### 🛡️ Cyber Security Threat & File Analysis Panel")
+    st.markdown("### ≡ƒ¢í∩╕Å Cyber Security Threat & File Analysis Panel")
     
     tab_email, tab_malware, tab_feeds = st.tabs([
-        "📧 Email & Link Safety",
-        "🪱 Malware & File Diagnostics",
-        "📡 Live Threat Intelligence"
+        "≡ƒôº Email & Link Safety",
+        "≡ƒ¬▒ Malware & File Diagnostics",
+        "≡ƒôí Live Threat Intelligence"
     ])
     
     with tab_email:
         _card_open()
-        st.markdown("#### 📧 Email Header / Text / Link Reputation Analyzer")
+        st.markdown("#### ≡ƒôº Email Header / Text / Link Reputation Analyzer")
         
         email_content = st.text_area(
             "Paste Email Content (Subject, Body, Headers, or Links)",
@@ -4344,7 +4130,7 @@ def render_cyber_panel() -> None:
             key="cyber_email_text"
         )
         
-        analyze_email = st.button("🛡️ Analyze Threat Vector", key="btn_analyze_email")
+        analyze_email = st.button("≡ƒ¢í∩╕Å Analyze Threat Vector", key="btn_analyze_email")
         _card_close()
         
         if analyze_email:
@@ -4352,7 +4138,7 @@ def render_cyber_panel() -> None:
                 st.warning("Please paste some email content or links to analyze.")
             else:
                 _card_open()
-                st.markdown("##### 🔍 Cyber Analyst Report")
+                st.markdown("##### ≡ƒöì Cyber Analyst Report")
                 
                 with logo_spinner("Running threat model analysis..."):
                     import re
@@ -4379,7 +4165,7 @@ def render_cyber_panel() -> None:
                 
     with tab_malware:
         _card_open()
-        st.markdown("#### 🪱 File Structure & Malware Header Integrity Diagnostics")
+        st.markdown("#### ≡ƒ¬▒ File Structure & Malware Header Integrity Diagnostics")
         st.info("Upload any file to analyze its headers (Magic Bytes) for integrity and potential masquerading.")
         
         uploaded_file = st.file_uploader(
@@ -4433,22 +4219,22 @@ def render_cyber_panel() -> None:
                     prompt,
                     system="You are a Malware Analysis specialist. Provide a brief, professional integrity report."
                 )
-                st.markdown("##### 🧬 File Integrity Report")
+                st.markdown("##### ≡ƒº¼ File Integrity Report")
                 st.markdown(analysis)
             _card_close()
             
     with tab_feeds:
         _card_open()
-        st.markdown("#### 📡 Global Cyber Security Threats & Vulnerability Feed")
+        st.markdown("#### ≡ƒôí Global Cyber Security Threats & Vulnerability Feed")
         st.info("Fetches real-time security alerts, CVE releases, and cyber attack reports using Tavily Search.")
         
         search_keyword = st.text_input("Vulnerability / Threat Keyword Search", value="Recent ransomware campaigns zero-day exploits")
-        fetch_clicked = st.button("📡 Fetch Threat Intel Feed", use_container_width=True)
+        fetch_clicked = st.button("≡ƒôí Fetch Threat Intel Feed", use_container_width=True)
         _card_close()
         
         if fetch_clicked or search_keyword:
             _card_open()
-            st.markdown(f"##### 📢 Intel Report for: *{search_keyword}*")
+            st.markdown(f"##### ≡ƒôó Intel Report for: *{search_keyword}*")
             
             with logo_spinner(f"Scanning web for threat intel on '{search_keyword}'..."):
                 results = duckduckgo_search(f"{search_keyword} security threat alert news cve")
@@ -4462,7 +4248,7 @@ def render_cyber_panel() -> None:
                             f"Source: {res['link']}\n"
                             f"Intel Summary: {res['snippet']}\n"
                         )
-                        st.markdown(f"🔗 [{res['title']}]({res['link']})")
+                        st.markdown(f"≡ƒöù [{res['title']}]({res['link']})")
                         st.write(res['snippet'])
                         st.markdown("---")
                         
@@ -4471,7 +4257,7 @@ def render_cyber_panel() -> None:
                         f"Intel Context:\n{intel_context}\n\nProvide a concise executive threat brief summarizing the main risks, active CVEs, and recommended protection steps.",
                         system="You are a Cyber Threat Intelligence Specialist. Provide a clear, actionable brief."
                     )
-                    st.markdown("##### 📝 Threat Intelligence Executive Brief")
+                    st.markdown("##### ≡ƒô¥ Threat Intelligence Executive Brief")
                     st.markdown(report)
             _card_close()
 
@@ -4485,10 +4271,10 @@ def render_cyber_panel() -> None:
 
 def render_presentation_generator() -> None:
     """AI Presentation Generator - Create beautiful, downloadable PowerPoint slides from any prompt."""
-    st.markdown("### 🎞️ AI Presentation Generator")
+    st.markdown("### ≡ƒÄ₧∩╕Å AI Presentation Generator")
     st.markdown(
         '<div style="color:var(--sub); font-size:0.88rem; margin-bottom:16px;">'
-        "Type a topic or detailed description — EduSphere AI will build a stunning, fully-coloured "
+        "Type a topic or detailed description ΓÇö EduSphere AI will build a stunning, fully-coloured "
         "PowerPoint presentation with high-contrast text containers that solve readability issues on premium wave backgrounds."
         "</div>",
         unsafe_allow_html=True,
@@ -4498,27 +4284,27 @@ def render_presentation_generator() -> None:
 
     with col_right:
         _card_open()
-        st.markdown("#### ⚙️ Slide Options")
+        st.markdown("#### ΓÜÖ∩╕Å Slide Options")
         slide_count = st.slider("Number of Content Slides", min_value=4, max_value=14, value=7)
-        include_chart = st.checkbox("📊 Include Chart Slide", value=True)
-        include_table = st.checkbox("📋 Include Data Table Slide", value=True)
+        include_chart = st.checkbox("≡ƒôè Include Chart Slide", value=True)
+        include_table = st.checkbox("≡ƒôï Include Data Table Slide", value=True)
         theme_choice = st.selectbox(
-            "🎨 Presentation Design & Theme",
+            "≡ƒÄ¿ Presentation Design & Theme",
             [
-                "🌊 Rhythm Blue Wave (Premium)",
-                "🌌 Deep Space (Dark)",
-                "🌅 Sunrise (Orange)",
-                "🌿 Nature (Green)",
-                "💜 Neon Violet",
-                "🔷 Corporate Blue",
+                "≡ƒîè Rhythm Blue Wave (Premium)",
+                "≡ƒîî Deep Space (Dark)",
+                "≡ƒîà Sunrise (Orange)",
+                "≡ƒî┐ Nature (Green)",
+                "≡ƒÆ£ Neon Violet",
+                "≡ƒö╖ Corporate Blue",
             ],
         )
         st.markdown("---")
         st.markdown(
             '<div style="font-size:0.76rem; color:var(--sub);">'
-            "✨ Dynamic high-contrast glassmorphism stencils<br>"
-            "💧 All slides include <b>EduSphere AI</b> watermark<br>"
-            "📥 Download as <b>.pptx</b> — opens in MS PowerPoint, Google Slides, LibreOffice"
+            "Γ£¿ Dynamic high-contrast glassmorphism stencils<br>"
+            "≡ƒÆº All slides include <b>EduSphere AI</b> watermark<br>"
+            "≡ƒôÑ Download as <b>.pptx</b> ΓÇö opens in MS PowerPoint, Google Slides, LibreOffice"
             "</div>",
             unsafe_allow_html=True,
         )
@@ -4526,73 +4312,73 @@ def render_presentation_generator() -> None:
 
     with col_left:
         _card_open()
-        st.markdown("#### 📝 Describe Your Presentation")
+        st.markdown("#### ≡ƒô¥ Describe Your Presentation")
         user_topic = st.text_area(
             "Prompt",
             placeholder=(
                 "Examples:\n"
-                "• Make a presentation about climate change and its global impact\n"
-                "• Slides on Machine Learning: types, applications, and future\n"
-                "• Business pitch for a food delivery startup in Nepal\n"
-                "• History of Nepal — geography, culture, achievements"
+                "ΓÇó Make a presentation about climate change and its global impact\n"
+                "ΓÇó Slides on Machine Learning: types, applications, and future\n"
+                "ΓÇó Business pitch for a food delivery startup in Nepal\n"
+                "ΓÇó History of Nepal ΓÇö geography, culture, achievements"
             ),
             height=160,
             label_visibility="collapsed",
         )
-        gen_btn = st.button("✨ Generate Presentation", use_container_width=True, type="primary")
+        gen_btn = st.button("Γ£¿ Generate Presentation", use_container_width=True, type="primary")
         _card_close()
 
     if gen_btn and user_topic.strip():
-        with logo_spinner("🤖 EduSphere AI is designing your presentation…"):
+        with logo_spinner("≡ƒñû EduSphere AI is designing your presentationΓÇª"):
             _generate_and_show_ppt(
                 user_topic.strip(), slide_count, include_chart, include_table, theme_choice
             )
     elif gen_btn:
-        st.warning("⚠️ Please enter a topic or description first.")
+        st.warning("ΓÜá∩╕Å Please enter a topic or description first.")
 
 
-# ─── PPT helpers ──────────────────────────────────────────────────────────────
+# ΓöÇΓöÇΓöÇ PPT helpers ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 
 def _ppt_theme_colors(theme_choice: str) -> dict:
     themes = {
-        "🌊 Rhythm Blue Wave (Premium)": dict(
+        "≡ƒîè Rhythm Blue Wave (Premium)": dict(
             bg_title=(8, 10, 36), bg_content=(12, 14, 45), bg_alt=(16, 18, 55),
             accent=(0, 240, 255), accent2=(236, 72, 153),
             text=(248, 250, 252), sub_text=(148, 163, 184),
             chart_colors=["#00f0ff", "#ec4899", "#a855f7", "#10b981", "#fb923c", "#38bdf8"],
         ),
-        "🌌 Deep Space (Dark)": dict(
+        "≡ƒîî Deep Space (Dark)": dict(
             bg_title=(5, 5, 20), bg_content=(10, 12, 35), bg_alt=(15, 10, 40),
             accent=(0, 180, 255), accent2=(139, 92, 246),
             text=(240, 248, 255), sub_text=(180, 200, 230),
             chart_colors=["#00b4ff", "#8b5cf6", "#ec4899", "#10b981", "#f97316", "#f59e0b"],
         ),
-        "🌅 Sunrise (Orange)": dict(
+        "≡ƒîà Sunrise (Orange)": dict(
             bg_title=(20, 10, 5), bg_content=(35, 18, 8), bg_alt=(45, 20, 5),
             accent=(249, 115, 22), accent2=(251, 191, 36),
             text=(255, 250, 235), sub_text=(220, 180, 130),
             chart_colors=["#f97316", "#fbbf24", "#ef4444", "#ec4899", "#8b5cf6", "#06b6d4"],
         ),
-        "🌿 Nature (Green)": dict(
+        "≡ƒî┐ Nature (Green)": dict(
             bg_title=(5, 18, 10), bg_content=(8, 28, 15), bg_alt=(10, 35, 20),
             accent=(52, 211, 153), accent2=(16, 185, 129),
             text=(236, 255, 244), sub_text=(160, 220, 180),
             chart_colors=["#34d399", "#10b981", "#06b6d4", "#84cc16", "#fbbf24", "#f97316"],
         ),
-        "💜 Neon Violet": dict(
+        "≡ƒÆ£ Neon Violet": dict(
             bg_title=(8, 5, 20), bg_content=(12, 8, 30), bg_alt=(18, 10, 40),
             accent=(168, 85, 247), accent2=(236, 72, 153),
             text=(250, 245, 255), sub_text=(200, 170, 240),
             chart_colors=["#a855f7", "#ec4899", "#8b5cf6", "#f43f5e", "#06b6d4", "#10b981"],
         ),
-        "🔷 Corporate Blue": dict(
+        "≡ƒö╖ Corporate Blue": dict(
             bg_title=(5, 15, 40), bg_content=(8, 22, 60), bg_alt=(12, 30, 75),
             accent=(59, 130, 246), accent2=(14, 165, 233),
             text=(240, 246, 255), sub_text=(170, 200, 240),
             chart_colors=["#3b82f6", "#0ea5e9", "#6366f1", "#8b5cf6", "#10b981", "#f97316"],
         ),
     }
-    return themes.get(theme_choice, themes["🌌 Deep Space (Dark)"])
+    return themes.get(theme_choice, themes["≡ƒîî Deep Space (Dark)"])
 
 
 def _wm(slide, _tc):
@@ -4678,7 +4464,7 @@ def _generate_and_show_ppt(
         matplotlib.use("Agg")
         import matplotlib.pyplot as plt
     except ImportError as exc:
-        st.error(f"❌ Missing library: {exc}. Run `pip install python-pptx matplotlib`")
+        st.error(f"Γ¥î Missing library: {exc}. Run `pip install python-pptx matplotlib`")
         return
 
     tc = _ppt_theme_colors(theme_choice)
@@ -4694,7 +4480,7 @@ def _generate_and_show_ppt(
     CENTER = PP_ALIGN.CENTER
     LEFT = PP_ALIGN.LEFT
 
-    # ── AI: slide outline with extra bullet point details ────────────────────────
+    # ΓöÇΓöÇ AI: slide outline with extra bullet point details ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     ai_prompt = (
         f'Create a high-quality PowerPoint presentation outline for: "{topic}"\n'
         f"Generate exactly {slide_count} slides.\n"
@@ -4724,7 +4510,7 @@ def _generate_and_show_ppt(
             for i in range(slide_count)
         ]
 
-    # ── AI: chart data ─────────────────────────────────────────────────────────
+    # ΓöÇΓöÇ AI: chart data ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     chart_data = None
     if include_chart:
         try:
@@ -4742,7 +4528,7 @@ def _generate_and_show_ppt(
                 "values": [65, 82, 55, 90, 73],
             }
 
-    # ── AI: table data ─────────────────────────────────────────────────────────
+    # ΓöÇΓöÇ AI: table data ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     table_data = None
     if include_table:
         try:
@@ -4766,7 +4552,7 @@ def _generate_and_show_ppt(
                 ],
             }
 
-    # ── Build PowerPoint ───────────────────────────────────────────────────────
+    # ΓöÇΓöÇ Build PowerPoint ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     prs = Presentation()
     prs.slide_width = Inches(13.33)
     prs.slide_height = Inches(7.5)
@@ -4777,7 +4563,7 @@ def _generate_and_show_ppt(
 
     # Helper function to place the premium blue wave background image
     def apply_slide_bg(slide, bg_color):
-        if theme_choice == "🌊 Rhythm Blue Wave (Premium)" and has_custom_bg:
+        if theme_choice == "≡ƒîè Rhythm Blue Wave (Premium)" and has_custom_bg:
             slide.shapes.add_picture(bg_img_path, Inches(0), Inches(0), Inches(13.33), Inches(7.5))
         else:
             _set_bg(slide, bg_color)
@@ -4798,7 +4584,7 @@ def _generate_and_show_ppt(
     _rect(sl, 0, 0.09, 0.09, 7.41, A2)         # left strip
     _tb(sl, topic.upper(), 0.5, 2.3, 12.33, 1.6, 38, bold=True, color=TX, align=CENTER)
     _rect(sl, 4.5, 3.95, 4.3, 0.05, A)
-    _tb(sl, "Powered by EduSphere AI  ·  Premium Presentation Studio", 0.5, 4.15, 12.33, 0.55,
+    _tb(sl, "Powered by EduSphere AI  ┬╖  Premium Presentation Studio", 0.5, 4.15, 12.33, 0.55,
         15, italic=True, color=SB, align=CENTER)
     _tb(sl, str(dtm.datetime.now().year), 0.5, 6.6, 12.33, 0.4, 11, color=SB, align=CENTER, italic=True)
     _wm(sl, tc)
@@ -4854,7 +4640,7 @@ def _generate_and_show_ppt(
                 detail_text = pt
 
             # Bullet Indicator icon
-            _tb(sl, "⚡", 0.58, top_pos, 0.4, 0.4, 13, bold=True, color=A)
+            _tb(sl, "ΓÜí", 0.58, top_pos, 0.4, 0.4, 13, bold=True, color=A)
             
             # Content textbox with header in accent, body in white
             tb_box = sl.shapes.add_textbox(Inches(0.95), Inches(top_pos - 0.05), Inches(11.8), Inches(1.1))
@@ -4893,7 +4679,7 @@ def _generate_and_show_ppt(
         title_backing.fill.fore_color.rgb = RGBColor(12, 15, 35)
         title_backing.line.fill.background()
 
-        _tb(sl, "📊 " + chart_data.get("title", "Data Visualization"),
+        _tb(sl, "≡ƒôè " + chart_data.get("title", "Data Visualization"),
             0.35, 0.14, 12.8, 0.78, 24, bold=True, color=A)
         _rect(sl, 0.35, 0.85, 4.5, 0.04, A2)
 
@@ -4950,7 +4736,7 @@ def _generate_and_show_ppt(
         title_backing.fill.fore_color.rgb = RGBColor(12, 15, 35)
         title_backing.line.fill.background()
 
-        _tb(sl, "📋 " + table_data.get("title", "Data Overview"),
+        _tb(sl, "≡ƒôï " + table_data.get("title", "Data Overview"),
             0.35, 0.14, 12.8, 0.78, 24, bold=True, color=A)
         _rect(sl, 0.35, 0.85, 4.5, 0.04, A2)
         headers = table_data.get("headers", [])
@@ -5016,13 +4802,13 @@ def _generate_and_show_ppt(
     close_card.line.color.rgb = RGBColor(*A2)
     close_card.line.width = Pt(1.5)
 
-    _tb(sl, "🙏 Thank You", 0.5, 2.3, 12.3, 1.0, 42, bold=True, color=A, align=CENTER)
+    _tb(sl, "≡ƒÖÅ Thank You", 0.5, 2.3, 12.3, 1.0, 42, bold=True, color=A, align=CENTER)
     _rect(sl, 4.5, 3.55, 4.3, 0.05, A2)
     _tb(sl, topic, 0.5, 3.65, 12.3, 0.6, 18, italic=True, color=SB, align=CENTER)
     _tb(sl, "Powered by EduSphere AI", 0.5, 4.5, 12.3, 0.45, 13, italic=True, color=SB, align=CENTER)
     _wm(sl, tc)
 
-    # ── Save & download ────────────────────────────────────────────────────────
+    # ΓöÇΓöÇ Save & download ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
     ppt_buf = io.BytesIO()
     prs.save(ppt_buf)
     ppt_buf.seek(0)
@@ -5043,14 +4829,14 @@ def _generate_and_show_ppt(
         'Your Presentation is Ready!'
         '</div>'
         '<div style="font-size:0.85rem; color:var(--sub);">'
-        '{total} slides &nbsp;·&nbsp; {theme_choice} theme &nbsp;·&nbsp; EduSphere AI watermark on every slide'
+        '{total} slides &nbsp;┬╖&nbsp; {theme_choice} theme &nbsp;┬╖&nbsp; EduSphere AI watermark on every slide'
         '</div>'
         '</div>'.format(total=total, theme_choice=theme_choice),
         unsafe_allow_html=True,
     )
     safe = "".join(c if c.isalnum() or c in " _-" else "_" for c in topic[:40]).strip().replace(" ", "_")
     st.download_button(
-        label="📥 Download Presentation (.pptx)",
+        label="≡ƒôÑ Download Presentation (.pptx)",
         data=ppt_buf.getvalue(),
         file_name=f"EduSphere_{safe}.pptx",
         mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
@@ -5059,13 +4845,13 @@ def _generate_and_show_ppt(
     )
 
     # Slide structure preview
-    st.markdown("#### 📋 Slide Structure Preview")
-    all_titles = ["🎯 Title Slide"] + [s.get("title", f"Slide {i+1}") for i, s in enumerate(slides_data)]
+    st.markdown("#### ≡ƒôï Slide Structure Preview")
+    all_titles = ["≡ƒÄ» Title Slide"] + [s.get("title", f"Slide {i+1}") for i, s in enumerate(slides_data)]
     if include_chart and chart_data:
-        all_titles.append("📊 Chart Slide")
+        all_titles.append("≡ƒôè Chart Slide")
     if include_table and table_data:
-        all_titles.append("📋 Table Slide")
-    all_titles.append("🙏 Thank You")
+        all_titles.append("≡ƒôï Table Slide")
+    all_titles.append("≡ƒÖÅ Thank You")
 
     pcols = st.columns(min(4, len(all_titles)))
     for i, ttl in enumerate(all_titles[:16]):
